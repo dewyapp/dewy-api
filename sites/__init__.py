@@ -1,5 +1,5 @@
 from flask import Blueprint
-from . import base
+from . import base, modules
 
 sites = Blueprint('sites', __name__)
 sites.add_url_rule('/', 'sites', base.sites)
