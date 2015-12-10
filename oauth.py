@@ -1,3 +1,4 @@
+from couchbase.bucket import Bucket
 from flask import Blueprint
 from flask import session, request
 from flask_oauthlib.provider import OAuth2Provider
@@ -6,6 +7,7 @@ from flask_oauthlib.provider import OAuth2Provider
 
 oauth = OAuth2Provider()
 blueprint = Blueprint('oauth', __name__)
+accounts_db = Bucket('couchbase://192.168.99.100/dewy_auth')
 
 def current_user():
 	if 'id' in session:
