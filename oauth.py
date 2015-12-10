@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from couchbase.bucket import Bucket
 from flask import Blueprint
 from flask import session, request
@@ -20,11 +22,21 @@ def load_client(client_id):
 
 @oauth.grantgetter
 def load_grant(client_id, code):
-	pass
+	return accounts_db.get('%s/grant/%s' % (client_id, code))
 
 @oauth.grantsetter
 def save_grant(client_id, code, request, *args, **kwargs):
-	pass
+	expires = datetime.utcnow() + timedelta(seconds=100)
+	grant = {
+		'client_id': client_id,
+		'code': code['code'],
+		'redirect_uri': request.redirect_uri,
+		'scopes': ' '.join(request.scopes),
+		'user': current_user(),
+		'expires': 'expires'
+	}
+	accounts_db.insert('%s/grant/%s' % (client_id, code['code']), grant)
+	return grant
 
 @oauth.tokengetter
 def load_token(access_token=None, refresh_token=None):
