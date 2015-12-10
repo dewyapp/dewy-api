@@ -16,7 +16,7 @@ def current_user():
 
 @oauth.clientgetter
 def load_client(client_id):
-	pass
+	return accounts_db.get(client_id)
 
 @oauth.grantgetter
 def load_grant(client_id, code):
