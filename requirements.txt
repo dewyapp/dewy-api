@@ -1,3 +1,4 @@
+couchbase==2.0.6
 Flask==0.10.1
 Flask-OAuthlib==0.9.1
 itsdangerous==0.24
