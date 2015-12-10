@@ -1,4 +1,5 @@
 from flask import Blueprint
+from flask import session, request
 from flask_oauthlib.provider import OAuth2Provider
 
 # Based on https://github.com/lepture/example-oauth2-server/blob/master/app.py
@@ -6,6 +7,10 @@ from flask_oauthlib.provider import OAuth2Provider
 oauth = OAuth2Provider()
 blueprint = Blueprint('oauth', __name__)
 
+def current_user():
+	if 'id' in session:
+		return session['id']
+	return None 
 
 @oauth.clientgetter
 def load_client(client_id):
