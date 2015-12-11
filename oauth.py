@@ -18,7 +18,18 @@ def current_user():
 
 @oauth.clientgetter
 def load_client(client_id):
-	return auth_db.get(client_id)
+	# Load a client document from auth_db. The document key
+	# is client_id prefixed with 'c/'.
+	key = 'c/%s' % client_id
+	client = None
+
+	try:
+		res = auth_db.get(key)
+		client = res.value
+	except:
+		pass
+
+	return client
 
 @oauth.grantgetter
 def load_grant(client_id, code):
