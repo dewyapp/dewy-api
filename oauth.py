@@ -48,16 +48,22 @@ def load_grant(client_id, code):
 
 @oauth.grantsetter
 def save_grant(client_id, code, request, *args, **kwargs):
-	expires = datetime.utcnow() + timedelta(seconds=100)
+	key = 'c/%s/g/%s' % (client_id, code['code'])
+	ttl = 600
 	grant = {
 		'client_id': client_id,
+		'user_id': session['id'],
 		'code': code['code'],
 		'redirect_uri': request.redirect_uri,
-		'scopes': ' '.join(request.scopes),
-		'user': current_user(),
-		'expires': 'expires'
+		'scopes': ' '.join(request.scopes)
 	}
-	auth_db.insert('%s/grant/%s' % (client_id, code['code']), grant)
+
+	try:
+		res = auth_db.insert(key, grant, ttl=ttl)
+		grant = res.value
+	except:
+		grant = None
+
 	return grant
 
 @oauth.tokengetter
