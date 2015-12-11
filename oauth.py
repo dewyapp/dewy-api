@@ -9,7 +9,7 @@ from flask_oauthlib.provider import OAuth2Provider
 
 oauth = OAuth2Provider()
 blueprint = Blueprint('oauth', __name__)
-accounts_db = Bucket('couchbase://192.168.99.100/dewy_auth')
+auth_db = Bucket('couchbase://192.168.99.100/dewy_auth')
 
 def current_user():
 	if 'id' in session:
@@ -18,11 +18,11 @@ def current_user():
 
 @oauth.clientgetter
 def load_client(client_id):
-	return accounts_db.get(client_id)
+	return auth_db.get(client_id)
 
 @oauth.grantgetter
 def load_grant(client_id, code):
-	return accounts_db.get('%s/grant/%s' % (client_id, code))
+	return auth_db.get('%s/grant/%s' % (client_id, code))
 
 @oauth.grantsetter
 def save_grant(client_id, code, request, *args, **kwargs):
@@ -35,7 +35,7 @@ def save_grant(client_id, code, request, *args, **kwargs):
 		'user': current_user(),
 		'expires': 'expires'
 	}
-	accounts_db.insert('%s/grant/%s' % (client_id, code['code']), grant)
+	auth_db.insert('%s/grant/%s' % (client_id, code['code']), grant)
 	return grant
 
 @oauth.tokengetter
