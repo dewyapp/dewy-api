@@ -68,7 +68,16 @@ def save_grant(client_id, code, request, *args, **kwargs):
 
 @oauth.tokengetter
 def load_token(access_token=None, refresh_token=None):
-	pass
+	key = 'c/%s/t/%s' % (request.client.client_id, access_token or refresh_token)
+	token = None
+
+	try:
+		res = auth_db.get(key)
+		token = res.value
+	except:
+		pass
+
+	return token
 
 @oauth.tokensetter
 def save_token(token, request, *args, **kwargs):
