@@ -33,7 +33,18 @@ def load_client(client_id):
 
 @oauth.grantgetter
 def load_grant(client_id, code):
-	return auth_db.get('%s/grant/%s' % (client_id, code))
+	# Load a grant token for a client from auth_db. The
+	# document key is 'c/{client_id}/g/{code}'
+	key = 'c/%s/g/%s' % (client_id, code)
+	grant = None
+
+	try:
+		res = auth_db.get(key)
+		grant = res.value
+	except:
+		pass
+
+	return grant
 
 @oauth.grantsetter
 def save_grant(client_id, code, request, *args, **kwargs):
