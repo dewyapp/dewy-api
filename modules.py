@@ -1,6 +1,6 @@
 from flask import Blueprint
 
-blueprint = Blueprint('sites', __name__)
+blueprint = Blueprint('modules', __name__)
 
 @blueprint.route('/')
 def modules():
