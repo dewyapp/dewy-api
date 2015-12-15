@@ -20,7 +20,7 @@ class Document(object):
 	def __getattr__(self, name):
 		if name in self._doc:
 			return self._doc.get(name)
-		raise AttributeError()
+		raise AttributeError('No attribute named %s' % name)
 
 
 class Grant(Document):
