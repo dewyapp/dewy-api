@@ -96,7 +96,7 @@ def save_grant(client_id, code, request, *args, **kwargs):
 
 @oauth.tokengetter
 def load_token(access_token=None, refresh_token=None):
-	key = 'c/%s/t/%s' % (request.client.client_id, access_token or refresh_token)
+	key = 'u/%s/c/%s/t/%s' % (request.user.id, request.client.client_id, access_token or refresh_token)
 	token = None
 
 	try:
@@ -109,7 +109,26 @@ def load_token(access_token=None, refresh_token=None):
 
 @oauth.tokensetter
 def save_token(token, request, *args, **kwargs):
-	pass
+	key = 'u/%s/c/%s/t/%s' % (request.user.id, request.client.client_id, token['access_token'] or token['refresh_token'])
+	ttl = 600
+	token = {
+		'access_token': token['access_token'],
+		'refresh_token': token['refresh_token'],
+		'token_type': token['token_type'],
+		'scopes': [token['scope']],
+		'expires': None,
+		'client_id': request.client.client_id,
+		'user_id': request.user.id
+	}
+
+	try:
+		res = auth_db.insert(key, token, ttl=ttl)
+		token = Document(res.value)
+	except:
+		token = None
+
+	print ':save_token'
+	return token
 
 @blueprint.route('/token', methods=['GET', 'POST'])
 @oauth.token_handler
