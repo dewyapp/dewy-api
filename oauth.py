@@ -103,7 +103,11 @@ def access_token():
 @blueprint.route('/authorize', methods=['GET', 'POST'])
 @oauth.authorize_handler
 def authorize(*args, **kwargs):
-	pass
+	user = current_user()
+	if not user:
+		session['id'] = 'client1'
+	return True
+
 
 @blueprint.route('/me')
 @oauth.require_oauth()
