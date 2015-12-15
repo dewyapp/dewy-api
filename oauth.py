@@ -83,7 +83,7 @@ def save_grant(client_id, code, request, *args, **kwargs):
 		'user_id': session['id'],
 		'code': code['code'],
 		'redirect_uri': request.redirect_uri,
-		'scopes': ' '.join(request.scopes)
+		'scopes': request.scopes
 	}
 
 	try:
