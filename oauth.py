@@ -23,6 +23,22 @@ class Document(object):
 		raise AttributeError()
 
 
+class Grant(Document):
+
+	@property
+	def user(self):
+		key = 'u/%s' % self._doc.get('user_id')
+		user = None
+
+		try:
+			res = auth_db.get(key)
+			user = Document(res.value)
+		except:
+			pass
+
+		return user
+
+
 def current_user():
 	if 'id' in session:
 		return session['id']
@@ -52,7 +68,7 @@ def load_grant(client_id, code):
 
 	try:
 		res = auth_db.get(key)
-		grant = Document(res.value)
+		grant = Grant(res.value)
 	except:
 		pass
 
