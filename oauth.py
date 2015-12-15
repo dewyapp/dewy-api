@@ -37,7 +37,7 @@ def load_client(client_id):
 
 	try:
 		res = auth_db.get(key)
-		client = res.value
+		client = Document(res.value)
 	except:
 		pass
 
@@ -52,7 +52,7 @@ def load_grant(client_id, code):
 
 	try:
 		res = auth_db.get(key)
-		grant = res.value
+		grant = Document(res.value)
 	except:
 		pass
 
@@ -72,7 +72,7 @@ def save_grant(client_id, code, request, *args, **kwargs):
 
 	try:
 		res = auth_db.insert(key, grant, ttl=ttl)
-		grant = res.value
+		grant = Document(res.value)
 	except:
 		grant = None
 
@@ -85,7 +85,7 @@ def load_token(access_token=None, refresh_token=None):
 
 	try:
 		res = auth_db.get(key)
-		token = res.value
+		token = Document(res.value)
 	except:
 		pass
 
