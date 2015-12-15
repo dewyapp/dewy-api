@@ -11,6 +11,18 @@ oauth = OAuth2Provider()
 blueprint = Blueprint('oauth', __name__)
 auth_db = Bucket('couchbase://192.168.99.100/dewy_auth')
 
+
+class Document(object):
+
+	def __init__(self, doc):
+		self._doc = doc
+
+	def __getattr__(self, name):
+		if name in self._doc:
+			return self._doc.get(name)
+		raise AttributeError()
+
+
 def current_user():
 	if 'id' in session:
 		return session['id']
