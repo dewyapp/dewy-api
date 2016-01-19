@@ -1,16 +1,44 @@
+var uuid = require('uuid');
 var db = require('../app.js').bucket;
 
 exports.create = function(site) {
-  db.insert('testdoc', site, function(err, result) {
-    if (err) throw err;
-   
-    db.get('testdoc', function(err, result) {
-      if (err) throw err;
-   
-      console.log(result.value);
-      // {name: Frank} 
+  // Get uid from site.api_key
+  var uid = uuid.v4();
+
+  if (uid) {
+    // Get sid from uid & site.base_url
+    var sid = null;
+    // Site doesn't exist, create a new sid
+    if (!sid) {
+      sid = uuid.v4();
+    }
+
+    var siteDoc = {
+      sid: uuid.v4(),
+      uid: uid,
+      baseurl: site.base_url,
+      enabled: false,
+      users: false,
+      content: false
+    };
+
+    if (site.enabled == 1) {
+      siteDoc.enabled = true;
+    }
+    if (site.read_users == 1) {
+      siteDoc.users = true;
+    }
+    if (site.read_content == 1) {
+      siteDoc.content = true;
+    }
+
+    db.upsert('site::' + siteDoc.sid, siteDoc, function(error, result) {
+      if (error) {
+        return;
+      }
+      console.log(siteDoc);
     });
-  });
+  }
 }
 
 exports.get = function(user, siteId) {

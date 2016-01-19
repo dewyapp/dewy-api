@@ -4,9 +4,13 @@ couchbase:
   - ../couchbase-data:/opt/couchbase/var
   ports:
   - "8091:8091"
+  - "8092:8092"
+  - "8093:8093"
+  - "11210:11210"
+  - "11211:11211"
 api:
   build: .
   ports:
-  - "3001:3000"
+  - "3001:3001"
   links:
   - couchbase

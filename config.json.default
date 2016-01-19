@@ -2,7 +2,6 @@
     "couchbase": {
         "server": "",
         "bucket": "",
-        "user": "",
         "password": ""
     }
 }
