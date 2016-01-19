@@ -37,7 +37,12 @@ router.get('/operators', function (req, res, next) {
 });
 
 router.post('/sites', function (req, res, next) {
-  res.send(sites.create(req.body));
+  sites.create(req.body, function(error, result) {
+    if (error) {
+      return res.status(400).send(error);
+    }
+    res.send(result);
+  });
 });
 
 router.put('/sites', function (req, res, next) {

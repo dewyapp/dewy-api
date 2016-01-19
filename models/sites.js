@@ -1,7 +1,7 @@
 var uuid = require('uuid');
 var db = require('../app.js').bucket;
 
-exports.create = function(site) {
+exports.create = function(site, callback) {
   // Get uid from site.api_key
   var uid = uuid.v4();
 
@@ -34,9 +34,10 @@ exports.create = function(site) {
 
     db.upsert('site::' + siteDoc.sid, siteDoc, function(error, result) {
       if (error) {
+        callback(error, null);
         return;
       }
-      console.log(siteDoc);
+      callback(null, {message: 'success', data: result});
     });
   }
 }
