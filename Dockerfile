@@ -1,15 +1,12 @@
-FROM centos:7
-
-RUN curl "https://bootstrap.pypa.io/get-pip.py" -o "/tmp/get-pip.py"
-RUN python /tmp/get-pip.py
+FROM node:5.0
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
-COPY requirements.txt /usr/src/app
-RUN pip install -r requirements.txt
+COPY package.json /usr/src/app/
+RUN npm install
 COPY . /usr/src/app
 
-EXPOSE 8080
+EXPOSE 3001
 
-CMD ["python", "api.py"]
+CMD ["npm", "start"]
