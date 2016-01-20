@@ -1,6 +1,6 @@
 var uuid = require('uuid');
-var db = require('../app.js').bucket;
 var couchbase = require('couchbase');
+var db = require('../app.js').bucket;
 
 exports.create = function(site, callback) {
     // Get uid from site.api_key
@@ -9,13 +9,15 @@ exports.create = function(site, callback) {
     if (uid) {
         // Get sid from uid and baseurl
         var sid = uuid.v4();
-        range = [uid, site.base_url]
         query = couchbase.ViewQuery.from('dev_sites', 'by_baseurl')
-            .range(range, range);
+            .key([uid, site.base_url])
         db.query(query, function(error, result) {
+            if (error) {
+                callback(error, null);
+                return;
+            }
             if (result[0]) {
                 sid = result[0].value;
-                console.log(sid);
             }
 
             // Construct site document
@@ -38,7 +40,7 @@ exports.create = function(site, callback) {
                 siteDoc.content = true;
             }
 
-            console.log(siteDoc);
+            // Insert or update site
             db.upsert('site::' + siteDoc.sid, siteDoc, function(error, result) {
                 if (error) {
                     callback(error, null);
