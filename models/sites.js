@@ -3,56 +3,39 @@ var couchbase = require('couchbase');
 var db = require('../app.js').bucket;
 
 exports.create = function(site, callback) {
-    // Get uid from site.api_key
-    var uid = '205f6738-c0c3-420c-9250-ec6a633e1055';
-
-    if (uid) {
-        // Get sid from uid and baseurl
-        var sid = uuid.v4();
-        query = couchbase.ViewQuery.from('dev_sites', 'by_baseurl')
-            .key([uid, site.base_url])
-        db.query(query, function(error, result) {
-            if (error) {
-                callback(error, null);
-                return;
-            }
-            if (result[0]) {
-                sid = result[0].value;
-            }
-
-            // Construct site document
-            var siteDoc = {
-                sid: sid,
-                uid: uid,
-                baseurl: site.base_url,
-                enabled: false,
-                users: false,
-                content: false
-            };
-
-            if (site.enabled == 1) {
-                siteDoc.enabled = true;
-            }
-            if (site.read_users == 1) {
-                siteDoc.users = true;
-            }
-            if (site.read_content == 1) {
-                siteDoc.content = true;
-            }
-
-            // Insert or update site
-            db.upsert('site::' + siteDoc.sid, siteDoc, function(error, result) {
-                if (error) {
-                    callback(error, null);
-                    return;
-                }
-                callback(null, {message: 'success', data: result});
-            });
-        });
-    } 
-    else {
-        callback({status: 'error', 'message': 'Invalid API key'});
+    // If the site is new, give it a new sid
+    if (site.sid == null) {
+        site.sid = uuid.v4();
     }
+
+    // Construct site document
+    var siteDoc = {
+        sid: site.sid,
+        uid: site.uid,
+        baseurl: site.baseurl,
+        enabled: false,
+        users: false,
+        content: false
+    };
+
+    if (site.enabled == 1) {
+        siteDoc.enabled = true;
+    }
+    if (site.read_users == 1) {
+        siteDoc.users = true;
+    }
+    if (site.read_content == 1) {
+        siteDoc.content = true;
+    }
+
+    // Insert or update site
+    db.upsert('site::' + siteDoc.sid, siteDoc, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+        callback(null, {message: 'success', data: result});
+    });
 }
 
 exports.get = function(user, siteId) {
@@ -61,6 +44,18 @@ exports.get = function(user, siteId) {
             return sites[i];
         }
     }
+}
+
+exports.getByBaseurl = function(uid, baseurl, callback) {
+    query = couchbase.ViewQuery.from('dev_sites', 'by_baseurl')
+        .key([uid, baseurl]);
+    db.query(query, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+        callback(null, {message: 'success', data: result});
+    });
 }
 
 exports.getAll = function(user, filterId) {

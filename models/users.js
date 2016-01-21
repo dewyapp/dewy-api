@@ -21,6 +21,18 @@ exports.create = function(user, callback) {
     });
 }
 
+exports.getByApiKey = function(apikey, callback) {
+    query = couchbase.ViewQuery.from('dev_users', 'by_apikey')
+        .key([apikey]);
+    db.query(query, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+        callback(null, {message: 'success', data: result});
+    });
+}
+
 exports.getByEmail = function(email, callback) {
     query = couchbase.ViewQuery.from('dev_users', 'by_email')
         .key([email]);

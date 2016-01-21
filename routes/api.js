@@ -39,11 +39,39 @@ router.get('/operators', function (req, res, next) {
 });
 
 router.post('/sites', function (req, res, next) {
-    sites.create(req.body, function(error, result) {
+    console.log(req.body);
+    if (!req.body.apikey) {
+        return res.send({"status": "error", "message": "An api key is required"});
+    }
+    if (!req.body.baseurl) {
+        return res.send({"status": "error", "message": "A baseurl is required"});
+    }
+    // Check uid from apikey
+    users.getByApiKey(req.body.apikey, function(error, result) {
         if (error) {
             return res.status(400).send(error);
         }
-        res.send(result);
+        if (!result.data.length) {
+            return res.send({"status": "error", "message": "This api key is not valid"});
+        }
+        req.body.uid = result.data[0].value;
+        // Check if site exists
+        sites.getByBaseurl(req.body.uid, req.body.baseurl, function(error, result) {
+            if (error) {
+                return res.status(400).send(error);
+            }
+            // If site exists, grab sid
+            req.body.sid = null
+            if (result.data.length) {
+                req.body.sid = result.data[0].value;
+            }
+            sites.create(req.body, function(error, result) {
+                if (error) {
+                    return res.status(400).send(error);
+                }
+                res.send(result);
+            });
+        });
     });
 });
 
@@ -70,6 +98,7 @@ router.get('/tags', function (req, res, next) {
 });
 
 router.post('/users', function (req, res, next) {
+    console.log(req.body);
     if (!req.body.username) {
         return res.send({"status": "error", "message": "A username is required"});
     }
@@ -82,6 +111,7 @@ router.post('/users', function (req, res, next) {
     if (!req.body.password) {
         return res.send({"status": "error", "message": "A password is required"});
     }
+    // Check if user exists
     users.getByEmail(req.body.email, function(error, result) {
         if (error) {
             return res.status(400).send(error);
@@ -89,6 +119,7 @@ router.post('/users', function (req, res, next) {
         if (result.data.length) {
             return res.send({"status": "error", "message": "This email address is in use"});
         }
+        // User does not exist, create a new user
         users.create(req.body, function(error, result) {
             if (error) {
                 return res.status(400).send(error);
