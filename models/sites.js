@@ -2,29 +2,29 @@ var uuid = require('uuid');
 var couchbase = require('couchbase');
 var db = require('../app.js').bucket;
 
-exports.create = function(site, callback) {
+exports.create = function(params, callback) {
     // If the site is new, give it a new sid
-    if (site.sid == null) {
-        site.sid = uuid.v4();
+    if (params.sid == null) {
+        params.sid = uuid.v4();
     }
 
     // Construct site document
     var siteDoc = {
-        sid: site.sid,
-        uid: site.uid,
-        baseurl: site.baseurl,
+        sid: params.sid,
+        uid: params.uid,
+        baseurl: params.baseurl,
         enabled: false,
         users: false,
         content: false
     };
 
-    if (site.enabled == 1) {
+    if (params.enabled == 1) {
         siteDoc.enabled = true;
     }
-    if (site.read_users == 1) {
+    if (params.read_users == 1) {
         siteDoc.users = true;
     }
-    if (site.read_content == 1) {
+    if (params.read_content == 1) {
         siteDoc.content = true;
     }
 
@@ -46,9 +46,9 @@ exports.get = function(user, siteId) {
     }
 }
 
-exports.getByBaseurl = function(uid, baseurl, callback) {
+exports.getByBaseurl = function(params, callback) {
     query = couchbase.ViewQuery.from('dev_sites', 'by_baseurl')
-        .key([uid, baseurl]);
+        .key([params.uid, params.baseurl]);
     db.query(query, function(error, result) {
         if (error) {
             callback(error, null);

@@ -56,7 +56,7 @@ router.post('/sites', function (req, res, next) {
         }
         req.body.uid = result.data[0].value;
         // Check if site exists
-        sites.getByBaseurl(req.body.uid, req.body.baseurl, function(error, result) {
+        sites.getByBaseurl({uid: req.body.uid, baseurl: req.body.baseurl}, function(error, result) {
             if (error) {
                 return res.status(400).send(error);
             }
