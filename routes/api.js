@@ -84,14 +84,6 @@ router.put('/sites', function (req, res, next) {
     });
 });
 
-router.get('/sites/:site?', function (req, res, next) {
-    sites.get(req.params.site, function (error, result) {
-        if (error) {
-            return res.status(400).send(error);
-        }
-        res.send(result);
-    });
-});
 
 router.put('/sites/:site?', function (req, res, next) {
     console.log(util.inspect(req.body, {showHidden: false, depth: null}));
@@ -99,7 +91,26 @@ router.put('/sites/:site?', function (req, res, next) {
 });
 
 router.get('/sites/_filter/:filter?', function (req, res, next) {
-    res.send(sites.getAll(null, req.params.filter));
+    // Will get this from database later
+    var filter = null;
+    if (req.params.filter) {
+        var filter = filters.get(null, req.params.filter);
+    }
+    sites.getAll(filter, function (error, result) {
+        if (error) {
+            return res.status(400).send(error);
+        }
+        res.send(result);
+    });
+});
+
+router.get('/sites/:site?', function (req, res, next) {
+    sites.get(req.params.site, function (error, result) {
+        if (error) {
+            return res.status(400).send(error);
+        }
+        res.send(result);
+    });
 });
 
 router.get('/tags', function (req, res, next) {

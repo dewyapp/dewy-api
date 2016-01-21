@@ -52,6 +52,10 @@ exports.get = function(sid, callback) {
     });
 }
 
+exports.getAll = function(params, callback) {
+    callback({"status": "error", "message": "Under construction"}, null);
+}
+
 exports.getByBaseurl = function(params, callback) {
     query = couchbase.ViewQuery.from('dev_sites', 'by_baseurl')
         .key([params.uid, params.baseurl]);
@@ -62,11 +66,6 @@ exports.getByBaseurl = function(params, callback) {
         }
         callback(null, {message: 'success', data: result});
     });
-}
-
-exports.getAll = function(user, filterId) {
-    // Dummy function for now, will eventually pull from persistence layer
-    return sitesList;
 }
 
 sites = [
