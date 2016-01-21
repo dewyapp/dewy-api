@@ -76,12 +76,21 @@ router.post('/sites', function (req, res, next) {
 });
 
 router.put('/sites', function (req, res, next) {
-    console.log(util.inspect(req.body, {showHidden: false, depth: null}));
-    // res.send(sites.audit(req.body));
+    sites.audit(function(error,result) {
+        if (error) {
+            return res.status(400).send(error);
+        }
+        res.send(result);
+    });
 });
 
 router.get('/sites/:site?', function (req, res, next) {
-    res.send(sites.get(null, req.params.site));
+    sites.get(req.params.site, function (error, result) {
+        if (error) {
+            return res.status(400).send(error);
+        }
+        res.send(result);
+    });
 });
 
 router.put('/sites/:site?', function (req, res, next) {

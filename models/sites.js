@@ -2,6 +2,10 @@ var uuid = require('uuid');
 var couchbase = require('couchbase');
 var db = require('../app.js').bucket;
 
+exports.audit = function(callback) {
+    callback({"status": "error", "message": "Under construction"}, null);
+}
+
 exports.create = function(params, callback) {
     // If the site is new, give it a new sid
     if (params.sid == null) {
@@ -38,12 +42,14 @@ exports.create = function(params, callback) {
     });
 }
 
-exports.get = function(user, siteId) {
-    for (var i=0; i<sites.length; i++) {
-        if (sites[i].id == siteId) {
-            return sites[i];
+exports.get = function(sid, callback) {
+    db.get('site::' + sid, function (error, result) {
+        if (error) {
+            callback(error, null);
+            return;
         }
-    }
+        callback(null, {message: 'success', data: result});
+    });
 }
 
 exports.getByBaseurl = function(params, callback) {
@@ -80,7 +86,7 @@ sites = [
 
 sitesList = [
     {
-        id: 1,
+        id: '55e9d635-b6bd-440f-87ba-3a844678cb0a',
         title: 'Photography Blog',
         base_url: 'photographybyderek.ca/blog',
         complexity: 3.53,
