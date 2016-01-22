@@ -53,7 +53,20 @@ exports.get = function(sid, callback) {
 }
 
 exports.getAll = function(params, callback) {
-    callback({"status": "error", "message": "Under construction"}, null);
+    // If no filter is given, return all sites
+    if (params.filter == null) {
+        query = couchbase.ViewQuery.from('dev_sites', 'by_uid')
+            .key([params.uid]);
+        db.query(query, function(error, result) {
+            if (error) {
+                callback(error, null);
+                return;
+            }
+            callback(null, {message: 'success', data: result});
+        });
+    }
+    // else construct some amazing N1QL query from the filter rules
+    // ...
 }
 
 exports.getByBaseurl = function(params, callback) {
