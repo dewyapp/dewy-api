@@ -58,7 +58,8 @@ exports.getAll = function(params, callback) {
 
 exports.getByBaseurl = function(params, callback) {
     query = couchbase.ViewQuery.from('dev_sites', 'by_baseurl')
-        .key([params.uid, params.baseurl]);
+        .key([params.uid, params.baseurl])
+        .stale(1);
     db.query(query, function(error, result) {
         if (error) {
             callback(error, null);

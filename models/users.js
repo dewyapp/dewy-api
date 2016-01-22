@@ -23,7 +23,8 @@ exports.create = function(params, callback) {
 
 exports.getByApiKey = function(apikey, callback) {
     query = couchbase.ViewQuery.from('dev_users', 'by_apikey')
-        .key([apikey]);
+        .key([apikey])
+        .stale(1);
     db.query(query, function(error, result) {
         if (error) {
             callback(error, null);
@@ -35,7 +36,8 @@ exports.getByApiKey = function(apikey, callback) {
 
 exports.getByEmail = function(email, callback) {
     query = couchbase.ViewQuery.from('dev_users', 'by_email')
-        .key([email]);
+        .key([email])
+        .stale(1);
     db.query(query, function(error, result) {
         if (error) {
             callback(error, null);
