@@ -22,8 +22,16 @@ app.use(function(req, res, next) {
 });
 
 // API endpoints
-var routes = require('./routes/api');
-app.use('/', routes);
+var fieldRoutes = require('./routes/fields');
+var filterRoutes = require('./routes/filters');
+var siteRoutes = require('./routes/sites');
+var tagRoutes = require('./routes/tags');
+var userRoutes = require('./routes/users');
+app.use('/fields', fieldRoutes);
+app.use('/filters', filterRoutes);
+app.use('/sites', siteRoutes);
+app.use('/tags', tagRoutes);
+app.use('/users', userRoutes);
 
 app.use(function(req, res) {
   res.status(403).send("Not a valid API endpoint");
