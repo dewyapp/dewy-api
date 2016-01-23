@@ -1,6 +1,7 @@
 // Dependencies
 var express = require('express');
 var bodyParser = require('body-parser');
+var oauthserver = require('oauth2-server');
 var couchbase = require('couchbase');
 var config = require('./config');
 var app = express();
@@ -21,6 +22,15 @@ app.use(function(req, res, next) {
     next();
 });
 
+// OAuth 2 configuration
+app.oauth = oauthserver({
+    model: require('./models/oauth'),
+    grants: ['authorization_code', 'password', 'refresh-token'],
+    debug: true
+});
+module.exports.oauth = app.oauth;
+app.all('/oauth/token', app.oauth.grant());
+
 // API endpoints
 var fieldRoutes = require('./routes/fields');
 var filterRoutes = require('./routes/filters');
@@ -33,6 +43,8 @@ app.use('/sites', siteRoutes);
 app.use('/tags', tagRoutes);
 app.use('/users', userRoutes);
 
+// Error handling
+app.use(app.oauth.errorHandler());
 app.use(function(req, res) {
   res.status(403).send("Not a valid API endpoint");
 });

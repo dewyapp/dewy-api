@@ -13,6 +13,7 @@
     "nodemon": "^1.8.1",
     "uuid": "^2.0.1",
     "node-forge": "^0.6.38",
-    "validator": "^4.5.1"
+    "validator": "^4.5.1",
+    "oauth2-server": "^2.4.1"
   }
 }

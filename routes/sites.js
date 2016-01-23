@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var oauth = require('../app.js').oauth;
 var validator = require('validator');
 var filters = require('../models/filters');
 var sites = require('../models/sites');
@@ -56,7 +57,7 @@ router.put('/:site?', function (req, res, next) {
     // res.send(sites.update(null, req.params.site));
 });
 
-router.get('/_filter/:filter?', function (req, res, next) {
+router.get('/_filter/:filter?', oauth.authorise(), function (req, res, next) {
     // Will get this from database later
     var filter = null;
     if (req.params.filter) {
