@@ -1,9 +1,10 @@
 var express = require('express');
 var router = express.Router();
+var oauth = require('../app.js').oauth;
 var validator = require('validator');
 var users = require('../models/users');
 
-router.post('/', function (req, res, next) {
+router.post('/', oauth.authorise(), function (req, res, next) {
     console.log(req.body);
     if (!req.body.username) {
         return res.send({"status": "error", "message": "A username is required."});

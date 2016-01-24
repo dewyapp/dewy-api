@@ -42,11 +42,17 @@ exports.getRefreshToken = function (bearerToken, callback) {
         .key([bearerToken])
         .stale(1);
     db.query(query, function(error, result) {
-        if (error) {
+        if (error || !result.length) {
             callback(error, null);
             return;
         }
-        callback(null, result.length ? result[0].value : false);
+        var token = result[0].value;
+        callback(null, {
+            refreshToken: token.refresh_token,
+            clientId: token.client_id,
+            expires: token.expires,
+            userId: token.userId
+        });
     });
 }
 

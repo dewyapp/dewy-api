@@ -6,7 +6,7 @@ var filters = require('../models/filters');
 var sites = require('../models/sites');
 var users = require('../models/users');
 
-router.post('/', function (req, res, next) {
+router.post('/', oauth.authorise(), function (req, res, next) {
     console.log(req.body);
     if (!req.body.apikey) {
         return res.send({"status": "error", "message": "An api key is required."});
@@ -43,7 +43,7 @@ router.post('/', function (req, res, next) {
     });
 });
 
-router.put('/', function (req, res, next) {
+router.put('/', oauth.authorise(), function (req, res, next) {
     sites.audit(function(error,result) {
         if (error) {
             return res.status(400).send(error);
@@ -53,7 +53,7 @@ router.put('/', function (req, res, next) {
 });
 
 
-router.put('/:site?', function (req, res, next) {
+router.put('/:site?', oauth.authorise(), function (req, res, next) {
     // res.send(sites.update(null, req.params.site));
 });
 
@@ -72,7 +72,7 @@ router.get('/_filter/:filter?', oauth.authorise(), function (req, res, next) {
     });
 });
 
-router.get('/:site?', function (req, res, next) {
+router.get('/:site?', oauth.authorise(), function (req, res, next) {
     sites.get(req.params.site, function (error, result) {
         if (error) {
             return res.status(400).send(error);

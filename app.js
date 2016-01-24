@@ -25,7 +25,7 @@ app.use(function(req, res, next) {
 // OAuth 2 configuration
 app.oauth = oauthserver({
     model: require('./models/oauth'),
-    grants: ['authorization_code', 'password', 'refresh-token'],
+    grants: ['authorization_code', 'password', 'refresh_token'],
     accessTokenLifetime: 1800,
     refreshTokenLifetime: 1209600,
     debug: false
