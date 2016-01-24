@@ -10,7 +10,7 @@ exports.getAccessToken = function (bearerToken, callback) {
             callback(error, null);
             return;
         }
-        var token = result[0];
+        var token = result[0].value;
         callback(null, {
             accessToken: token.access_token,
             clientId: token.client_id,
@@ -29,7 +29,7 @@ exports.getClient = function (clientId, clientSecret, callback) {
             callback(error, null);
             return;
         }
-        var client = result[0];
+        var client = result[0].value;
         callback(null, {
             clientId: client.client_id,
             clientSecret: client.client_secret
@@ -46,7 +46,7 @@ exports.getRefreshToken = function (bearerToken, callback) {
             callback(error, null);
             return;
         }
-        callback(null, result.length ? result.length : false);
+        callback(null, result.length ? result[0].value : false);
     });
 }
 
@@ -62,7 +62,7 @@ exports.saveAccessToken = function (accessToken, clientId, expires, userId, call
         expires: expires,
         uid: userId
     };
-    db.insert('accesstoken::' + accessToken, accessTokenDoc, function(error, result) {
+    db.insert('accesstoken::' + accessToken, accessTokenDoc, {expiry: 1800}, function(error, result) {
         if (error) {
             callback(error, null);
             return;
@@ -78,7 +78,7 @@ exports.saveRefreshToken = function (refreshToken, clientId, expires, userId, ca
         expires: expires,
         uid: userId
     };
-    db.insert('refreshtoken::' + refreshToken, refreshTokenDoc, function(error, result) {
+    db.insert('refreshtoken::' + refreshToken, refreshTokenDoc, {expiry: 1209600}, function(error, result) {
         if (error) {
             callback(error, null);
             return;
@@ -96,6 +96,6 @@ exports.getUser = function (username, password, callback) {
             callback(error, null);
             return;
         }
-        callback(null, result.length ? result.length : false);
+        callback(null, result.length ? result[0].value : false);
     });
 }

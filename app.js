@@ -27,6 +27,7 @@ app.oauth = oauthserver({
     model: require('./models/oauth'),
     grants: ['authorization_code', 'password', 'refresh-token'],
     accessTokenLifetime: 1800,
+    refreshTokenLifetime: 1209600,
     debug: true
 });
 module.exports.oauth = app.oauth;
