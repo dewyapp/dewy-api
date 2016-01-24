@@ -46,3 +46,16 @@ exports.getByEmail = function(email, callback) {
         callback(null, {message: 'success', data: result});
     });
 }
+
+exports.getByUsername = function(username, callback) {
+    query = couchbase.ViewQuery.from('dev_users', 'by_username')
+        .key([username])
+        .stale(1);
+    db.query(query, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+        callback(null, {message: 'success', data: result});
+    });
+}

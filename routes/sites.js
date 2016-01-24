@@ -9,10 +9,10 @@ var users = require('../models/users');
 router.post('/', function (req, res, next) {
     console.log(req.body);
     if (!req.body.apikey) {
-        return res.send({"status": "error", "message": "An api key is required"});
+        return res.send({"status": "error", "message": "An api key is required."});
     }
     if (!req.body.baseurl) {
-        return res.send({"status": "error", "message": "A baseurl is required"});
+        return res.send({"status": "error", "message": "A baseurl is required."});
     }
     // Check uid from apikey
     users.getByApiKey(req.body.apikey, function(error, result) {
@@ -20,7 +20,7 @@ router.post('/', function (req, res, next) {
             return res.status(400).send(error);
         }
         if (!result.data.length) {
-            return res.send({"status": "error", "message": "This api key is not valid"});
+            return res.send({"status": "error", "message": "This api key is not valid."});
         }
         req.body.uid = result.data[0].value;
         // Check if site exists
