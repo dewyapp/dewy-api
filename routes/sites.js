@@ -63,9 +63,8 @@ router.get('/_filter/:filter?', oauth.authorise(), function (req, res, next) {
     if (req.params.filter) {
         var filter = filters.get(null, req.params.filter);
     }
-    // Will get this from OAuth
-    var uid = "a46da668-2b43-4227-bdfe-362d2c8b7f40";
-    sites.getAll({uid: uid, filter: filter}, function (error, result) {
+
+    sites.getAll({uid: req.user.id, filter: filter}, function (error, result) {
         if (error) {
             return res.status(400).send(error);
         }

@@ -28,7 +28,7 @@ app.oauth = oauthserver({
     grants: ['authorization_code', 'password', 'refresh-token'],
     accessTokenLifetime: 1800,
     refreshTokenLifetime: 1209600,
-    debug: true
+    debug: false
 });
 module.exports.oauth = app.oauth;
 app.all('/oauth/token', app.oauth.grant());

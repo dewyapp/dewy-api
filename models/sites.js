@@ -99,7 +99,7 @@ sites = [
 
 sitesList = [
     {
-        id: '55e9d635-b6bd-440f-87ba-3a844678cb0a',
+        id: 1,
         title: 'Photography Blog',
         base_url: 'photographybyderek.ca/blog',
         complexity: 3.53,

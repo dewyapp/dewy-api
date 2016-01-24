@@ -15,7 +15,7 @@ exports.getAccessToken = function (bearerToken, callback) {
             accessToken: token.access_token,
             clientId: token.client_id,
             expires: token.expires,
-            userId: token.uid
+            userId: token.userId
         });
     });
 }
