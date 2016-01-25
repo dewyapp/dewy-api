@@ -3,5 +3,9 @@
         "server": "",
         "bucket": "",
         "password": ""
+    },
+    "client": {
+		"client_id": "",
+		"client_secret": ""
     }
 }

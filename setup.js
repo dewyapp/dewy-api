@@ -1,5 +1,7 @@
 var couchbase = require('couchbase');
 var db = require('./app.js').bucket;
+var config = require('./config');
+var events = require('events');
 
 exports.setup = function (callback) {
     // Design documents
@@ -98,6 +100,20 @@ exports.setup = function (callback) {
             }
         }
     }
+
+
+    // Add client
+    var clientDoc = {
+        client_id: config.client.client_id, 
+        client_secret: config.client.client_secret
+    };
+    db.insert('client::' + clientDoc.client_id, clientDoc, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+        console.log(result);
+    });
 
     // Insert or update design documents
     var manager = db.manager();
