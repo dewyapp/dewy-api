@@ -101,30 +101,37 @@ exports.setup = function (callback) {
         }
     }
 
-
     // Add client
     var clientDoc = {
         client_id: config.client.client_id, 
         client_secret: config.client.client_secret
     };
-    db.insert('client::' + clientDoc.client_id, clientDoc, function(error, result) {
+    db.upsert('client::' + clientDoc.client_id, clientDoc, function(error, result) {
         if (error) {
             callback(error, null);
             return;
         }
-        console.log(result);
-    });
-
-    // Insert or update design documents
-    var manager = db.manager();
-    for (design_doc in design_docs) {
-        manager.upsertDesignDocument(design_doc, design_docs[design_doc], function(error, result) {
+    
+        // Insert or update design documents
+        var manager = db.manager();
+        manager.upsertDesignDocument('oauth', design_docs['oauth'], function(error, result) {
             if (error) {
                 callback(error, null);
                 return;
             }
+            manager.upsertDesignDocument('sites', design_docs['sites'], function(error, result) {
+                if (error) {
+                    callback(error, null);
+                    return;
+                }
+                manager.upsertDesignDocument('users', design_docs['users'], function(error, result) {
+                    if (error) {
+                        callback(error, null);
+                        return;
+                    }
+                    callback(null, {message: 'success'});
+                });
+            });
         });
-    }
-
-    callback(null, {message: 'success'});
+    });
 }
