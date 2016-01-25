@@ -55,7 +55,7 @@ exports.get = function(sid, callback) {
 exports.getAll = function(params, callback) {
     // If no filter is given, return all sites
     if (params.filter == null) {
-        query = couchbase.ViewQuery.from('dev_sites', 'by_uid')
+        query = couchbase.ViewQuery.from('sites', 'by_uid')
             .key([params.uid]);
         db.query(query, function(error, result) {
             if (error) {
@@ -70,7 +70,7 @@ exports.getAll = function(params, callback) {
 }
 
 exports.getByBaseurl = function(params, callback) {
-    query = couchbase.ViewQuery.from('dev_sites', 'by_baseurl')
+    query = couchbase.ViewQuery.from('sites', 'by_baseurl')
         .key([params.uid, params.baseurl])
         .stale(1);
     db.query(query, function(error, result) {

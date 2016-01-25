@@ -2,7 +2,7 @@ var couchbase = require('couchbase');
 var db = require('../app.js').bucket;
 
 exports.getAccessToken = function (bearerToken, callback) {
-    query = couchbase.ViewQuery.from('dev_oauth', 'by_accesstoken')
+    query = couchbase.ViewQuery.from('oauth', 'by_accesstoken')
         .key([bearerToken])
         .stale(1);
     db.query(query, function(error, result) {
@@ -21,7 +21,7 @@ exports.getAccessToken = function (bearerToken, callback) {
 }
 
 exports.getClient = function (clientId, clientSecret, callback) {
-    query = couchbase.ViewQuery.from('dev_oauth', 'by_clientid')
+    query = couchbase.ViewQuery.from('oauth', 'by_clientid')
         .key([clientId])
         .stale(1);
     db.query(query, function(error, result) {
@@ -38,7 +38,7 @@ exports.getClient = function (clientId, clientSecret, callback) {
 }
 
 exports.getRefreshToken = function (bearerToken, callback) {
-    query = couchbase.ViewQuery.from('dev_oauth', 'by_refreshtoken')
+    query = couchbase.ViewQuery.from('oauth', 'by_refreshtoken')
         .key([bearerToken])
         .stale(1);
     db.query(query, function(error, result) {
@@ -94,7 +94,7 @@ exports.saveRefreshToken = function (refreshToken, clientId, expires, userId, ca
 }
 
 exports.getUser = function (username, password, callback) {
-    query = couchbase.ViewQuery.from('dev_users', 'by_username_and_password')
+    query = couchbase.ViewQuery.from('users', 'by_username_and_password')
         .key([username, password])
         .stale(1);
     db.query(query, function(error, result) {
