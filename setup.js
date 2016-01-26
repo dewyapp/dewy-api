@@ -1,7 +1,6 @@
 var couchbase = require('couchbase');
 var db = require('./app.js').bucket;
 var config = require('./config');
-var events = require('events');
 
 exports.setup = function (callback) {
     // Design documents

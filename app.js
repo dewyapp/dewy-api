@@ -13,7 +13,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Global declaration of Couchbase
 module.exports.bucket = (new couchbase.Cluster(config.couchbase.server)).openBucket(config.couchbase.bucket, config.couchbase.password);
 
-// If setup is specified, run it
+// Install Couchbase design documents
 argv = process.argv.splice(2);
 if (argv[0] === '--setup') {
     var design = require('./setup.js');
