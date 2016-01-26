@@ -40,8 +40,8 @@ else {
     app.oauth = oauthserver({
         model: require('./models/oauth'),
         grants: ['authorization_code', 'password', 'refresh_token'],
-        accessTokenLifetime: 1800,
-        refreshTokenLifetime: 1209600,
+        accessTokenLifetime: config.oauth.accessTokenLifetime,
+        refreshTokenLifetime: config.oauth.refreshTokenLifetime,
         debug: false
     });
     module.exports.oauth = app.oauth;

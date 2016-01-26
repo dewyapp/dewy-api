@@ -1,5 +1,6 @@
 var couchbase = require('couchbase');
 var db = require('../app.js').bucket;
+var config = require('../config');
 
 exports.getAccessToken = function (bearerToken, callback) {
     query = couchbase.ViewQuery.from('oauth', 'by_accesstoken')
@@ -68,7 +69,7 @@ exports.saveAccessToken = function (accessToken, clientId, expires, userId, call
         expires: expires,
         uid: userId
     };
-    db.insert('accesstoken::' + accessToken, accessTokenDoc, {expiry: 1800}, function(error, result) {
+    db.insert('accesstoken::' + accessToken, accessTokenDoc, {expiry: config.oauth.accessTokenLifetime}, function(error, result) {
         if (error) {
             callback(error, null);
             return;
@@ -84,7 +85,7 @@ exports.saveRefreshToken = function (refreshToken, clientId, expires, userId, ca
         expires: expires,
         uid: userId
     };
-    db.insert('refreshtoken::' + refreshToken, refreshTokenDoc, {expiry: 1209600}, function(error, result) {
+    db.insert('refreshtoken::' + refreshToken, refreshTokenDoc, {expiry: config.oauth.refreshTokenLifetime}, function(error, result) {
         if (error) {
             callback(error, null);
             return;
