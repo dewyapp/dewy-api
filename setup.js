@@ -38,20 +38,20 @@ exports.setup = function (callback) {
         },
         sites: {
             views: {
-                by_baseurl: {
-                    map: [
-                        'function (doc, meta) {',
-                            'if (meta.id.substring(0, 6) == "site::") {',
-                                'emit([doc.uid, doc.baseurl], doc.sid);',
-                            '}',
-                        '}'
-                        ].join('\n')
-                },
                 by_uid: {
                     map: [
                         'function (doc, meta) {',
                             'if (meta.id.substring(0, 6) == "site::") {',
                                 'emit([doc.uid], doc.sid);',
+                            '}',
+                        '}'
+                        ].join('\n')
+                },
+                by_uid_and_baseurl: {
+                    map: [
+                        'function (doc, meta) {',
+                            'if (meta.id.substring(0, 6) == "site::") {',
+                                'emit([doc.uid, doc.baseurl], doc.sid);',
                             '}',
                         '}'
                         ].join('\n')

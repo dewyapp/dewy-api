@@ -70,7 +70,7 @@ exports.getAll = function(params, callback) {
 }
 
 exports.getByBaseurl = function(params, callback) {
-    query = couchbase.ViewQuery.from('sites', 'by_baseurl')
+    query = couchbase.ViewQuery.from('sites', 'by_uid_and_baseurl')
         .key([params.uid, params.baseurl])
         .stale(1);
     db.query(query, function(error, result) {
