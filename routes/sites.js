@@ -52,6 +52,29 @@ router.put('/', oauth.authorise(), function (req, res, next) {
     });
 });
 
+router.get('/_filter/:filter?', oauth.authorise(), function (req, res, next) {
+    // Will get this from database later
+    var filter = null;
+    if (req.params.filter) {
+        var filter = filters.get(null, req.params.filter);
+    }
+
+    sites.getAll({uid: req.user.id.id, filter: filter}, function (error, result) {
+        if (error) {
+            return res.status(400).send(error);
+        }
+        res.send(result);
+    });
+});
+
+router.get('/_tags', oauth.authorise(), function (req, res, next) {
+    sites.getAllTags({uid: req.user.id.id}, function (error, result) {
+        if (error) {
+            return res.status(400).send(error);
+        }
+        res.send(result);
+    });
+});
 
 router.put('/:site?', oauth.authorise(), function (req, res, next) {
     console.log(req.body);
@@ -84,21 +107,6 @@ router.put('/:site?', oauth.authorise(), function (req, res, next) {
     });
 
     // res.send(sites.update(null, req.params.site));
-});
-
-router.get('/_filter/:filter?', oauth.authorise(), function (req, res, next) {
-    // Will get this from database later
-    var filter = null;
-    if (req.params.filter) {
-        var filter = filters.get(null, req.params.filter);
-    }
-
-    sites.getAll({uid: req.user.id.id, filter: filter}, function (error, result) {
-        if (error) {
-            return res.status(400).send(error);
-        }
-        res.send(result);
-    });
 });
 
 router.get('/:site?', oauth.authorise(), function (req, res, next) {

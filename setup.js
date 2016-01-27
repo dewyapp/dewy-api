@@ -55,6 +55,20 @@ exports.setup = function (callback) {
                             '}',
                         '}'
                         ].join('\n')
+                },
+                tags_by_uid: {
+                    map: [
+                        'function (doc, meta) {',
+                            'if (meta.id.substring(0, 6) == "site::" && doc.tags) {',
+                                'for (tag in doc.tags) {',
+                                    'emit([doc.uid, doc.tags[tag]], null);',
+                                '}',
+                            '}',
+                        '}'
+                        ].join('\n'),
+                    reduce: [
+                        '_count'
+                        ].join('\n')
                 }
             }
         },

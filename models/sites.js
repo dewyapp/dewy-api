@@ -69,6 +69,19 @@ exports.getAll = function(params, callback) {
     // ...
 }
 
+exports.getAllTags = function(params, callback) {
+    query = couchbase.ViewQuery.from('sites', 'tags_by_uid')
+        .range([params.uid, null], [params.uid, {}])
+        .group(true);
+    db.query(query, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+        callback(null, {message: 'success', data: result});
+    });
+}
+
 exports.getByBaseurl = function(params, callback) {
     query = couchbase.ViewQuery.from('sites', 'by_uid_and_baseurl')
         .key([params.uid, params.baseurl])
