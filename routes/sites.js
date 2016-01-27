@@ -54,6 +54,35 @@ router.put('/', oauth.authorise(), function (req, res, next) {
 
 
 router.put('/:site?', oauth.authorise(), function (req, res, next) {
+    console.log(req.body);
+    sites.get(req.params.site, function (error, result) {
+        if (error) {
+            return res.status(400).send(error);
+        } else if (result.data.value.uid != req.user.id.id) {
+            return res.status(403).send({"status": "error", "message": "You do not have permission to access this resource."});
+        }
+        if (!req.body.tags && !req.body.notes) {
+            return res.send({"status": "error", "message": "Tags or note required."});
+        }
+
+        // Add values to site document and update that document
+        var siteDoc = result.data.value;
+        // This needs validation as it comes straight from Angular (i.e. ensure its an array of strings)
+        if (req.body.tags) {
+            siteDoc.tags = req.body.tags;
+        }
+        // This needs validation as it comes straight from Angular (i.e. ensure it's a string)
+        if (req.body.note) {
+            siteDoc.note = req.body.note;
+        }
+        sites.update(siteDoc, function (error, result) {
+            if (error) {
+                return res.status(400).send(error);
+            }
+            res.send(result);
+        });
+    });
+
     // res.send(sites.update(null, req.params.site));
 });
 
@@ -64,7 +93,7 @@ router.get('/_filter/:filter?', oauth.authorise(), function (req, res, next) {
         var filter = filters.get(null, req.params.filter);
     }
 
-    sites.getAll({uid: req.user.id, filter: filter}, function (error, result) {
+    sites.getAll({uid: req.user.id.id, filter: filter}, function (error, result) {
         if (error) {
             return res.status(400).send(error);
         }

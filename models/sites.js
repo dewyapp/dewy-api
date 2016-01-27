@@ -82,6 +82,16 @@ exports.getByBaseurl = function(params, callback) {
     });
 }
 
+exports.update = function(siteDoc, callback) {
+    db.replace('site::' + siteDoc.sid, siteDoc, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+        callback(null, {message: 'success', data: result});
+    });
+}
+
 sites = [
     {
         id: 1,

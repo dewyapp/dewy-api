@@ -4,7 +4,7 @@ var oauth = require('../app.js').oauth;
 var validator = require('validator');
 var users = require('../models/users');
 
-router.post('/', oauth.authorise(), function (req, res, next) {
+router.post('/', function (req, res, next) {
     console.log(req.body);
     if (!req.body.username) {
         return res.send({"status": "error", "message": "A username is required."});
