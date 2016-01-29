@@ -56,10 +56,10 @@ router.get('/_filter/:filter?', oauth.authorise(), function (req, res, next) {
     // Will get this from database later
     var filter = null;
     if (req.params.filter) {
-        var filter = filters.get(null, req.params.filter);
+        filter = filters.get(null, req.params.filter);
     }
 
-    sites.getAll({uid: req.user.id.id, filter: filter}, function (error, result) {
+    sites.getAll({uid: req.user.id, filter: filter}, function (error, result) {
         if (error) {
             return res.status(400).send(error);
         }
@@ -68,7 +68,7 @@ router.get('/_filter/:filter?', oauth.authorise(), function (req, res, next) {
 });
 
 router.get('/_tags', oauth.authorise(), function (req, res, next) {
-    sites.getAllTags({uid: req.user.id.id}, function (error, result) {
+    sites.getAllTags({uid: req.user.id}, function (error, result) {
         if (error) {
             return res.status(400).send(error);
         }
@@ -81,7 +81,7 @@ router.put('/:site?', oauth.authorise(), function (req, res, next) {
     sites.get(req.params.site, function (error, result) {
         if (error) {
             return res.status(400).send(error);
-        } else if (result.data.value.uid != req.user.id.id) {
+        } else if (result.data.value.uid != req.user.id) {
             return res.status(403).send({"status": "error", "message": "You do not have permission to access this resource."});
         }
         if (!req.body.tags && !req.body.notes) {
