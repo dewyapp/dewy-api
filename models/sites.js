@@ -1,9 +1,43 @@
 var uuid = require('uuid');
 var couchbase = require('couchbase');
 var db = require('../app.js').bucket;
+var request = require('request');
 
 exports.audit = function(callback) {
-    callback({"status": "error", "message": "Under construction"}, null);
+    // Loop through all sites regardless of uid
+    query = couchbase.ViewQuery.from('sites', 'by_uid')
+        .range([null], [{}]);
+    db.query(query, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+        for (var row in result) {
+            db.get(result[row].id, function(error, result) {
+                if (error) {
+                    callback(error, null);
+                    return;
+                }
+                siteDoc = result.value;
+                request({
+                    uri: siteDoc.baseurl + '/admin/reports/dewy',
+                    method: 'GET'
+                }, function(error, response, body) {
+                    if (error || response.statusCode != 200) {
+                        // callback({"status": "error", "message": "Unable to communite with site " + siteDoc.sid + " at " + siteDoc.baseurl}, null);
+                        // return;
+                    }
+                    else {
+                        siteDoc.details = JSON.parse(body);
+                        exports.update(siteDoc, function(error, result) {
+
+                        });
+                    }
+                });
+            });
+        }
+        callback(null, {message: 'success'});
+    });
 }
 
 exports.create = function(params, callback) {
