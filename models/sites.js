@@ -1,6 +1,7 @@
 var uuid = require('uuid');
 var couchbase = require('couchbase');
 var db = require('../app.js').bucket;
+var async = require('async');
 var request = require('request');
 
 exports.audit = function(callback) {
@@ -12,31 +13,48 @@ exports.audit = function(callback) {
             callback(error, null);
             return;
         }
-        for (var row in result) {
-            db.get(result[row].id, function(error, result) {
-                if (error) {
-                    callback(error, null);
-                    return;
-                }
-                siteDoc = result.value;
-                request({
-                    uri: siteDoc.baseurl + '/admin/reports/dewy',
-                    method: 'GET'
-                }, function(error, response, body) {
-                    if (error || response.statusCode != 200) {
-                        // callback({"status": "error", "message": "Unable to communite with site " + siteDoc.sid + " at " + siteDoc.baseurl}, null);
-                        // return;
+        var errors = [];
+        async.each(result,
+            function(row, callback) {
+                db.get(row.id, function(error, result) {
+                    if (error) {
+                        callback();
+                        return;
                     }
-                    else {
-                        siteDoc.details = JSON.parse(body);
-                        exports.update(siteDoc, function(error, result) {
-
-                        });
-                    }
+                    siteDoc = result.value;
+                    request({
+                        uri: siteDoc.baseurl + '/admin/reports/dewy',
+                        method: 'GET'
+                    }, function(error, response, body) {
+                        if (error) {
+                            errors[siteDoc.sid] = error;
+                            callback();
+                            return;
+                        }
+                        else if (response.statusCode != 200) {
+                            errors[siteDoc.sid] = response.statusCode;
+                            callback();
+                            return;
+                        }
+                        else {
+                            siteDoc.details = JSON.parse(body);
+                            exports.update(siteDoc, function(error, result) {
+                                if (error) {
+                                    errors[siteDoc.sid] = error;
+                                    callback();
+                                    return;
+                                }
+                                callback();
+                            });
+                        }
+                    });
                 });
-            });
-        }
-        callback(null, {message: 'success'});
+            },
+            function(error) {
+                console.log(errors);
+                callback(null, {message: 'success'});
+            }
+        );
     });
 }
 
