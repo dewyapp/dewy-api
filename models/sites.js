@@ -1,6 +1,62 @@
 var uuid = require('uuid');
 var couchbase = require('couchbase');
 var db = require('../app.js').bucket;
+var async = require('async');
+var request = require('request');
+
+exports.audit = function(callback) {
+    // Loop through all sites regardless of uid
+    query = couchbase.ViewQuery.from('sites', 'by_uid')
+        .range([null], [{}]);
+    db.query(query, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+        var errors = [];
+        async.each(result,
+            function(row, callback) {
+                db.get(row.id, function(error, result) {
+                    if (error) {
+                        callback();
+                        return;
+                    }
+                    siteDoc = result.value;
+                    request({
+                        uri: siteDoc.baseurl + '/admin/reports/dewy',
+                        method: 'GET'
+                    }, function(error, response, body) {
+                        if (error) {
+                            errors[siteDoc.sid] = error;
+                            callback();
+                            return;
+                        }
+                        else if (response.statusCode != 200) {
+                            errors[siteDoc.sid] = response.statusCode;
+                            callback();
+                            return;
+                        }
+                        else {
+                            siteDoc.details = JSON.parse(body);
+                            exports.update(siteDoc, function(error, result) {
+                                if (error) {
+                                    errors[siteDoc.sid] = error;
+                                    callback();
+                                    return;
+                                }
+                                callback();
+                            });
+                        }
+                    });
+                });
+            },
+            function(error) {
+                console.log(errors);
+                callback(null, {message: 'success'});
+            }
+        );
+    });
+}
 
 exports.create = function(params, callback) {
     // If the site is new, give it a new sid
@@ -38,17 +94,41 @@ exports.create = function(params, callback) {
     });
 }
 
-exports.get = function(user, siteId) {
-    for (var i=0; i<sites.length; i++) {
-        if (sites[i].id == siteId) {
-            return sites[i];
+exports.get = function(sid, callback) {
+    db.get('site::' + sid, function (error, result) {
+        if (error) {
+            callback(error, null);
+            return;
         }
-    }
+        callback(null, {message: 'success', data: result});
+    });
 }
 
-exports.getByBaseurl = function(params, callback) {
-    query = couchbase.ViewQuery.from('dev_sites', 'by_baseurl')
-        .key([params.uid, params.baseurl]);
+exports.getAll = function(params, callback) {
+    // If no filter is given, return all sites
+    console.log(params.uid);
+    if (params.filter == null) {
+        query = couchbase.ViewQuery.from('sites', 'by_uid')
+            .key([params.uid]);
+        db.query(query, function(error, result) {
+            if (error) {
+                callback(error, null);
+                return;
+            }
+            callback(null, {message: 'success', data: result});
+        });
+    }
+    else {
+        callback(null, {message: 'Under construction'});
+    }
+    // else construct some amazing N1QL query from the filter rules
+    // ...
+}
+
+exports.getAllTags = function(params, callback) {
+    query = couchbase.ViewQuery.from('sites', 'tags_by_uid')
+        .range([params.uid, null], [params.uid, {}])
+        .group(true);
     db.query(query, function(error, result) {
         if (error) {
             callback(error, null);
@@ -58,9 +138,27 @@ exports.getByBaseurl = function(params, callback) {
     });
 }
 
-exports.getAll = function(user, filterId) {
-    // Dummy function for now, will eventually pull from persistence layer
-    return sitesList;
+exports.getByBaseurl = function(params, callback) {
+    query = couchbase.ViewQuery.from('sites', 'by_uid_and_baseurl')
+        .key([params.uid, params.baseurl])
+        .stale(1);
+    db.query(query, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+        callback(null, {message: 'success', data: result});
+    });
+}
+
+exports.update = function(siteDoc, callback) {
+    db.replace('site::' + siteDoc.sid, siteDoc, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+        callback(null, {message: 'success', data: result});
+    });
 }
 
 sites = [
