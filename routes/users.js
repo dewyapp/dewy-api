@@ -55,6 +55,10 @@ router.post('/', function (req, res, next) {
                 callback(null, "A password is required.");
                 return
             }
+            else if (!validator.isLength(req.body.password, {min: 8})) {
+                callback(null, "Your password must be at least 8 characters.");
+                return
+            }
             callback();
         }
     }, function(error, results) {
