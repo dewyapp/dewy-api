@@ -3,7 +3,10 @@ var router = express.Router();
 var oauth = require('../app.js').oauth;
 var async = require('async');
 var validator = require('validator');
+var uuid = require('uuid');
 var users = require('../models/users');
+var tokens = require('../models/oauth');
+var config = require('../config');
 
 router.post('/', function (req, res, next) {
     async.parallel({
@@ -72,10 +75,24 @@ router.post('/', function (req, res, next) {
                 if (error) {
                     return res.status(400).send(error);
                 }
-                res.send(result);
+
+                // Send user and token back
+                var user = {
+                    uid: result.data.uid,
+                    apikey: result.data.apikey,
+                    username: result.data.username,
+                    email: result.data.email,
+                    access_token: uuid.v4()
+                }
+                tokens.saveAccessToken(user.access_token, config.client.client_id, config.oauth.accessTokenLifetime, user.uid, function(error, result) {
+                    if (error) {
+                        return res.status(400).send(error);
+                    }
+                    res.send({message: 'success', data: user});
+                });
             });
         } else {
-            res.send(results);
+            res.send({message: 'error', data: results});
         }
     });
 });
