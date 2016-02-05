@@ -1,5 +1,4 @@
 var uuid = require('uuid');
-var forge = require("node-forge");
 var couchbase = require('couchbase');
 var db = require('../app.js').bucket;
 
@@ -10,7 +9,7 @@ exports.create = function(params, callback) {
         apikey: uuid.v4(),
         username: params.username,
         email: params.email,
-        password: forge.md.sha1.create().update(params.password).digest().toHex()
+        password: params.password
     };
     db.insert('user::' + userDoc.uid, userDoc, function(error, result) {
         if (error) {
