@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var oauth = require('../app.js').oauth;
 var async = require('async');
+var forge = require('node-forge');
 var validator = require('validator');
 var uuid = require('uuid');
 var users = require('../models/users');
@@ -71,6 +72,7 @@ router.post('/', function (req, res, next) {
 
         // User validation passed, create the user
         if (!results.username && !results.email && !results.password) {
+            req.body.password = forge.md.sha1.create().update(req.body.password).digest().toHex();
             users.create(req.body, function(error, result) {
                 if (error) {
                     return res.status(400).send(error);

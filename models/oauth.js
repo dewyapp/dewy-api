@@ -1,4 +1,5 @@
 var couchbase = require('couchbase');
+var forge = require('node-forge');
 var db = require('../app.js').bucket;
 var config = require('../config');
 
@@ -95,6 +96,7 @@ exports.saveRefreshToken = function (refreshToken, clientId, expires, userId, ca
 }
 
 exports.getUser = function (username, password, callback) {
+    password = forge.md.sha1.create().update(password).digest().toHex();
     query = couchbase.ViewQuery.from('users', 'by_username_and_password')
         .key([username, password])
         .stale(1);
