@@ -74,7 +74,7 @@ exports.saveAccessToken = function (accessToken, clientId, expires, userId, call
             callback(error, null);
             return;
         }
-        callback(null, {message: 'success', data: result});
+        callback(null, {message: 'success', data: accessTokenDoc});
     });
 }
 

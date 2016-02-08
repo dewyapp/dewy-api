@@ -5,7 +5,7 @@ var async = require('async');
 var validator = require('validator');
 var uuid = require('uuid');
 var users = require('../models/users');
-var tokens = require('../models/oauth');
+var oauthModel = require('../models/oauth');
 var config = require('../config');
 
 router.post('/', function (req, res, next) {
@@ -76,19 +76,12 @@ router.post('/', function (req, res, next) {
                     return res.status(400).send(error);
                 }
 
-                // Send user and token back
-                var user = {
-                    uid: result.data.uid,
-                    apikey: result.data.apikey,
-                    username: result.data.username,
-                    email: result.data.email,
-                    access_token: uuid.v4()
-                }
-                tokens.saveAccessToken(user.access_token, config.client.client_id, config.oauth.accessTokenLifetime, user.uid, function(error, result) {
+                // The user has been created, authenticate them and return the access token
+                oauthModel.saveAccessToken(uuid.v4(), config.client.client_id, config.oauth.accessTokenLifetime, result.data.uid, function(error, result) {
                     if (error) {
                         return res.status(400).send(error);
                     }
-                    res.send({message: 'success', data: user});
+                    res.send({message: 'success', data: result});
                 });
             });
         } else {
