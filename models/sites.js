@@ -106,7 +106,6 @@ exports.get = function(sid, callback) {
 
 exports.getAll = function(params, callback) {
     // If no filter is given, return all sites
-    console.log(params.uid);
     if (params.filter == null) {
         query = couchbase.ViewQuery.from('sites', 'by_uid')
             .key([params.uid]);
