@@ -106,7 +106,7 @@ exports.get = function(sid, callback) {
 
 exports.getAll = function(params, callback) {
     // If no filter is given, return all sites
-    if (params.filter == null) {
+    // if (params.filter == null) {
         query = couchbase.ViewQuery.from('sites', 'by_uid')
             .key([params.uid]);
         db.query(query, function(error, result) {
@@ -114,14 +114,13 @@ exports.getAll = function(params, callback) {
                 callback(error, null);
                 return;
             }
-            callback(null, {message: 'success', data: result});
+            callback(null, result);
         });
-    }
-    else {
-        callback(null, {message: 'Under construction'});
-    }
-    // else construct some amazing N1QL query from the filter rules
-    // ...
+    // }
+    /// else {
+    //    load results from a design document view that gets made when user creates a filter
+    //    callback(null, {message: 'Under construction'});
+    // }
 }
 
 exports.getAllTags = function(params, callback) {
