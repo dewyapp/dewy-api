@@ -1,4 +1,4 @@
-exports.get = function(user, url, filterSet) {
+exports.get = function(uid, url, filterSet) {
   filterSet = typeof filterSet !== 'undefined' ? filterSet : filters;
   // Comb through filters to get matching one
   for (var i=0; i<filterSet.length; i++) {
@@ -14,10 +14,28 @@ exports.get = function(user, url, filterSet) {
     }
   }
 
+  var newFilter =  {
+    notifications: {
+      appears: {
+        enabled: false
+      },
+      disappears: {
+        enabled: false
+      },
+      total: {
+        enabled: false
+      }
+    },
+    operator: 'any',
+    rules: [{
+      field: 'Base URL',
+      choice: 'contains',
+    }]
+  }
   return newFilter;
 }
 
-exports.getAll = function(user) {
+exports.getAll = function(uid) {
   // Dummy function for now, will eventually pull from persistence layer
   return filters;
 }
@@ -162,22 +180,3 @@ filters = [
     },
   }
 ]
-
-newFilter = {
-  notifications: {
-    appears: {
-      enabled: false
-    },
-    disappears: {
-      enabled: false
-    },
-    total: {
-      enabled: false
-    }
-  },
-  operator: 'any',
-  rules: [{
-    field: 'Base URL',
-    choice: 'contains',
-  }]
-}

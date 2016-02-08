@@ -6,7 +6,7 @@ var validator = require('validator');
 var filters = require('../models/filters');
 
 router.get('/', oauth.authorise(), function (req, res, next) {
-    res.send(filters.getAll(null));
+    res.send(filters.getAll(req.body.uid));
 });
 
 router.post('/', oauth.authorise(), function (req, res, next) {
@@ -15,7 +15,7 @@ router.post('/', oauth.authorise(), function (req, res, next) {
 });
 
 router.get('/:filter', oauth.authorise(), function (req, res, next) {
-    res.send(filters.get(null, req.params.filter));
+    res.send(filters.get(req.body.uid, req.params.filter));
 });
 
 router.delete('/:filter', oauth.authorise(), function (req, res, next) {

@@ -32,7 +32,6 @@ else {
         res.header('Access-Control-Allow-Origin', 'http://dewy.io');
         res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
         res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
         next();
     });
 
@@ -60,7 +59,7 @@ else {
     // Error handling
     app.use(app.oauth.errorHandler());
     app.use(function(req, res) {
-      res.status(403).send("Not a valid API endpoint");
+      res.status(404).send("Not a valid API endpoint");
     });
 }
 module.exports = app;
