@@ -74,7 +74,7 @@ exports.saveAccessToken = function (accessToken, clientId, expires, userId, call
             callback(error, null);
             return;
         }
-        callback(null, {message: 'success', data: accessTokenDoc});
+        callback(null, accessTokenDoc);
     });
 }
 
@@ -90,7 +90,7 @@ exports.saveRefreshToken = function (refreshToken, clientId, expires, userId, ca
             callback(error, null);
             return;
         }
-        callback(null, {message: 'success', data: result});
+        callback(null, result);
     });
 }
 
