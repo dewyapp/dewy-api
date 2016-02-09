@@ -1,182 +1,84 @@
-exports.get = function(uid, url, filterSet) {
-  filterSet = typeof filterSet !== 'undefined' ? filterSet : filters;
-  // Comb through filters to get matching one
-  for (var i=0; i<filterSet.length; i++) {
-    if (filterSet[i].url && filterSet[i].url == url) {
-      return filterSet[i];
-    }
-    else if (filterSet[i].children) {
-      // Comb through children recursively until a match is made
-      result = this.get(null, url, filterSet[i].children);
-      if (result) {
-        return result;
-      }
-    }
-  }
+var uuid = require('uuid');
+var couchbase = require('couchbase');
+var db = require('../app.js').bucket;
 
-  var newFilter =  {
-    notifications: {
-      appears: {
-        enabled: false
-      },
-      disappears: {
-        enabled: false
-      },
-      total: {
-        enabled: false
-      }
-    },
-    operator: 'any',
-    rules: [{
-      field: 'Base URL',
-      choice: 'contains',
-    }]
-  }
-  return newFilter;
+exports.create = function(uid, filterDoc, callback) {
+    filterDoc.fid = uuid.v4();
+    filterDoc.uid = uid;
+    filterDoc.url = encodeURIComponent(filterDoc.title);
+    db.insert('filter::' + filterDoc.fid, filterDoc, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+        callback(null, filterDoc);
+    });
 }
 
-exports.getAll = function(uid) {
-  // Dummy function for now, will eventually pull from persistence layer
-  return filters;
-}
-
-filters = [
-  {
-    id: '1',
-    title: 'In development',
-    url: 'in-development',
-    notifications: {
-      appears: {
-        enabled: false
-      },
-      disappears: {
-        enabled: true
-      },
-      total: {
-        enabled: true,
-        choice: 'is greater than',
-        value: 4
-      }
-    },
-    operator: 'any',
-    rules: [
-      {
-        field: 'Maintenance mode',
-        choice: 'is on'
-      },
-      {
-        field: 'Tag',
-        choice: 'is',
-        value: '1'
-      }
-    ]
-  },
-  {
-    id: '2',
-    title: 'Modules',
-    children: [
-      {
-        id: '3',
-        title: 'Views',
-        url: 'views',
-        notifications: {
-          appears: {
-            enabled: false
-          },
-          disappears: {
-            enabled: false
-          },
-          total: {
-            enabled: false,
-          }
-        },
-        operator: 'all',
-        rules: [
-          {
-            field: 'Module',
-            choice: 'is',
-            value: 'views',
-            detail: 'and is available'
-          },
-          {
-            field: 'Content type',
-            choice: 'starts with',
-            value: 'view_reference'
-          }
-        ]
-      },
-      {
-        id: '4',
-        title: 'Big webform sites',
-        url: 'big-webform-sites',
-        notifications: {
-          appears: {
-            enabled: true
-          },
-          disappears: {
-            enabled: false
-          },
-          total: {
-            enabled: false,
-          }
-        },
-        operator: 'all',
-        rules: [
-          {
-            field: 'Module',
-            choice: 'contains',
-            value: 'webform',
-            detail: 'and is enabled'
-          },
-          {
+exports.get = function(uid, fid, callback) {
+    db.get('filter::' + fid, function(error, result) {
+        // Return a blank filter if no filter is found
+        var filterDoc = {
+            notifications: {
+                appears: {
+                    enabled: false
+                },
+                disappears: {
+                    enabled: false
+                },
+                total: {
+                    enabled: false
+                }
+            },
             operator: 'any',
-            rules: [
-              {
-                field: 'Number of hits in past month',
-                choice: 'is greater than',
-                value: 7000
-              },
-              {
-                field: 'Number of nodes',
-                choice: 'is greater than',
-                value: 5000
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  },
-  {
-    id: '5',
-    title: 'Really long title to serve as an edge case for the design',
-    url: 'really-long-title-to-serve-as-an-edge-case-for-the-design',
-    notifications: {
-      appears: {
-        enabled: false
-      },
-      disappears: {
-        enabled: false
-      },
-      total: {
-        enabled: false,
-      }
-    },
-  },
-  {
-    id: '6',
-    title: 'Anotherreallylongtitlewithoutbreaksthanksjerk',
-    url: 'anotherreallylongtitlewithoutbreaksthanksjerk',
-    notifications: {
-      appears: {
-        enabled: false
-      },
-      disappears: {
-        enabled: false
-      },
-      total: {
-        enabled: false,
-      }
-    },
-  }
-]
+            rules: [{
+                field: 'Base URL',
+                choice: 'contains',
+            }]
+        }
+        if (!error) {
+            filterDoc = result.value;
+        }
+        callback(null, filterDoc);
+    });
+}
+
+exports.getAll = function(uid, callback) {
+    query = couchbase.ViewQuery.from('filters', 'by_uid')
+        .key([uid])
+        .stale(1);
+    db.query(query, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+        var filters = [];
+        for (item in result) {
+            filters.push(result[item].value);
+        }
+        callback(null, filters);
+    });
+}
+
+exports.delete = function(uid, fid, callback) {
+    // TODO: Check if user owns it
+    db.remove('filter::' + fid, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+        callback(null, result);
+    });
+}
+
+exports.update = function(uid, fid, filterDoc, callback) {
+    // TODO: Check if user owns it
+    // TODO: Check if data is any good
+    db.replace('filter::' + fid, filterDoc, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+        callback(null, result);
+    });
+}

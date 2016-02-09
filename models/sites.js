@@ -132,7 +132,7 @@ exports.getAllTags = function(params, callback) {
             callback(error, null);
             return;
         }
-        callback(null, {message: 'success', data: result});
+        callback(null, result);
     });
 }
 

@@ -6,6 +6,19 @@ var async = require('async');
 exports.setup = function (callback) {
     // Design documents
     var design_docs = {
+        filters: {
+            views: {
+                by_uid: {
+                    map: [
+                        'function (doc, meta) {',
+                            'if (meta.id.substring(0, 8) == "filter::") {',
+                                'emit([doc.uid], doc);',
+                            '}',
+                        '}'
+                        ].join('\n')
+                }
+            }
+        },
         oauth: {
             views: {
                 by_accesstoken: {

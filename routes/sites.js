@@ -53,17 +53,16 @@ router.put('/', oauth.authorise(), function (req, res, next) {
 });
 
 router.get('/_filter/:filter?', oauth.authorise(), function (req, res, next) {
-    // Will get this from database later
-    var filter = null;
-    if (req.params.filter) {
-        filter = filters.get(null, req.params.filter);
-    }
-
-    sites.getAll({uid: req.user.id, filter: filter}, function (error, result) {
+    filters.get(req.user.id, req.params.filter, function(error, result) {
         if (error) {
             return res.status(400).send(error);
         }
-        res.send(result);
+        sites.getAll({uid: req.user.id, filter: result}, function (error, result) {
+            if (error) {
+                return res.status(400).send(error);
+            }
+            res.send(result);
+        });
     });
 });
 

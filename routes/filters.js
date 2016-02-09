@@ -6,26 +6,48 @@ var validator = require('validator');
 var filters = require('../models/filters');
 
 router.get('/', oauth.authorise(), function (req, res, next) {
-    res.send(filters.getAll(req.body.uid));
+    filters.getAll(req.user.id, function(error, result) {
+        if (error) {
+            return res.status(500).send(error.toString());
+        }
+        res.send(result);
+    });
 });
 
 router.post('/', oauth.authorise(), function (req, res, next) {
-    console.log(util.inspect(req.body, {showHidden: false, depth: null}));
-    res.send();
+    filters.create(req.user.id, req.body, function(error, result) {
+        if (error) {
+            return res.status(500).send(error.toString());
+        }
+        res.send(result);
+    });
 });
 
 router.get('/:filter', oauth.authorise(), function (req, res, next) {
-    res.send(filters.get(req.body.uid, req.params.filter));
+    filters.get(req.user.id, req.params.filter, function(error, result) {
+        if (error) {
+            return res.status(500).send(error.toString());
+        }
+        res.send(result);
+    });
 });
 
 router.delete('/:filter', oauth.authorise(), function (req, res, next) {
-    console.log(util.inspect(req.body, {showHidden: false, depth: null}));
-    // res.send(filters.delete(req.params.filter));
+    filters.delete(req.user.id, req.params.filter, function(error, result) {
+        if (error) {
+            return res.status(500).send(error.toString());
+        }
+        res.send(result);
+    });
 });
 
 router.put('/:filter', oauth.authorise(), function (req, res, next) {
-    console.log(util.inspect(req.body, {showHidden: false, depth: null}));
-    res.send();
+    filters.update(req.user.id, req.params.filter, req.body, function(error, result) {
+        if (error) {
+            return res.status(500).send(error.toString());
+        }
+        res.send(result);
+    });
 });
 
 module.exports = router;
