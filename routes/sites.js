@@ -11,7 +11,7 @@ router.post('/', function (req, res, next) {
     if (!req.body.apikey) {
         return res.status(401).send("An api key is required.");
     }
-    if (!req.body.token && !req.body.enabled) {
+    if (!req.body.token && req.body.enabled == '1') {
         return res.status(401).send("A token is required to enable a site.");
     }
     if (!req.body.baseurl) {
