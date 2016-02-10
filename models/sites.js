@@ -24,7 +24,11 @@ exports.audit = function(callback) {
                     siteDoc = result.value;
                     request({
                         uri: siteDoc.baseurl + '/admin/reports/dewy',
-                        method: 'GET'
+                        method: 'POST',
+                        body: 'token=' + siteDoc.token,
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        }
                     }, function(error, response, body) {
                         if (error) {
                             errors[siteDoc.sid] = error;
@@ -52,7 +56,7 @@ exports.audit = function(callback) {
             },
             function(error) {
                 console.log(errors);
-                callback(null, {message: 'success'});
+                callback(null, errors);
             }
         );
     });
@@ -68,6 +72,7 @@ exports.create = function(params, callback) {
     var siteDoc = {
         sid: params.sid,
         uid: params.uid,
+        token: params.token,
         baseurl: params.baseurl,
         enabled: false,
         users: false,
@@ -114,7 +119,11 @@ exports.getAll = function(params, callback) {
                 callback(error, null);
                 return;
             }
-            callback(null, result);
+            var sites = [];
+            for (item in result) {
+                sites.push(result[item].value);
+            }
+            callback(null, sites);
         });
     // }
     /// else {

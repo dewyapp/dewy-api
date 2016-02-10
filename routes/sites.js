@@ -6,27 +6,27 @@ var filters = require('../models/filters');
 var sites = require('../models/sites');
 var users = require('../models/users');
 
-router.post('/', oauth.authorise(), function (req, res, next) {
+router.post('/', function (req, res, next) {
     console.log(req.body);
     if (!req.body.apikey) {
-        return res.send({"status": "error", "message": "An api key is required."});
+        return res.status(401).send("An api key is required.");
     }
     if (!req.body.baseurl) {
-        return res.send({"status": "error", "message": "A baseurl is required."});
+        return res.status(401).send("A baseurl is required.");
     }
     // Check uid from apikey
     users.getByApiKey(req.body.apikey, function(error, result) {
         if (error) {
-            return res.status(400).send(error);
+            return res.status(500).send(error);
         }
         if (!result.data.length) {
-            return res.send({"status": "error", "message": "This api key is not valid."});
+            return res.status(401).send("The api key is not valid.");
         }
         req.body.uid = result.data[0].value;
         // Check if site exists
         sites.getByBaseurl({uid: req.body.uid, baseurl: req.body.baseurl}, function(error, result) {
             if (error) {
-                return res.status(400).send(error);
+                return res.status(500).send(error);
             }
             // If site exists, grab sid
             req.body.sid = null
@@ -35,7 +35,7 @@ router.post('/', oauth.authorise(), function (req, res, next) {
             }
             sites.create(req.body, function(error, result) {
                 if (error) {
-                    return res.status(400).send(error);
+                    return res.status(500).send(error);
                 }
                 res.send(result);
             });
@@ -43,7 +43,7 @@ router.post('/', oauth.authorise(), function (req, res, next) {
     });
 });
 
-router.put('/', oauth.authorise(), function (req, res, next) {
+router.put('/', function (req, res, next) {
     sites.audit(function(error,result) {
         if (error) {
             return res.status(400).send(error);
