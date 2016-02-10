@@ -70,6 +70,15 @@ exports.setup = function (callback) {
                         '}'
                         ].join('\n')
                 },
+                audited_by_uid: {
+                    map: [
+                        'function (doc, meta) {',
+                            'if (meta.id.substring(0, 6) == "site::" && doc.details.title) {',
+                                'emit([doc.uid], {sid: doc.sid, title: doc.details.title, baseurl: doc.baseurl, complexity: doc.complexity, size: doc.size, activity: doc.activity, health: doc.health, tags: doc.tags});',
+                            '}',
+                        '}'
+                        ].join('\n')
+                },
                 tags_by_uid: {
                     map: [
                         'function (doc, meta) {',
