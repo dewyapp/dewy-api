@@ -11,6 +11,9 @@ router.post('/', function (req, res, next) {
     if (!req.body.apikey) {
         return res.status(401).send("An api key is required.");
     }
+    if (!req.body.token) {
+        return res.status(401).send("A token is required.");
+    }
     if (!req.body.baseurl) {
         return res.status(401).send("A baseurl is required.");
     }
