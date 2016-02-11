@@ -65,7 +65,7 @@ exports.setup = function (callback) {
                     map: [
                         'function (doc, meta) {',
                             'if (meta.id.substring(0, 6) == "site::") {',
-                                'emit([doc.uid, doc.baseurl], doc.sid);',
+                                'emit([doc.uid, doc.baseurl], doc);',
                             '}',
                         '}'
                         ].join('\n')

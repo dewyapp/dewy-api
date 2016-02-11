@@ -9,7 +9,7 @@ var users = require('../models/users');
 router.post('/', function (req, res, next) {
     console.log(req.body);
     if (!req.body.apikey) {
-        return res.status(401).send("An api key is required.");
+        return res.status(401).send("An API key is required.");
     }
     if (!req.body.token && req.body.enabled == '1') {
         return res.status(401).send("A token is required to enable a site.");
@@ -23,25 +23,39 @@ router.post('/', function (req, res, next) {
             return res.status(500).send(error);
         }
         if (!result.data.length) {
-            return res.status(401).send("The api key is not valid.");
+            return res.status(401).send("The API key is not valid.");
         }
         req.body.uid = result.data[0].value;
+
         // Check if site exists
         sites.getByBaseurl({uid: req.body.uid, baseurl: req.body.baseurl}, function(error, result) {
             if (error) {
                 return res.status(500).send(error);
             }
-            // If site exists, grab sid
-            req.body.sid = null
+            // If site exists, update it
             if (result.data.length) {
-                req.body.sid = result.data[0].value;
+                siteDoc = result.data[0].value;
+                siteDoc.token = req.body.token;
+                siteDoc.baseurl = req.body.baseurl;
+                siteDoc.enabled = req.body.enabled;
+                siteDoc.users = req.body.read_users;
+                siteDoc.content = req.body.read_content;
+                sites.update(siteDoc, function(error, result) {
+                    if (error) {
+                        return res.status(500).send(error);
+                    }
+                    res.send(result);
+                });
             }
-            sites.create(req.body, function(error, result) {
-                if (error) {
-                    return res.status(500).send(error);
-                }
-                res.send(result);
-            });
+            // Otherwise create a new site
+            else {
+                sites.create(req.body.uid, req.body.token, req.body.baseurl, req.body.enabled, req.body.read_users, req.body.read_content, function(error, result) {
+                    if (error) {
+                        return res.status(500).send(error);
+                    }
+                    res.send(result);
+                });
+            }
         });
     });
 });

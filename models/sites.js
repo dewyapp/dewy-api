@@ -62,35 +62,20 @@ exports.audit = function(callback) {
     });
 }
 
-exports.create = function(params, callback) {
-    // If the site is new, give it a new sid
-    if (params.sid == null) {
-        params.sid = uuid.v4();
-    }
-
+exports.create = function(uid, token, baseurl, enabled, users, content, callback) {
     // Construct site document
     var siteDoc = {
-        sid: params.sid,
-        uid: params.uid,
-        token: params.token,
-        baseurl: params.baseurl,
-        enabled: false,
-        users: false,
-        content: false
+        sid: uuid.v4(),
+        uid: uid,
+        token: token,
+        baseurl: baseurl,
+        enabled: enabled,
+        users: users,
+        content: content
     };
 
-    if (params.enabled == 1) {
-        siteDoc.enabled = true;
-    }
-    if (params.read_users == 1) {
-        siteDoc.users = true;
-    }
-    if (params.read_content == 1) {
-        siteDoc.content = true;
-    }
-
-    // Insert or update site
-    db.upsert('site::' + siteDoc.sid, siteDoc, function(error, result) {
+    // Insert site
+    db.insert('site::' + siteDoc.sid, siteDoc, function(error, result) {
         if (error) {
             callback(error, null);
             return;
@@ -164,7 +149,7 @@ exports.update = function(siteDoc, callback) {
             callback(error, null);
             return;
         }
-        callback(null, {message: 'success', data: result});
+        callback(null, result);
     });
 }
 
