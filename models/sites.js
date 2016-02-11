@@ -21,7 +21,8 @@ exports.audit = function(callback) {
                         callback();
                         return;
                     }
-                    siteDoc = result.value;
+                    var siteDoc = result.value;
+                    console.log('Auditing ' + result.value.sid + '.');
                     request({
                         uri: siteDoc.baseurl + '/admin/reports/dewy',
                         method: 'POST',
@@ -30,27 +31,36 @@ exports.audit = function(callback) {
                             'Content-Type': 'application/x-www-form-urlencoded'
                         }
                     }, function(error, response, body) {
+
+                        siteDoc.audited = {
+                            date: new Date().toISOString()
+                        }
                         if (error) {
                             errors[siteDoc.sid] = error;
-                            callback();
-                            return;
-                        }
-                        else if (response.statusCode != 200) {
+                            siteDoc.audited.error = error;
+                        } else if (response.statusCode != 200) {
                             errors[siteDoc.sid] = response.statusCode;
-                            callback();
-                            return;
+                            siteDoc.audited.error = response.statusCode;
+                        } else {
+                            details = JSON.parse(body);
+                            if (!details.title || !details.modules || !details.variables) {
+                                error = 'A site exists, but invalid response back - likely not a Drupal URL.';
+                                errors[siteDoc.sid] = error;
+                                siteDoc.audited.error = error;
+                            } else {
+                                siteDoc.details = details;
+                            }
                         }
-                        else {
-                            siteDoc.details = JSON.parse(body);
-                            exports.update(siteDoc, function(error, result) {
-                                if (error) {
-                                    errors[siteDoc.sid] = error;
-                                    callback();
-                                    return;
-                                }
+
+                        // Update siteDoc with either site details, or the error
+                        exports.update(siteDoc, function(error, result) {
+                            if (error) {
+                                errors[siteDoc.sid] = error;
                                 callback();
-                            });
-                        }
+                                return;
+                            }
+                            callback();
+                        });
                     });
                 });
             },
