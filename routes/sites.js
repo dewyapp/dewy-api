@@ -32,19 +32,28 @@ router.post('/', function (req, res, next) {
             if (error) {
                 return res.status(500).send(error);
             }
-            // If site exists, update it
+            // If site exists, update document
             if (result.data.length) {
-                siteDoc = result.data[0].value;
-                siteDoc.token = req.body.token;
-                siteDoc.baseurl = req.body.baseurl;
-                siteDoc.enabled = req.body.enabled;
-                siteDoc.users = req.body.read_users;
-                siteDoc.content = req.body.read_content;
-                sites.update(siteDoc, function(error, result) {
+                // Get full document so it can be updated
+                sites.get(result.data[0].value, function (error, result) {
                     if (error) {
+                        console.log(error);
                         return res.status(500).send(error);
                     }
-                    res.send(result);
+                    else {
+                        siteDoc = result.data.value;
+                        siteDoc.token = req.body.token;
+                        siteDoc.baseurl = req.body.baseurl;
+                        siteDoc.enabled = req.body.enabled;
+                        siteDoc.users = req.body.read_users;
+                        siteDoc.content = req.body.read_content;
+                        sites.update(siteDoc, function(error, result) {
+                            if (error) {
+                                return res.status(500).send(error);
+                            }
+                            res.send(result);
+                        });
+                    }
                 });
             }
             // Otherwise create a new site

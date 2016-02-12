@@ -65,7 +65,7 @@ exports.setup = function (callback) {
                     map: [
                         'function (doc, meta) {',
                             'if (meta.id.substring(0, 6) == "site::") {',
-                                'emit([doc.uid, doc.baseurl], doc);',
+                                'emit([doc.uid, doc.baseurl], doc.sid);',
                             '}',
                         '}'
                         ].join('\n')
@@ -74,7 +74,7 @@ exports.setup = function (callback) {
                     map: [
                         'function (doc, meta) {',
                             'if (meta.id.substring(0, 6) == "site::" && doc.enabled && doc.details.title) {',
-                                'emit([doc.uid], {sid: doc.sid, title: doc.details.title, baseurl: doc.baseurl, complexity: doc.complexity, size: doc.size, activity: doc.activity, health: doc.health, tags: doc.tags});',
+                                'emit([doc.uid], {sid: doc.sid, title: doc.details.title, baseurl: doc.baseurl, attributes: doc.attributes, tags: doc.tags});',
                             '}',
                         '}'
                         ].join('\n')

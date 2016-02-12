@@ -1,3 +1,4 @@
+var _ = require('underscore');
 var uuid = require('uuid');
 var couchbase = require('couchbase');
 var db = require('../app.js').bucket;
@@ -42,13 +43,51 @@ exports.audit = function(callback) {
                             errors[siteDoc.sid] = response.statusCode;
                             siteDoc.audited.error = response.statusCode;
                         } else {
-                            details = JSON.parse(body);
-                            if (!details.title || !details.modules || !details.variables) {
-                                error = 'A site exists, but invalid response back - likely not a Drupal URL.';
-                                errors[siteDoc.sid] = error;
-                                siteDoc.audited.error = error;
-                            } else {
-                                siteDoc.details = details;
+                            // Calculate attributes
+                            try {
+                                var attributes = {};
+
+                                attributes.modules = _.keys(siteDoc.details.modules).length;
+                                attributes.contentTypes = {};
+                                attributes.lastModified = 0;
+                                attributes.avgLastModified = 0;
+                                attributes.words = 0;
+                                for (var i in siteDoc.details.nodes) {
+                                    attributes.contentTypes[siteDoc.details.nodes[i].type] = 1;
+                                    attributes.avgLastModified = attributes.avgLastModified + Number(siteDoc.details.nodes[i].changed);
+                                    if (siteDoc.details.nodes[i].changed > attributes.lastModified) {
+                                        attributes.lastModified = siteDoc.details.nodes[i].changed;
+                                    }
+                                    for (var j in siteDoc.details.nodes[i].content) {
+                                        attributes.words = attributes.words + siteDoc.details.nodes[i].content[j].split(' ').length;
+                                    }
+                                }
+                                attributes.nodes = _.keys(siteDoc.details.nodes).length;
+                                attributes.contentTypes = _.keys(attributes.contentTypes).length;
+                                attributes.avgLastModified = attributes.avgLastModified / attributes.nodes;
+                                attributes.roles = {};
+                                attributes.lastAccess = 0;
+                                attributes.avgLastAccess = 0;
+                                for (var i in siteDoc.details.users) {
+                                    attributes.avgLastAccess = attributes.avgLastAccess + Number(siteDoc.details.users[i].last_access);
+                                    if (siteDoc.details.users[i].last_access > attributes.lastAccess) {
+                                        attributes.lastAccess = siteDoc.details.users[i].last_access;
+                                    }
+                                    for (var j in siteDoc.details.users[i].roles) {
+                                        attributes.roles[siteDoc.details.users[i].roles[j]] = 1;
+                                    }
+                                }
+                                attributes.users = _.keys(siteDoc.details.users).length;
+                                attributes.avgLastAccess = attributes.avgLastAccess / attributes.users;
+                                attributes.roles = _.keys(attributes.roles).length;
+                                attributes.diskSize = siteDoc.details.files.public.size + siteDoc.details.files.private.size + siteDoc.details.db_size;
+
+                                siteDoc.attributes = attributes;
+                                siteDoc.details = JSON.parse(body);
+                            }
+                            catch(error) {
+                                console.log(error);
+                                siteDoc.audited.error = error.toString();
                             }
                         }
 
