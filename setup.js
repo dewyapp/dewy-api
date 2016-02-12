@@ -73,8 +73,17 @@ exports.setup = function (callback) {
                 audited_by_uid: {
                     map: [
                         'function (doc, meta) {',
-                            'if (meta.id.substring(0, 6) == "site::" && doc.enabled && doc.details.title) {',
+                            'if (meta.id.substring(0, 6) == "site::" && doc.enabled == "1" && doc.attributes) {',
                                 'emit([doc.uid], {sid: doc.sid, title: doc.details.title, baseurl: doc.baseurl, attributes: doc.attributes, tags: doc.tags});',
+                            '}',
+                        '}'
+                        ].join('\n')
+                },
+                offline_by_uid: {
+                    map: [
+                        'function (doc, meta) {',
+                            'if (meta.id.substring(0, 6) == "site::" && (doc.enabled == "0" || !doc.attributes)) {',
+                                'emit([doc.uid], {sid: doc.sid, title: doc.details.title, baseurl: doc.baseurl, enabled: doc.enabled, audited: doc.audited});',
                             '}',
                         '}'
                         ].join('\n')
