@@ -102,15 +102,15 @@ router.get('/_tags', oauth.authorise(), function (req, res, next) {
 });
 
 router.put('/:site?', oauth.authorise(), function (req, res, next) {
-    console.log(req.body);
     sites.get(req.params.site, function (error, result) {
         if (error) {
             return res.status(400).send(error);
-        } else if (result.data.value.uid != req.user.id) {
+        } 
+        else if (result.data.value.uid != req.user.id) {
             return res.status(403).send({"status": "error", "message": "You do not have permission to access this resource."});
         }
-        if (!req.body.tags && !req.body.notes) {
-            return res.send({"status": "error", "message": "Tags or note required."});
+        else if (!req.body.tags && !req.body.notes) {
+            return res.status(400).send({"status": "error", "message": "Tags or note required."});
         }
 
         // Add values to site document and update that document
