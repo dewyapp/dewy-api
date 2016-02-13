@@ -46,6 +46,7 @@ exports.audit = function(callback) {
                         } else {
                             // Calculate attributes
                             try {
+                                siteDoc.details = JSON.parse(body);
                                 var attributes = {};
 
                                 attributes.modules = _.keys(siteDoc.details.modules).length;
@@ -84,7 +85,6 @@ exports.audit = function(callback) {
                                 attributes.diskSize = siteDoc.details.files.public.size + siteDoc.details.files.private.size + siteDoc.details.db_size;
 
                                 siteDoc.attributes = attributes;
-                                siteDoc.details = JSON.parse(body);
                             }
                             catch(error) {
                                 console.log(error);
