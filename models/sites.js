@@ -28,6 +28,7 @@ exports.audit = function(callback) {
                         uri: siteDoc.baseurl + '/admin/reports/dewy',
                         method: 'POST',
                         body: 'token=' + siteDoc.token,
+                        rejectUnauthorized: false,
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded'
                         }

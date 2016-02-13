@@ -83,7 +83,7 @@ exports.setup = function (callback) {
                     map: [
                         'function (doc, meta) {',
                             'if (meta.id.substring(0, 6) == "site::" && (doc.enabled == "0" || !("details" in doc) || ("error" in doc.audited))) {',
-                                'emit([doc.uid], {sid: doc.sid, baseurl: doc.baseurl, enabled: doc.enabled, audited: doc.audited});',
+                                'emit([doc.uid], {sid: doc.sid, baseurl: doc.baseurl, enabled: doc.enabled, audited: doc.audited, token: doc.token});',
                             '}',
                         '}'
                         ].join('\n')
