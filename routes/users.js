@@ -6,7 +6,6 @@ var forge = require('node-forge');
 var validator = require('validator');
 var uuid = require('uuid');
 var users = require('../models/users');
-var oauthModel = require('../models/oauth');
 var config = require('../config');
 
 router.post('/', function (req, res, next) {
@@ -22,7 +21,7 @@ router.post('/', function (req, res, next) {
                         callback(error);
                         return;
                     }
-                    if (result.data.length) {
+                    if (result.length) {
                         callback(null, 'This username is in use.');
                         return;
                     }
@@ -46,7 +45,7 @@ router.post('/', function (req, res, next) {
                         callback(error);
                         return;
                     }
-                    if (result.data.length) {
+                    if (result.length) {
                         callback(null, 'This email address is in use.');
                         return;
                     }
@@ -79,12 +78,7 @@ router.post('/', function (req, res, next) {
                 }
 
                 // The user has been created, authenticate them and return the access token
-                oauthModel.saveAccessToken(uuid.v4(), config.client.client_id, config.oauth.accessTokenLifetime, result.data.uid, function(error, result) {
-                    if (error) {
-                        return res.status(500).send(error);
-                    }
-                    res.send(result);
-                });
+                oauth.grant();
             });
         } else {
             res.status(400).send(results);

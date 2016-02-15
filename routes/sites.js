@@ -22,10 +22,10 @@ router.post('/', function (req, res, next) {
         if (error) {
             return res.status(500).send(error);
         }
-        if (!result.data.length) {
+        if (!result.length) {
             return res.status(401).send("The API key is not valid.");
         }
-        req.body.uid = result.data[0].value;
+        req.body.uid = result[0].value;
 
         // Check if site exists
         sites.getByBaseurl({uid: req.body.uid, baseurl: req.body.baseurl}, function(error, result) {
@@ -33,15 +33,15 @@ router.post('/', function (req, res, next) {
                 return res.status(500).send(error);
             }
             // If site exists, update document
-            if (result.data.length) {
+            if (result.length) {
                 // Get full document so it can be updated
-                sites.get(result.data[0].value, function (error, result) {
+                sites.get(result[0].value, function (error, result) {
                     if (error) {
                         console.log(error);
                         return res.status(500).send(error);
                     }
                     else {
-                        siteDoc = result.data.value;
+                        siteDoc = result.value;
                         siteDoc.token = req.body.token;
                         siteDoc.baseurl = req.body.baseurl;
                         siteDoc.enabled = req.body.enabled;
@@ -106,15 +106,15 @@ router.put('/:site?', oauth.authorise(), function (req, res, next) {
         if (error) {
             return res.status(400).send(error);
         } 
-        else if (result.data.value.uid != req.user.id) {
-            return res.status(403).send({"status": "error", "message": "You do not have permission to access this resource."});
+        else if (result.value.uid != req.user.id) {
+            return res.status(403).send("You do not have permission to access this resource.");
         }
         else if (!req.body.tags && !req.body.notes) {
-            return res.status(400).send({"status": "error", "message": "Tags or note required."});
+            return res.status(400).send("Tags or note required.");
         }
 
         // Add values to site document and update that document
-        var siteDoc = result.data.value;
+        var siteDoc = result.value;
         // This needs validation as it comes straight from Angular (i.e. ensure its an array of strings)
         if (req.body.tags) {
             siteDoc.tags = req.body.tags;

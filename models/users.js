@@ -16,7 +16,7 @@ exports.create = function(params, callback) {
             callback(error, null);
             return;
         }
-        callback(null, {message: 'success', data: userDoc});
+        callback(null, userDoc);
     });
 }
 
@@ -29,7 +29,7 @@ exports.getByApiKey = function(apikey, callback) {
             callback(error, null);
             return;
         }
-        callback(null, {message: 'success', data: result});
+        callback(null, result);
     });
 }
 
@@ -42,7 +42,7 @@ exports.getByEmail = function(email, callback) {
             callback(error, null);
             return;
         }
-        callback(null, {message: 'success', data: result});
+        callback(null, result);
     });
 }
 
@@ -55,6 +55,6 @@ exports.getByUsername = function(username, callback) {
             callback(error, null);
             return;
         }
-        callback(null, {message: 'success', data: result});
+        callback(null, result);
     });
 }
