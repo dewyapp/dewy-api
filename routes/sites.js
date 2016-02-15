@@ -9,13 +9,13 @@ var users = require('../models/users');
 router.post('/', function (req, res, next) {
     console.log(req.body);
     if (!req.body.apikey) {
-        return res.status(401).send("An API key is required.");
+        return res.status(400).send("An API key is required.");
     }
     if (!req.body.token && req.body.enabled == '1') {
-        return res.status(401).send("A token is required to enable a site.");
+        return res.status(400).send("A token is required to enable a site.");
     }
     if (!req.body.baseurl) {
-        return res.status(401).send("A baseurl is required.");
+        return res.status(400).send("A baseurl is required.");
     }
     // Check uid from apikey
     users.getByApiKey(req.body.apikey, function(error, result) {
@@ -72,7 +72,7 @@ router.post('/', function (req, res, next) {
 router.put('/', function (req, res, next) {
     sites.audit(function(error,result) {
         if (error) {
-            return res.status(400).send(error);
+            return res.status(500).send(error);
         }
         res.send(result);
     });
@@ -81,7 +81,7 @@ router.put('/', function (req, res, next) {
 router.get('/_filter/:filter?', oauth.authorise(), function (req, res, next) {
     filters.get(req.user.id, req.params.filter, function(error, result) {
         if (error) {
-            return res.status(400).send(error);
+            return res.status(500).send(error);
         }
         sites.getAll({uid: req.user.id, filter: result}, function (error, result) {
             if (error) {
@@ -95,7 +95,7 @@ router.get('/_filter/:filter?', oauth.authorise(), function (req, res, next) {
 router.get('/_tags', oauth.authorise(), function (req, res, next) {
     sites.getAllTags({uid: req.user.id}, function (error, result) {
         if (error) {
-            return res.status(400).send(error);
+            return res.status(500).send(error);
         }
         res.send(result);
     });
@@ -104,7 +104,7 @@ router.get('/_tags', oauth.authorise(), function (req, res, next) {
 router.put('/:site?', oauth.authorise(), function (req, res, next) {
     sites.get(req.params.site, function (error, result) {
         if (error) {
-            return res.status(400).send(error);
+            return res.status(500).send(error);
         } 
         else if (result.value.uid != req.user.id) {
             return res.status(403).send("You do not have permission to access this resource.");
@@ -125,7 +125,7 @@ router.put('/:site?', oauth.authorise(), function (req, res, next) {
         }
         sites.update(siteDoc, function (error, result) {
             if (error) {
-                return res.status(400).send(error);
+                return res.status(500).send(error);
             }
             res.send(result);
         });
@@ -137,7 +137,7 @@ router.put('/:site?', oauth.authorise(), function (req, res, next) {
 router.get('/:site?', oauth.authorise(), function (req, res, next) {
     sites.get(req.params.site, function (error, result) {
         if (error) {
-            return res.status(400).send(error);
+            return res.status(500).send(error);
         }
         res.send(result);
     });
