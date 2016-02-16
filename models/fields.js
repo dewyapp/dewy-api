@@ -1,10 +1,8 @@
 exports.getFields = function() {
-  // Dummy function for now, will eventually pull from persistence layer
   return fields;
 }
 
 exports.getOperators = function() {
-  // Dummy function for now, will eventually pull from persistence layer
   return operators;
 }
 

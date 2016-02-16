@@ -74,6 +74,70 @@ exports.delete = function(uid, fid, callback) {
 exports.update = function(uid, fid, filterDoc, callback) {
     // TODO: Check if user owns it
     // TODO: Check if data is any good
+    console.log(filterDoc);
+
+    function processRule(rule) {
+        if (rule.operator) {
+            return operator(rule.operator, rule.rules);
+        }
+        switch(rule.field.toLowerCase()) {
+            case 'tag':
+                field = 'tag';
+                break;
+            default:
+                field = 'blah';
+        }
+        switch(rule.choice.toLowerCase()) {
+            case 'is':
+                choice = '==';
+                break;
+            case 'is not':
+                choice = '!=';
+                break;
+            case 'is greater than':
+                choice = '>';
+                break;
+            case 'is less than':
+                choice = '<';
+                break;
+            case 'is greater than or equal to':
+                choice = '>=';
+                break;
+            case 'is less than or equal to':
+                choice = '<=';
+                break;
+            default:
+                field = 'blah';
+        }
+        return field + choice + '"' + rule.value + '"';
+    }
+
+    function operator(operator, rules) {
+        var prefix, separator;
+        if (operator == 'any') {
+            separator = '||';
+        }
+        else if (operator == 'all') {
+            separator = '&&';
+        }
+        else {
+            prefix = '!';
+            separator = '&&';
+        }
+        var statement = '';
+        for (var i in rules) {
+            if (prefix) {
+                statement = statement + prefix;
+            }
+            statement = statement + '(' + processRule(rules[i]) + ')';
+            if (i < rules.length-1) statement = statement + separator;
+        }
+        return statement;
+    }
+    var designDoc = 'function (doc, meta) { if (meta.id.substring(0, 6) == "site::" && doc.uid == "' + uid + '" && (' + operator(filterDoc.operator, filterDoc.rules) + ')) { emit([doc.uid], doc.sid) }}';
+    console.log(designDoc);
+
+
     db.replace('filter::' + fid, filterDoc, function(error, result) {
         if (error) {
             callback(error, null);
