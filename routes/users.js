@@ -6,6 +6,7 @@ var forge = require('node-forge');
 var validator = require('validator');
 var uuid = require('uuid');
 var users = require('../models/users');
+var oauthModel = require('../models/oauth');
 var config = require('../config');
 
 router.post('/', function (req, res, next) {
@@ -77,8 +78,22 @@ router.post('/', function (req, res, next) {
                     return res.status(500).send(error);
                 }
 
-                // The user has been created, authenticate them and return the access token
-                oauth.grant();
+                // The user has been created, create and return an access token (authenticate them)
+                var expires = new Date(this.now);
+                expires.setSeconds(expires.getSeconds() + config.oauth.accessTokenLifetime);
+                var token = {
+                    access_token: uuid.v4(),
+                    client_id: config.client.client_id,
+                    expires: expires,
+                    uid: result.uid
+                }
+                oauthModel.saveAccessToken(token.access_token, token.client_id, token.expires, token.uid, function(error, result) {
+                    if (error) {
+                        return res.status(500).send(error);
+                    }
+                    res.send(token);
+                });
+
             });
         } else {
             res.status(400).send(results);
