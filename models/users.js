@@ -28,8 +28,9 @@ exports.get = function(uid, callback) {
             return;
         }
         // Hash email for Gravatar
-        result.gravatar = md5(result.email); 
-        callback(null, result);
+        var userDoc = result.value;
+        userDoc.gravatar = md5(userDoc.email); 
+        callback(null, userDoc);
     });
 }
 
