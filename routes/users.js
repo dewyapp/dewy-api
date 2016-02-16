@@ -86,4 +86,13 @@ router.post('/', function (req, res, next) {
     });
 });
 
+router.get('/', oauth.authorise(), function (req, res, next) {
+    users.get(req.user.id, function(error, result) {
+        if (error) {
+            return res.status(500).send(error.toString());
+        }
+        res.send(result);
+    });
+});
+
 module.exports = router;

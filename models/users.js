@@ -1,6 +1,7 @@
 var uuid = require('uuid');
 var couchbase = require('couchbase');
 var db = require('../app.js').bucket;
+var md5 = require('md5');
 
 exports.create = function(params, callback) {
     // Construct user document
@@ -17,6 +18,18 @@ exports.create = function(params, callback) {
             return;
         }
         callback(null, userDoc);
+    });
+}
+
+exports.get = function(uid, callback) {
+    db.get('user::' + uid, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+        // Hash email for Gravatar
+        result.gravatar = md5(result.email); 
+        callback(null, result);
     });
 }
 
