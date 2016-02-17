@@ -92,6 +92,15 @@ router.get('/_filter/:filter?', oauth.authorise(), function (req, res, next) {
     });
 });
 
+router.get('/_offline', oauth.authorise(), function (req, res, next) {
+    sites.getAllOffline({uid: req.user.id}, function (error, result) {
+        if (error) {
+            return res.status(500).send(error);
+        }
+        res.send(result);
+    });
+});
+
 router.get('/_tags', oauth.authorise(), function (req, res, next) {
     sites.getAllTags({uid: req.user.id}, function (error, result) {
         if (error) {

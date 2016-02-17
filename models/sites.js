@@ -167,6 +167,22 @@ exports.getAll = function(params, callback) {
     // }
 }
 
+exports.getAllOffline = function(params, callback) {
+    query = couchbase.ViewQuery.from('sites', 'offline_by_uid')
+        .key([params.uid]);
+    db.query(query, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+        var sites = [];
+        for (item in result) {
+            sites.push(result[item].value);
+        }
+        callback(null, sites);
+    });
+}
+
 exports.getAllTags = function(params, callback) {
     query = couchbase.ViewQuery.from('sites', 'tags_by_uid')
         .range([params.uid, null], [params.uid, {}])
