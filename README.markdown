@@ -4,13 +4,13 @@
 
 ## Installation
 
+* Configure Couchbase and OAuth:
+
+        cp config.json.default config.json
+
 * Install dependencies:
 
 		npm install
-
-* Configure Couchbase:
-
-		cp config.json.default config.json
 		
 * Run node:
 
