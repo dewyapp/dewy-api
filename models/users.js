@@ -72,3 +72,13 @@ exports.getByUsername = function(username, callback) {
         callback(null, result);
     });
 }
+
+exports.update = function(userDoc, callback) {
+    db.replace('user::' + userDoc.uid, userDoc, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+        callback(null, result);
+    });
+}

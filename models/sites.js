@@ -134,13 +134,25 @@ exports.create = function(uid, token, baseurl, enabled, users, content, callback
     });
 }
 
+exports.delete = function(sid, callback) {
+    console.log('Delete ' + sid);
+    // db.remove('site::' + sid, function(error, result) {
+    //     if (error) {
+    //         callback(error, null);
+    //         return;
+    //     }
+    //     callback(null, result);
+    // });
+    callback(null, 'blah');
+}
+
 exports.get = function(sid, callback) {
     db.get('site::' + sid, function (error, result) {
         if (error) {
             callback(error, null);
             return;
         }
-        callback(null, result);
+        callback(null, result.value);
     });
 }
 

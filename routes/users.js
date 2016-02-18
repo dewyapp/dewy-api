@@ -110,4 +110,27 @@ router.get('/', oauth.authorise(), function (req, res, next) {
     });
 });
 
+router.put('/:uid', oauth.authorise(), function (req, res, next) {
+    users.get(req.user.id, function(error, result) {
+        if (error) {
+            return res.status(500).send(error.toString());
+        }
+        if (req.params.uid != req.user.id) {
+            return res.status(403).send("You do not have permission to access this resource.");
+        }
+
+        var userDoc = result;
+        // If the key is specified to be updated, reset the api key
+        if (req.body.key) {
+            userDoc.apikey = uuid.v4();
+        }
+        users.update(userDoc, function (error, result) {
+            if (error) {
+                return res.status(500).send(error);
+            }
+            res.send(userDoc);
+        });
+    });
+});
+
 module.exports = router;

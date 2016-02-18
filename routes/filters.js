@@ -23,8 +23,8 @@ router.post('/', oauth.authorise(), function (req, res, next) {
     });
 });
 
-router.get('/:filter', oauth.authorise(), function (req, res, next) {
-    filters.get(req.user.id, req.params.filter, function(error, result) {
+router.get('/:fid', oauth.authorise(), function (req, res, next) {
+    filters.get(req.user.id, req.params.fid, function(error, result) {
         if (error) {
             return res.status(500).send(error.toString());
         }
@@ -32,8 +32,8 @@ router.get('/:filter', oauth.authorise(), function (req, res, next) {
     });
 });
 
-router.delete('/:filter', oauth.authorise(), function (req, res, next) {
-    filters.delete(req.user.id, req.params.filter, function(error, result) {
+router.delete('/:fid', oauth.authorise(), function (req, res, next) {
+    filters.delete(req.user.id, req.params.fid, function(error, result) {
         if (error) {
             return res.status(500).send(error.toString());
         }
@@ -41,8 +41,8 @@ router.delete('/:filter', oauth.authorise(), function (req, res, next) {
     });
 });
 
-router.put('/:filter', oauth.authorise(), function (req, res, next) {
-    filters.update(req.user.id, req.params.filter, req.body, function(error, result) {
+router.put('/:fid', oauth.authorise(), function (req, res, next) {
+    filters.update(req.user.id, req.params.fid, req.body, function(error, result) {
         if (error) {
             return res.status(500).send(error.toString());
         }

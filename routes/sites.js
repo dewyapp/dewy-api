@@ -78,8 +78,8 @@ router.put('/', function (req, res, next) {
     });
 });
 
-router.get('/_filter/:filter?', oauth.authorise(), function (req, res, next) {
-    filters.get(req.user.id, req.params.filter, function(error, result) {
+router.get('/_filter/:fid?', oauth.authorise(), function (req, res, next) {
+    filters.get(req.user.id, req.params.fid, function(error, result) {
         if (error) {
             return res.status(500).send(error);
         }
@@ -110,12 +110,12 @@ router.get('/_tags', oauth.authorise(), function (req, res, next) {
     });
 });
 
-router.put('/:site?', oauth.authorise(), function (req, res, next) {
-    sites.get(req.params.site, function (error, result) {
+router.put('/:sid', oauth.authorise(), function (req, res, next) {
+    sites.get(req.params.sid, function (error, result) {
         if (error) {
             return res.status(500).send(error);
         } 
-        else if (result.value.uid != req.user.id) {
+        else if (result.uid != req.user.id) {
             return res.status(403).send("You do not have permission to access this resource.");
         }
         else if (!req.body.tags && !req.body.notes) {
@@ -123,7 +123,7 @@ router.put('/:site?', oauth.authorise(), function (req, res, next) {
         }
 
         // Add values to site document and update that document
-        var siteDoc = result.value;
+        var siteDoc = result;
         // This needs validation as it comes straight from Angular (i.e. ensure its an array of strings)
         if (req.body.tags) {
             siteDoc.tags = req.body.tags;
@@ -140,13 +140,33 @@ router.put('/:site?', oauth.authorise(), function (req, res, next) {
         });
     });
 
-    // res.send(sites.update(null, req.params.site));
+    // res.send(sites.update(null, req.params.sid));
 });
 
-router.get('/:site?', oauth.authorise(), function (req, res, next) {
-    sites.get(req.params.site, function (error, result) {
+router.delete('/:sid', oauth.authorise(), function (req, res, next) {
+    sites.get(req.params.sid, function (error, result) {
         if (error) {
             return res.status(500).send(error);
+        }
+        if (result.uid != req.user.id) {
+            return res.status(403).send("You do not have permission to access this resource.");
+        }
+        sites.delete(result.sid, function (error, result) {
+            if (error) {
+                return res.status(500).send(error);
+            }
+            res.send(result);
+        });
+    });
+});
+
+router.get('/:sid', oauth.authorise(), function (req, res, next) {
+    sites.get(req.params.sid, function (error, result) {
+        if (error) {
+            return res.status(500).send(error);
+        }
+        if (result.uid != req.user.id) {
+            return res.status(403).send("You do not have permission to access this resource.");
         }
         res.send(result);
     });
