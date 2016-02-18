@@ -15,67 +15,8 @@ exports.create = function(uid, filterDoc, callback) {
     });
 }
 
-exports.get = function(uid, fid, callback) {
-    db.get('filter::' + fid, function(error, result) {
-        // Return a blank filter if no filter is found
-        var filterDoc = {
-            notifications: {
-                appears: {
-                    enabled: false
-                },
-                disappears: {
-                    enabled: false
-                },
-                total: {
-                    enabled: false
-                }
-            },
-            operator: 'any',
-            rules: [{
-                field: 'Base URL',
-                choice: 'contains',
-            }]
-        }
-        if (!error) {
-            filterDoc = result.value;
-        }
-        callback(null, filterDoc);
-    });
-}
-
-exports.getAll = function(uid, callback) {
-    query = couchbase.ViewQuery.from('filters', 'by_uid')
-        .key([uid])
-        .stale(1);
-    db.query(query, function(error, result) {
-        if (error) {
-            callback(error, null);
-            return;
-        }
-        var filters = [];
-        for (item in result) {
-            filters.push(result[item].value);
-        }
-        callback(null, filters);
-    });
-}
-
-exports.delete = function(uid, fid, callback) {
-    // TODO: Check if user owns it
-    db.remove('filter::' + fid, function(error, result) {
-        if (error) {
-            callback(error, null);
-            return;
-        }
-        callback(null, result);
-    });
-}
-
-exports.update = function(uid, fid, filterDoc, callback) {
-    // TODO: Check if user owns it
-    // TODO: Check if data is any good
+exports.createDesignDoc = function(uid, filterDoc, callback) {
     console.log(filterDoc);
-
     function processRule(rule) {
         if (rule.operator) {
             return operator(rule.operator, rule.rules);
@@ -137,7 +78,66 @@ exports.update = function(uid, fid, filterDoc, callback) {
     var designDoc = 'function (doc, meta) { if (meta.id.substring(0, 6) == "site::" && doc.uid == "' + uid + '" && (' + operator(filterDoc.operator, filterDoc.rules) + ')) { emit([doc.uid], doc.sid) }}';
     console.log(designDoc);
 
+    callback(null, 'Under construction');
+}
 
+exports.get = function(fid, callback) {
+    db.get('filter::' + fid, function(error, result) {
+        // Return a blank filter if no filter is found
+        var filterDoc = {
+            notifications: {
+                appears: {
+                    enabled: false
+                },
+                disappears: {
+                    enabled: false
+                },
+                total: {
+                    enabled: false
+                }
+            },
+            operator: 'any',
+            rules: [{
+                field: 'Base URL',
+                choice: 'contains',
+            }]
+        }
+        if (!error) {
+            filterDoc = result.value;
+        }
+        callback(null, filterDoc);
+    });
+}
+
+exports.getAll = function(uid, callback) {
+    query = couchbase.ViewQuery.from('filters', 'by_uid')
+        .key([uid])
+        .stale(1);
+    db.query(query, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+        var filters = [];
+        for (item in result) {
+            filters.push(result[item].value);
+        }
+        callback(null, filters);
+    });
+}
+
+exports.delete = function(fid, callback) {
+    db.remove('filter::' + fid, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+        callback(null, result);
+    });
+}
+
+exports.update = function(fid, filterDoc, callback) {
+    // TODO: Check if data is any good
     db.replace('filter::' + fid, filterDoc, function(error, result) {
         if (error) {
             callback(error, null);

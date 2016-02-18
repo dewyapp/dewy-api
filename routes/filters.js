@@ -24,29 +24,53 @@ router.post('/', oauth.authorise(), function (req, res, next) {
 });
 
 router.get('/:fid', oauth.authorise(), function (req, res, next) {
-    filters.get(req.user.id, req.params.fid, function(error, result) {
+    filters.get(req.params.fid, function(error, result) {
         if (error) {
             return res.status(500).send(error.toString());
+        }
+        if (result.uid != req.user.id && (typeof req.params.fid == 'undefined')) {
+            return res.status(403).send("You do not have permission to access this resource.");
         }
         res.send(result);
     });
 });
 
 router.delete('/:fid', oauth.authorise(), function (req, res, next) {
-    filters.delete(req.user.id, req.params.fid, function(error, result) {
+    filters.get(req.params.fid, function(error, result) {
         if (error) {
             return res.status(500).send(error.toString());
         }
-        res.send(result);
+        if (result.uid != req.user.id) {
+            return res.status(403).send("You do not have permission to access this resource.");
+        }
+        filters.delete(req.params.fid, function(error, result) {
+            if (error) {
+                return res.status(500).send(error.toString());
+            }
+            res.send(result);
+        });
     });
 });
 
 router.put('/:fid', oauth.authorise(), function (req, res, next) {
-    filters.update(req.user.id, req.params.fid, req.body, function(error, result) {
+    filters.get(req.params.fid, function(error, result) {
         if (error) {
             return res.status(500).send(error.toString());
         }
-        res.send(result);
+        if (result.uid != req.user.id) {
+            return res.status(403).send("You do not have permission to access this resource.");
+        }
+        filters.update(req.params.fid, req.body, function(error, result) {
+            if (error) {
+                return res.status(500).send(error.toString());
+            }
+            filters.createDesignDoc(req.user.id, req.body, function (error, result) {
+                if (error) {
+                    return res.status(500).send(error.toString());
+                }
+                res.send(result);
+            });
+        });
     });
 });
 

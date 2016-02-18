@@ -143,7 +143,7 @@ exports.delete = function(sid, callback) {
     //     }
     //     callback(null, result);
     // });
-    callback(null, 'blah');
+    callback(null, 'Under construction');
 }
 
 exports.get = function(sid, callback) {
