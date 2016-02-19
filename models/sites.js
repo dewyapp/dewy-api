@@ -112,7 +112,7 @@ exports.audit = function(callback) {
     });
 }
 
-exports.create = function(uid, token, baseurl, enabled, users, content, callback) {
+exports.create = function(uid, token, baseurl, enabled, users, content, dateAdded, callback) {
     // Construct site document
     var siteDoc = {
         sid: uuid.v4(),
@@ -121,7 +121,8 @@ exports.create = function(uid, token, baseurl, enabled, users, content, callback
         baseurl: baseurl,
         enabled: enabled,
         users: users,
-        content: content
+        content: content,
+        dateAdded: dateAdded
     };
 
     // Insert site
@@ -135,15 +136,13 @@ exports.create = function(uid, token, baseurl, enabled, users, content, callback
 }
 
 exports.delete = function(sid, callback) {
-    console.log('Delete ' + sid);
-    // db.remove('site::' + sid, function(error, result) {
-    //     if (error) {
-    //         callback(error, null);
-    //         return;
-    //     }
-    //     callback(null, result);
-    // });
-    callback(null, 'Under construction');
+    db.remove('site::' + sid, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+        callback(null, result);
+    });
 }
 
 exports.get = function(sid, callback) {
@@ -160,7 +159,8 @@ exports.getAll = function(params, callback) {
     // If no filter is given, return all sites
     // if (params.filter == null) {
         query = couchbase.ViewQuery.from('sites', 'audited_by_uid')
-            .key([params.uid]);
+            .key([params.uid])
+            .stale(1);
         db.query(query, function(error, result) {
             if (error) {
                 callback(error, null);
@@ -181,7 +181,8 @@ exports.getAll = function(params, callback) {
 
 exports.getAllOffline = function(params, callback) {
     query = couchbase.ViewQuery.from('sites', 'offline_by_uid')
-        .key([params.uid]);
+        .key([params.uid])
+        .stale(1);
     db.query(query, function(error, result) {
         if (error) {
             callback(error, null);

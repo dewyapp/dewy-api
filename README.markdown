@@ -11,11 +11,11 @@
 * Install dependencies:
 
 		npm install
-		
+
+## Usage
+
 * Run node:
 
 		npm start
-
-## Usage
 
 * Make requests to the API at localhost:3001

@@ -23,7 +23,7 @@ router.post('/', function (req, res, next) {
             return res.status(500).send(error);
         }
         if (!result.length) {
-            return res.status(401).send("The API key is not valid.");
+            return res.status(401).send("The API key is not valid. It may have been reset, please confirm on Dewy.io.");
         }
         req.body.uid = result[0].value;
 
@@ -41,7 +41,7 @@ router.post('/', function (req, res, next) {
                         return res.status(500).send(error);
                     }
                     else {
-                        siteDoc = result.value;
+                        siteDoc = result;
                         siteDoc.token = req.body.token;
                         siteDoc.baseurl = req.body.baseurl;
                         siteDoc.enabled = req.body.enabled;
@@ -58,7 +58,9 @@ router.post('/', function (req, res, next) {
             }
             // Otherwise create a new site
             else {
-                sites.create(req.body.uid, req.body.token, req.body.baseurl, req.body.enabled, req.body.read_users, req.body.read_content, function(error, result) {
+                var dateAdded = new Date().getTime() / 1000;
+                dateAdded = Math.round(dateAdded);
+                sites.create(req.body.uid, req.body.token, req.body.baseurl, req.body.enabled, req.body.read_users, req.body.read_content, dateAdded, function(error, result) {
                     if (error) {
                         return res.status(500).send(error);
                     }
