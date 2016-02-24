@@ -72,7 +72,7 @@ router.post('/', function (req, res, next) {
 });
 
 router.put('/', function (req, res, next) {
-    sites.audit(function(error,result) {
+    sites.auditAll(function(error,result) {
         if (error) {
             return res.status(500).send(error);
         }
@@ -123,26 +123,40 @@ router.put('/:sid', oauth.authorise(), function (req, res, next) {
         else if (result.uid != req.user.id) {
             return res.status(403).send("You do not have permission to access this resource.");
         }
-        else if (!req.body.tags && !req.body.notes) {
-            return res.status(400).send("Tags or note required.");
+        else if (!req.body.tags && !req.body.notes && !req.body.audit) {
+            return res.status(400).send("Update required.");
         }
 
-        // Add values to site document and update that document
-        var siteDoc = result;
-        // This needs validation as it comes straight from Angular (i.e. ensure its an array of strings)
-        if (req.body.tags) {
-            siteDoc.tags = req.body.tags;
+        if (req.body.audit) {
+            var errors = [];
+            sites.audit(result.sid, errors, function(error,result) {
+                if (error) {
+                    return res.status(500).send(error);
+                }
+                if (errors) {
+                    return res.status(500).send(errors);
+                }
+                res.send(result);
+            });
         }
-        // This needs validation as it comes straight from Angular (i.e. ensure it's a string)
-        if (req.body.note) {
-            siteDoc.note = req.body.note;
-        }
-        sites.update(siteDoc, function (error, result) {
-            if (error) {
-                return res.status(500).send(error);
+        else {
+            // Add values to site document and update that document
+            var siteDoc = result;
+            // This needs validation as it comes straight from Angular (i.e. ensure its an array of strings)
+            if (req.body.tags) {
+                siteDoc.tags = req.body.tags;
             }
-            res.send(result);
-        });
+            // This needs validation as it comes straight from Angular (i.e. ensure it's a string)
+            if (req.body.note) {
+                siteDoc.note = req.body.note;
+            }
+            sites.update(siteDoc, function (error, result) {
+                if (error) {
+                    return res.status(500).send(error);
+                }
+                res.send(result);
+            });
+        }
     });
 
     // res.send(sites.update(null, req.params.sid));
