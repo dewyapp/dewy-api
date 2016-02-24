@@ -33,8 +33,8 @@ exports.audit = function(sid, errors, callback) {
                 errors[siteDoc.sid] = response.statusCode;
                 siteDoc.audited.error = response.statusCode;
             } else {
-                // Calculate attributes
                 try {
+                    // Calculate attributes
                     siteDoc.details = JSON.parse(body);
                     var attributes = {};
 
@@ -72,6 +72,12 @@ exports.audit = function(sid, errors, callback) {
                     attributes.avgLastAccess = attributes.avgLastAccess / attributes.users;
                     attributes.roles = _.keys(attributes.roles).length;
                     attributes.diskSize = siteDoc.details.files.public.size + siteDoc.details.files.private.size + siteDoc.details.db_size;
+
+                    // Roll up attributes into comparison factors
+                    attributes.complexity = Math.log(attributes.modules + attributes.contentTypes + attributes.roles);
+                    attributes.size = Math.log(attributes.nodes + attributes.words + attributes.users + attributes.diskSize);
+                    attributes.activity = Math.log(attributes.avgLastAccess + attributes.avgLastModified);
+                    attributes.health = Math.log(3);
 
                     siteDoc.attributes = attributes;
                 }
