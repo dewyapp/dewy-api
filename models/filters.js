@@ -15,8 +15,52 @@ exports.create = function(uid, filterDoc, callback) {
     });
 }
 
+booleanComparison = function(choice, field) {
+    switch(choice) {
+        case 'is on':
+            return field;
+        case 'is not on':
+            return '!' + field;
+    }
+}
+
+numberComparison = function(choice, field, value) {
+    switch(choice) {
+        case 'is':
+            return field + '==' + value;
+        case 'is not':
+            return field + '!=' + value;
+        case 'is greater than':
+            return field + '>' + value;
+        case 'is less than':
+            return field + '<' + value;
+        case 'is greater than or equal to':
+            return field + '>=' + value;
+        case 'is less than or equal to':
+            return field + '<=' + value;
+    }
+}
+
+stringComparison = function(choice, field, value) {
+    switch(choice) {
+        case 'contains':
+            return field + '.contains("' + value + '")';
+        case 'does not contain':
+            return '!(' + field + '.contains("' + value + '"))';
+        case 'is':
+            return field + ' == "' + value + '"';
+        case 'is not':
+            return field + ' != "' + value + '"';
+        case 'starts with':
+            return field + '.startsWith("' + value + '")';
+        case 'ends with':
+            return field + '.endsWith("' + value + '")';
+    }
+}
+
 exports.createDesignDoc = function(uid, filterDoc, callback) {
     console.log(filterDoc);
+    
     function processRule(rule) {
         if (rule.operator) {
             return operator(rule.operator, rule.rules);
@@ -40,12 +84,7 @@ exports.createDesignDoc = function(uid, filterDoc, callback) {
             'maintenance mode': 'doc.details.variables.maintenance_mode'
         }
         if (rule.field in booleans) {
-            switch(rule.choice) {
-                case 'is on':
-                    return booleans[rule.field];
-                case 'is not on':
-                    return '!' + booleans[rule.field];
-            }
+            return booleanComparison(rule.choice, booleans[rule.field]);
         }
 
         var strings = {
@@ -55,20 +94,7 @@ exports.createDesignDoc = function(uid, filterDoc, callback) {
             'title' : 'doc.details.title'
         }
         if (rule.field in strings) {
-            switch(rule.choice) {
-                case 'contains':
-                    return strings[rule.field] + '.contains("' + rule.value + '")';
-                case 'does not contain':
-                    return '!(' + strings[rule.field] + '.contains("' + rule.value + '"))';
-                case 'is':
-                    return strings[rule.field] + ' == "' + rule.value + '"';
-                case 'is not':
-                    return strings[rule.field] + ' != "' + rule.value + '"';
-                case 'starts with':
-                    return strings[rule.field] + '.startsWith("' + rule.value + '")';
-                case 'ends with':
-                    return strings[rule.field] + '.endsWith("' + rule.value + '")';
-            }
+            return stringComparison(rule.choice, strings[rule.field], rule.value);
         }
 
         var numbers = {
@@ -82,28 +108,7 @@ exports.createDesignDoc = function(uid, filterDoc, callback) {
             'number of users' : 'doc.details.users.length',
         }
         if (rule.field in numbers) {
-            switch(rule.choice) {
-                case 'is':
-                    return numbers[rule.field] + '==' + rule.value;
-                    break;
-                case 'is not':
-                    return numbers[rule.field] + '!=' + rule.value;
-                    break;
-                case 'is greater than':
-                    return numbers[rule.field] + '>' + rule.value;
-                    break;
-                case 'is less than':
-                    return numbers[rule.field] + '<' + rule.value;
-                    break;
-                case 'is greater than or equal to':
-                    return numbers[rule.field] + '>=' + rule.value;
-                    break;
-                case 'is less than or equal to':
-                    return numbers[rule.field] + '<=' + rule.value;
-                    break;
-                default:
-                    field = 'blah';
-            }
+            return numberComparison(rule.choice, numbers[rule.field], rule.value);
         }
 
         return rule.field;
