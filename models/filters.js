@@ -147,13 +147,13 @@ exports.createDesignDoc = function(filterDoc, callback) {
         return statement;
     }
 
-    var map = 'function (doc, meta) { if (meta.id.substring(0, 6) == "site::" && doc.uid == "' + filterDoc.uid + '" && (' + operator(filterDoc.operator, filterDoc.rules) + ')) { emit([doc.uid], {sid: doc.sid, title: doc.details.title, baseurl: doc.baseurl, attributes: doc.attributes, tags: doc.tags}) }}';
-    console.log(map);
+    var sitesMap = 'function (doc, meta) { if (meta.id.substring(0, 6) == "site::" && doc.uid == "' + filterDoc.uid + '" && (' + operator(filterDoc.operator, filterDoc.rules) + ')) { emit([doc.uid], {sid: doc.sid, title: doc.details.title, baseurl: doc.baseurl, attributes: doc.attributes, tags: doc.tags}) }}';
+    console.log(sitesMap);
 
     var designDoc = {
         views : {
-            filter : {
-                map: map
+            sites : {
+                map: sitesMap
             }
         }
     }

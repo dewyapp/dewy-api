@@ -171,7 +171,7 @@ exports.getAll = function(uid, fid, callback) {
             .key([uid])
             .stale(1);
     } else {
-        query = couchbase.ViewQuery.from('users-filter-' + fid, 'filter')
+        query = couchbase.ViewQuery.from('users-filter-' + fid, 'sites')
             .stale(1);
     }
     db.query(query, function(error, result) {
