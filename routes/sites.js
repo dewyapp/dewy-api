@@ -88,7 +88,7 @@ router.get('/_filter/:fid?', oauth.authorise(), function (req, res, next) {
         if (result.uid != req.user.id && (typeof req.params.fid == 'undefined')) {
             return res.status(403).send("You do not have permission to access this resource.");
         }
-        sites.getAll({uid: req.user.id, filter: result}, function (error, result) {
+        sites.getAll(req.user.id, result.fid, function (error, result) {
             if (error) {
                 return res.status(400).send(error);
             }

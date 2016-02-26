@@ -64,12 +64,7 @@ router.put('/:fid', oauth.authorise(), function (req, res, next) {
             if (error) {
                 return res.status(500).send(error.toString());
             }
-            filters.createDesignDoc(req.user.id, req.body, function (error, result) {
-                if (error) {
-                    return res.status(500).send(error.toString());
-                }
-                res.send(result);
-            });
+            res.send(result);
         });
     });
 });

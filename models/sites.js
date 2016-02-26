@@ -164,28 +164,28 @@ exports.get = function(sid, callback) {
     });
 }
 
-exports.getAll = function(params, callback) {
+exports.getAll = function(uid, fid, callback) {
     // If no filter is given, return all sites
-    // if (params.filter == null) {
+    if (fid == null) {
         query = couchbase.ViewQuery.from('sites', 'audited_by_uid')
-            .key([params.uid])
+            .key([uid])
             .stale(1);
-        db.query(query, function(error, result) {
-            if (error) {
-                callback(error, null);
-                return;
-            }
-            var sites = [];
-            for (item in result) {
-                sites.push(result[item].value);
-            }
-            callback(null, sites);
-        });
-    // }
-    /// else {
-    //    load results from a design document view that gets made when user creates a filter
-    //    callback(null, {message: 'Under construction'});
-    // }
+    } else {
+        query = couchbase.ViewQuery.from('users-filter-' + fid, 'filter')
+            .stale(1);
+    }
+    db.query(query, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+        var sites = [];
+        for (item in result) {
+            sites.push(result[item].value);
+        }
+        console.log(sites);
+        callback(null, sites);
+    });
 }
 
 exports.getAllOffline = function(params, callback) {

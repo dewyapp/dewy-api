@@ -11,56 +11,61 @@ exports.create = function(uid, filterDoc, callback) {
             callback(error, null);
             return;
         }
-        callback(null, filterDoc);
+        exports.createDesignDoc(filterDoc, function(error, result) {
+            if (error) {
+                callback(error, null);
+                return;
+            }
+            callback(null, filterDoc);
+        })
     });
 }
 
-booleanComparison = function(choice, field) {
-    switch(choice) {
-        case 'is on':
-            return field;
-        case 'is not on':
-            return '!' + field;
-    }
-}
+exports.createDesignDoc = function(filterDoc, callback) {
 
-numberComparison = function(choice, field, value) {
-    switch(choice) {
-        case 'is':
-            return field + '==' + value;
-        case 'is not':
-            return field + '!=' + value;
-        case 'is greater than':
-            return field + '>' + value;
-        case 'is less than':
-            return field + '<' + value;
-        case 'is greater than or equal to':
-            return field + '>=' + value;
-        case 'is less than or equal to':
-            return field + '<=' + value;
+    booleanComparison = function(choice, field) {
+        switch(choice) {
+            case 'is on':
+                return field;
+            case 'is not on':
+                return '!' + field;
+        }
     }
-}
 
-stringComparison = function(choice, field, value) {
-    switch(choice) {
-        case 'contains':
-            return field + '.contains("' + value + '")';
-        case 'does not contain':
-            return '!(' + field + '.contains("' + value + '"))';
-        case 'is':
-            return field + ' == "' + value + '"';
-        case 'is not':
-            return field + ' != "' + value + '"';
-        case 'starts with':
-            return field + '.startsWith("' + value + '")';
-        case 'ends with':
-            return field + '.endsWith("' + value + '")';
+    numberComparison = function(choice, field, value) {
+        switch(choice) {
+            case 'is':
+                return field + '==' + value;
+            case 'is not':
+                return field + '!=' + value;
+            case 'is greater than':
+                return field + '>' + value;
+            case 'is less than':
+                return field + '<' + value;
+            case 'is greater than or equal to':
+                return field + '>=' + value;
+            case 'is less than or equal to':
+                return field + '<=' + value;
+        }
     }
-}
 
-exports.createDesignDoc = function(uid, filterDoc, callback) {
-    console.log(filterDoc);
-    
+    stringComparison = function(choice, field, value) {
+        switch(choice) {
+            case 'contains':
+                return field + '.contains("' + value + '")';
+            case 'does not contain':
+                return '!(' + field + '.contains("' + value + '"))';
+            case 'is':
+                return field + ' == "' + value + '"';
+            case 'is not':
+                return field + ' != "' + value + '"';
+            case 'starts with':
+                return field + '.startsWith("' + value + '")';
+            case 'ends with':
+                return field + '.endsWith("' + value + '")';
+        }
+    }
+
     function processRule(rule) {
         if (rule.operator) {
             return operator(rule.operator, rule.rules);
@@ -87,6 +92,11 @@ exports.createDesignDoc = function(uid, filterDoc, callback) {
             return booleanComparison(rule.choice, booleans[rule.field]);
         }
 
+        // var dates = {
+        //     'date added to dewy': 'dateAdded',
+
+        // }
+
         var strings = {
             'base url': 'doc.baseurl',
             'drupal core': 'doc.details.drupal_core',
@@ -99,9 +109,9 @@ exports.createDesignDoc = function(uid, filterDoc, callback) {
 
         var numbers = {
             'database file size' : 'doc.details.db_size',
-            'number of files (private)' : 'doc.details.files.private',
-            'number of files (public)' : 'doc.details.files.public',
-            'number of files (total)' : 'doc.details.files.private + doc.details.files.public',
+            'number of files (private)' : 'doc.details.files.private.count',
+            'number of files (public)' : 'doc.details.files.public.count',
+            'number of files (total)' : 'doc.details.files.private.count + doc.details.files.public.count',
             'number of modules' : 'doc.details.modules.length',
             'number of nodes' : 'doc.details.nodes.length',
             'number of themes' : 'doc.details.themes.length',
@@ -136,10 +146,26 @@ exports.createDesignDoc = function(uid, filterDoc, callback) {
         }
         return statement;
     }
-    var designDoc = 'function (doc, meta) { if (meta.id.substring(0, 6) == "site::" && doc.uid == "' + uid + '" && (' + operator(filterDoc.operator, filterDoc.rules) + ')) { emit([doc.uid], doc.sid) }}';
-    console.log(designDoc);
 
-    callback(null, 'Under construction');
+    var map = 'function (doc, meta) { if (meta.id.substring(0, 6) == "site::" && doc.uid == "' + filterDoc.uid + '" && (' + operator(filterDoc.operator, filterDoc.rules) + ')) { emit([doc.uid], {sid: doc.sid, title: doc.details.title, baseurl: doc.baseurl, attributes: doc.attributes, tags: doc.tags}) }}';
+    console.log(map);
+
+    var designDoc = {
+        views : {
+            filter : {
+                map: map
+            }
+        }
+    }
+
+    var manager = db.manager();
+    manager.upsertDesignDocument('users-filter-' + filterDoc.fid, designDoc, function(error, result) {
+        if (error) {
+            callback(error);
+            return;
+        }
+        callback();
+    });
 }
 
 exports.get = function(fid, callback) {
@@ -188,12 +214,19 @@ exports.getAll = function(uid, callback) {
 }
 
 exports.delete = function(fid, callback) {
-    db.remove('filter::' + fid, function(error, result) {
+    var manager = db.manager();
+    manager.removeDesignDocument('users-filter-' + fid, function(error, result) {
         if (error) {
             callback(error, null);
             return;
         }
-        callback(null, result);
+        db.remove('filter::' + fid, function(error, result) {
+            if (error) {
+                callback(error, null);
+                return;
+            }
+            callback(null, result);
+        });
     });
 }
 
@@ -204,6 +237,12 @@ exports.update = function(fid, filterDoc, callback) {
             callback(error, null);
             return;
         }
-        callback(null, result);
+        exports.createDesignDoc(filterDoc, function(error, result) {
+            if (error) {
+                callback(error, null);
+                return;
+            }
+            callback(null, filterDoc);
+        })
     });
 }
