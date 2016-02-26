@@ -21,36 +21,92 @@ exports.createDesignDoc = function(uid, filterDoc, callback) {
         if (rule.operator) {
             return operator(rule.operator, rule.rules);
         }
-        switch(rule.field.toLowerCase()) {
-            case 'tag':
-                field = 'tag';
-                break;
-            default:
-                field = 'blah';
+
+        rule.field = rule.field.toLowerCase();
+        rule.choice = rule.choice.toLowerCase();
+
+        if (rule.field == 'tag') {
+            if (rule.choice == 'is') {
+                return 'doc.tags.indexOf("' + rule.value + '") != -1';
+            } else {
+                return 'doc.tags.indexOf("' + rule.value + '") == -1';
+            }
         }
-        switch(rule.choice.toLowerCase()) {
-            case 'is':
-                choice = '==';
-                break;
-            case 'is not':
-                choice = '!=';
-                break;
-            case 'is greater than':
-                choice = '>';
-                break;
-            case 'is less than':
-                choice = '<';
-                break;
-            case 'is greater than or equal to':
-                choice = '>=';
-                break;
-            case 'is less than or equal to':
-                choice = '<=';
-                break;
-            default:
-                field = 'blah';
+
+        var booleans = {
+            'aggregate css': 'doc.details.variables.preprocess_css',
+            'aggregate js': 'doc.details.variables.preprocess_js',
+            'caching for anonymous': 'doc.details.variables.cache',
+            'maintenance mode': 'doc.details.variables.maintenance_mode'
         }
-        return field + choice + '"' + rule.value + '"';
+        if (rule.field in booleans) {
+            switch(rule.choice) {
+                case 'is on':
+                    return booleans[rule.field];
+                case 'is not on':
+                    return '!' + booleans[rule.field];
+            }
+        }
+
+        var strings = {
+            'base url': 'doc.baseurl',
+            'drupal core': 'doc.details.drupal_core',
+            'php version': 'doc.details.php_version',
+            'title' : 'doc.details.title'
+        }
+        if (rule.field in strings) {
+            switch(rule.choice) {
+                case 'contains':
+                    return strings[rule.field] + '.contains("' + rule.value + '")';
+                case 'does not contain':
+                    return '!(' + strings[rule.field] + '.contains("' + rule.value + '"))';
+                case 'is':
+                    return strings[rule.field] + ' == "' + rule.value + '"';
+                case 'is not':
+                    return strings[rule.field] + ' != "' + rule.value + '"';
+                case 'starts with':
+                    return strings[rule.field] + '.startsWith("' + rule.value + '")';
+                case 'ends with':
+                    return strings[rule.field] + '.endsWith("' + rule.value + '")';
+            }
+        }
+
+        var numbers = {
+            'database file size' : 'doc.details.db_size',
+            'number of files (private)' : 'doc.details.files.private',
+            'number of files (public)' : 'doc.details.files.public',
+            'number of files (total)' : 'doc.details.files.private + doc.details.files.public',
+            'number of modules' : 'doc.details.modules.length',
+            'number of nodes' : 'doc.details.nodes.length',
+            'number of themes' : 'doc.details.themes.length',
+            'number of users' : 'doc.details.users.length',
+        }
+        if (rule.field in numbers) {
+            switch(rule.choice) {
+                case 'is':
+                    return numbers[rule.field] + '==' + rule.value;
+                    break;
+                case 'is not':
+                    return numbers[rule.field] + '!=' + rule.value;
+                    break;
+                case 'is greater than':
+                    return numbers[rule.field] + '>' + rule.value;
+                    break;
+                case 'is less than':
+                    return numbers[rule.field] + '<' + rule.value;
+                    break;
+                case 'is greater than or equal to':
+                    return numbers[rule.field] + '>=' + rule.value;
+                    break;
+                case 'is less than or equal to':
+                    return numbers[rule.field] + '<=' + rule.value;
+                    break;
+                default:
+                    field = 'blah';
+            }
+        }
+
+        return rule.field;
     }
 
     function operator(operator, rules) {
