@@ -183,7 +183,6 @@ exports.getAll = function(uid, fid, callback) {
         for (item in result) {
             sites.push(result[item].value);
         }
-        console.log(sites);
         callback(null, sites);
     });
 }

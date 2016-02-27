@@ -22,13 +22,14 @@ exports.create = function(uid, filterDoc, callback) {
 }
 
 exports.createDesignDoc = function(filterDoc, callback) {
+    console.log(filterDoc);
 
     booleanComparison = function(choice, field) {
         switch(choice) {
-            case 'is on':
-                return field;
-            case 'is not on':
+            case 0:
                 return '!' + field;
+            case 1:
+                return field;
         }
     }
 
@@ -72,50 +73,53 @@ exports.createDesignDoc = function(filterDoc, callback) {
         }
 
         rule.field = rule.field.toLowerCase();
-        rule.choice = rule.choice.toLowerCase();
-
-        if (rule.field == 'tag') {
-            if (rule.choice == 'is') {
-                return 'doc.tags.indexOf("' + rule.value + '") != -1';
-            } else {
-                return 'doc.tags.indexOf("' + rule.value + '") == -1';
-            }
+        if (typeof rule.choice == 'string') {
+            rule.choice = rule.choice.toLowerCase();
         }
 
         var booleans = {
             'aggregate css': 'doc.details.variables.preprocess_css',
             'aggregate js': 'doc.details.variables.preprocess_js',
             'caching for anonymous': 'doc.details.variables.cache',
-            'maintenance mode': 'doc.details.variables.maintenance_mode'
+            'database': '',
+            'maintenance mode': 'doc.details.variables.maintenance_mode',
+            'modules': ''
         }
-        if (rule.field in booleans) {
-            return booleanComparison(rule.choice, booleans[rule.field]);
+        var dates = {
+            'date added to dewy': 'dateAdded',
+            'date last accessed': 'doc.attributes.lastAccess',
+            'date last edited': 'doc.attributes.lastModified',
         }
-
-        // var dates = {
-        //     'date added to dewy': 'dateAdded',
-
-        // }
-
+        var numbers = {
+            'database file size' : 'doc.details.db_size',
+            'file size (private)' : 'doc.details.files.private.size',
+            'file size (public)' : 'doc.details.files.public.size',
+            'file size (db+private+public)' : 'doc.details.db_size + doc.details.files.private.size + doc.details.files.public.size',
+            'number of broken links' : '',
+            'number of content types' : 'doc.attributes.contentTypes',
+            'number of files (private)' : 'doc.details.files.private.count',
+            'number of files (public)' : 'doc.details.files.public.count',
+            'number of files (total)' : 'doc.details.files.private.count + doc.details.files.public.count',
+            'number of modules' : 'doc.attributes.modules',
+            'number of nodes' : 'doc.attributes.nodes',
+            'number of roles' : 'doc.attributes.roles',
+            'number of themes' : 'doc.details.themes.length',
+            'number of users' : 'doc.attributes.users',
+            'number of words' : 'doc.attributes.words',
+        }
         var strings = {
             'base url': 'doc.baseurl',
             'drupal core': 'doc.details.drupal_core',
             'php version': 'doc.details.php_version',
+            'tag': 'doc.tags',
             'title' : 'doc.details.title'
+        }
+
+        if (rule.field in booleans) {
+            return booleanComparison(rule.choice, booleans[rule.field]);
         }
         if (rule.field in strings) {
             return stringComparison(rule.choice, strings[rule.field], rule.value);
-        }
-
-        var numbers = {
-            'database file size' : 'doc.details.db_size',
-            'number of files (private)' : 'doc.details.files.private.count',
-            'number of files (public)' : 'doc.details.files.public.count',
-            'number of files (total)' : 'doc.details.files.private.count + doc.details.files.public.count',
-            'number of modules' : 'doc.details.modules.length',
-            'number of nodes' : 'doc.details.nodes.length',
-            'number of themes' : 'doc.details.themes.length',
-            'number of users' : 'doc.details.users.length',
         }
         if (rule.field in numbers) {
             return numberComparison(rule.choice, numbers[rule.field], rule.value);

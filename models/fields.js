@@ -10,172 +10,175 @@ fields = [
   {
     title: 'Aggregate CSS',
     choices: [
-      'is on',
-      'is not on'
+      {id: 0, label: 'is off'},
+      {id: 1, label: 'is on'}
     ],
-    value: false
+    value: 'boolean'
   },
   {
     title: 'Aggregate JS',
     choices: [
-      'is on',
-      'is not on'
+      {id: 0, label: 'is off'},
+      {id: 1, label: 'is on'}
     ],
-    value: false
+    value: 'boolean'
   },
   {
     title: 'Base URL',
     choices: [
-      'contains',
-      'does not contain',
-      'is',
-      'is not',
-      'starts with',
-      'ends with'
+      {id: 'contains', label: 'contains'},
+      {id: 'does not contain', label: 'does not contain'},
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'starts with', label: 'starts with'},
+      {id: 'ends with', label: 'ends with'}
     ],
     value: 'string'
   },
   {
     title: 'Caching for anonymous',
     choices: [
-      'is on',
-      'is not on'
+      {id: 0, label: 'is off'},
+      {id: 1, label: 'is on'}
     ],
-    value: false
+    value: 'boolean'
   },
   {
     title: 'Content type',
     choices: [
-      'contains',
-      'does not contain',
-      'is',
-      'is not',
-      'starts with',
-      'ends with'
+      {id: 'contains', label: 'contains'},
+      {id: 'does not contain', label: 'does not contain'},
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'starts with', label: 'starts with'},
+      {id: 'ends with', label: 'ends with'}
     ],
     value: 'string'
   },
   {
     title: 'Database',
     choices: [
-      'is pending updates',
-      'is updated'
+      {id: 0, label: 'is pending updates'},
+      {id: 1, label: 'is updated'}
     ],
-    value: false
+    value: 'boolean'
   },
   {
     title: 'Database file size',
     choices: [
-      'is',
-      'is not',
-      'is greater than',
-      'is less than',
-      'is greater than or equal to',
-      'is less than or equal to'
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'is greater than', label: 'is greater than'},
+      {id: 'is less than', label: 'is less than'},
+      {id: 'is greater than or equal to', label: 'is greater than or equal to'},
+      {id: 'is less than or equal to', label: 'is less than or equal to'}
     ],
     value: 'integer'
   },
   {
     title: 'Date added to Dewy',
     choices: [
-      'is',
-      'is not',
-      'is after',
-      'is before',
-      'is in the last',
-      'is not in the last'
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'is after', label: 'is after'},
+      {id: 'is before', label: 'is before'},
+      {id: 'is between', label: 'is between'},
+      {id: 'is in the last', label: 'is in the last'},
+      {id: 'is not in the last', label: 'is not in the last'}
     ],
     value: 'date'
   },
   {
     title: 'Date last accessed',
     choices: [
-      'is',
-      'is not',
-      'is after',
-      'is before',
-      'is in the last',
-      'is not in the last'
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'is after', label: 'is after'},
+      {id: 'is before', label: 'is before'},
+      {id: 'is between', label: 'is between'},
+      {id: 'is in the last', label: 'is in the last'},
+      {id: 'is not in the last', label: 'is not in the last'}
     ],
     value: 'date'
   },
   {
     title: 'Date last edited',
     choices: [
-      'is',
-      'is not',
-      'is after',
-      'is before',
-      'is in the last',
-      'is not in the last'
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'is after', label: 'is after'},
+      {id: 'is before', label: 'is before'},
+      {id: 'is between', label: 'is between'},
+      {id: 'is in the last', label: 'is in the last'},
+      {id: 'is not in the last', label: 'is not in the last'}
     ],
     value: 'date'
   },
   {
     title: 'Drupal core',
     choices: [
-      'contains',
-      'does not contain',
-      'is',
-      'is not',
-      'starts with',
-      'ends with'
+      {id: 'contains', label: 'contains'},
+      {id: 'does not contain', label: 'does not contain'},
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'starts with', label: 'starts with'},
+      {id: 'ends with', label: 'ends with'}
     ],
     value: 'string'
   },
   {
     title: 'File size (private)',
     choices: [
-      'is',
-      'is not',
-      'is greater than',
-      'is less than',
-      'is greater than or equal to',
-      'is less than or equal to'
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'is greater than', label: 'is greater than'},
+      {id: 'is less than', label: 'is less than'},
+      {id: 'is greater than or equal to', label: 'is greater than or equal to'},
+      {id: 'is less than or equal to', label: 'is less than or equal to'}
     ],
     value: 'integer'
   },
   {
     title: 'File size (public)',
     choices: [
-      'is',
-      'is not',
-      'is greater than',
-      'is less than',
-      'is greater than or equal to',
-      'is less than or equal to'
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'is greater than', label: 'is greater than'},
+      {id: 'is less than', label: 'is less than'},
+      {id: 'is greater than or equal to', label: 'is greater than or equal to'},
+      {id: 'is less than or equal to', label: 'is less than or equal to'}
     ],
     value: 'integer'
   },
   {
     title: 'File size (db+private+public)',
     choices: [
-      'is',
-      'is not',
-      'is greater than',
-      'is less than',
-      'is greater than or equal to',
-      'is less than or equal to'
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'is greater than', label: 'is greater than'},
+      {id: 'is less than', label: 'is less than'},
+      {id: 'is greater than or equal to', label: 'is greater than or equal to'},
+      {id: 'is less than or equal to', label: 'is less than or equal to'}
     ],
     value: 'integer'
   },
   {
     title: 'Maintenance mode',
     choices: [
-      'is on',
-      'is not on'
+      {id: 0, label: 'is off'},
+      {id: 1, label: 'is on'}
     ],
-    value: false
+    value: 'boolean'
   },
   {
     title: 'Module',
     choices: [
-      'contains',
-      'does not contain',
-      'is',
-      'is not',
-      'starts with',
-      'ends with'
+      {id: 'contains', label: 'contains'},
+      {id: 'does not contain', label: 'does not contain'},
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'starts with', label: 'starts with'},
+      {id: 'ends with', label: 'ends with'}
     ],
     value: 'string',
     details: [
@@ -187,220 +190,232 @@ fields = [
   {
     title: 'Modules',
     choices: [
-      'are up-to-date',
-      'are out-of-date'
+      {id: 0, label: 'are out-of-date'},
+      {id: 1, label: 'are up-to-date'}
     ],
-    value: false
+    value: 'boolean'
   },
   {
     title: 'Number of broken links',
     choices: [
-      'is',
-      'is not',
-      'is greater than',
-      'is less than',
-      'is greater than or equal to',
-      'is less than or equal to'
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'is greater than', label: 'is greater than'},
+      {id: 'is less than', label: 'is less than'},
+      {id: 'is greater than or equal to', label: 'is greater than or equal to'},
+      {id: 'is less than or equal to', label: 'is less than or equal to'}
     ],
     value: 'integer'
   },
   {
     title: 'Number of content types',
     choices: [
-      'is',
-      'is not',
-      'is greater than',
-      'is less than',
-      'is greater than or equal to',
-      'is less than or equal to'
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'is greater than', label: 'is greater than'},
+      {id: 'is less than', label: 'is less than'},
+      {id: 'is greater than or equal to', label: 'is greater than or equal to'},
+      {id: 'is less than or equal to', label: 'is less than or equal to'}
     ],
     value: 'integer'
   },
   {
     title: 'Number of files (private)',
     choices: [
-      'is',
-      'is not',
-      'is greater than',
-      'is less than',
-      'is greater than or equal to',
-      'is less than or equal to'
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'is greater than', label: 'is greater than'},
+      {id: 'is less than', label: 'is less than'},
+      {id: 'is greater than or equal to', label: 'is greater than or equal to'},
+      {id: 'is less than or equal to', label: 'is less than or equal to'}
     ],
     value: 'integer'
   },
   {
     title: 'Number of files (public)',
     choices: [
-      'is',
-      'is not',
-      'is greater than',
-      'is less than',
-      'is greater than or equal to',
-      'is less than or equal to'
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'is greater than', label: 'is greater than'},
+      {id: 'is less than', label: 'is less than'},
+      {id: 'is greater than or equal to', label: 'is greater than or equal to'},
+      {id: 'is less than or equal to', label: 'is less than or equal to'}
     ],
     value: 'integer'
   },
   {
     title: 'Number of files (total)',
     choices: [
-      'is',
-      'is not',
-      'is greater than',
-      'is less than',
-      'is greater than or equal to',
-      'is less than or equal to'
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'is greater than', label: 'is greater than'},
+      {id: 'is less than', label: 'is less than'},
+      {id: 'is greater than or equal to', label: 'is greater than or equal to'},
+      {id: 'is less than or equal to', label: 'is less than or equal to'}
     ],
     value: 'integer'
   },
   {
     title: 'Number of hits in past day',
     choices: [
-      'is',
-      'is not',
-      'is greater than',
-      'is less than',
-      'is greater than or equal to',
-      'is less than or equal to'
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'is greater than', label: 'is greater than'},
+      {id: 'is less than', label: 'is less than'},
+      {id: 'is greater than or equal to', label: 'is greater than or equal to'},
+      {id: 'is less than or equal to', label: 'is less than or equal to'}
     ],
     value: 'integer'
   },
   {
     title: 'Number of hits in past week',
     choices: [
-      'is',
-      'is not',
-      'is greater than',
-      'is less than',
-      'is greater than or equal to',
-      'is less than or equal to'
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'is greater than', label: 'is greater than'},
+      {id: 'is less than', label: 'is less than'},
+      {id: 'is greater than or equal to', label: 'is greater than or equal to'},
+      {id: 'is less than or equal to', label: 'is less than or equal to'}
     ],
     value: 'integer'
   },
   {
     title: 'Number of hits in past month',
     choices: [
-      'is',
-      'is not',
-      'is greater than',
-      'is less than',
-      'is greater than or equal to',
-      'is less than or equal to'
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'is greater than', label: 'is greater than'},
+      {id: 'is less than', label: 'is less than'},
+      {id: 'is greater than or equal to', label: 'is greater than or equal to'},
+      {id: 'is less than or equal to', label: 'is less than or equal to'}
     ],
     value: 'integer'
   },
   {
     title: 'Number of modules',
     choices: [
-      'is',
-      'is not',
-      'is greater than',
-      'is less than',
-      'is greater than or equal to',
-      'is less than or equal to'
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'is greater than', label: 'is greater than'},
+      {id: 'is less than', label: 'is less than'},
+      {id: 'is greater than or equal to', label: 'is greater than or equal to'},
+      {id: 'is less than or equal to', label: 'is less than or equal to'}
     ],
     value: 'integer'
   },
   {
     title: 'Number of nodes',
     choices: [
-      'is',
-      'is not',
-      'is greater than',
-      'is less than',
-      'is greater than or equal to',
-      'is less than or equal to'
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'is greater than', label: 'is greater than'},
+      {id: 'is less than', label: 'is less than'},
+      {id: 'is greater than or equal to', label: 'is greater than or equal to'},
+      {id: 'is less than or equal to', label: 'is less than or equal to'}
     ],
     value: 'integer'
   },
   {
     title: 'Number of roles',
     choices: [
-      'is',
-      'is not',
-      'is greater than',
-      'is less than',
-      'is greater than or equal to',
-      'is less than or equal to'
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'is greater than', label: 'is greater than'},
+      {id: 'is less than', label: 'is less than'},
+      {id: 'is greater than or equal to', label: 'is greater than or equal to'},
+      {id: 'is less than or equal to', label: 'is less than or equal to'}
     ],
     value: 'integer'
   },
   {
     title: 'Number of themes',
     choices: [
-      'is',
-      'is not',
-      'is greater than',
-      'is less than',
-      'is greater than or equal to',
-      'is less than or equal to'
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'is greater than', label: 'is greater than'},
+      {id: 'is less than', label: 'is less than'},
+      {id: 'is greater than or equal to', label: 'is greater than or equal to'},
+      {id: 'is less than or equal to', label: 'is less than or equal to'}
     ],
     value: 'integer'
   },
   {
     title: 'Number of users',
     choices: [
-      'is',
-      'is not',
-      'is greater than',
-      'is less than',
-      'is greater than or equal to',
-      'is less than or equal to'
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'is greater than', label: 'is greater than'},
+      {id: 'is less than', label: 'is less than'},
+      {id: 'is greater than or equal to', label: 'is greater than or equal to'},
+      {id: 'is less than or equal to', label: 'is less than or equal to'}
+    ],
+    value: 'integer'
+  },
+  {
+    title: 'Number of words',
+    choices: [
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'is greater than', label: 'is greater than'},
+      {id: 'is less than', label: 'is less than'},
+      {id: 'is greater than or equal to', label: 'is greater than or equal to'},
+      {id: 'is less than or equal to', label: 'is less than or equal to'}
     ],
     value: 'integer'
   },
   {
     title: 'PHP version',
     choices: [
-      'contains',
-      'does not contain',
-      'is',
-      'is not',
-      'starts with',
-      'ends with'
+      {id: 'contains', label: 'contains'},
+      {id: 'does not contain', label: 'does not contain'},
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'starts with', label: 'starts with'},
+      {id: 'ends with', label: 'ends with'}
     ],
     value: 'string'
   },
   {
     title: 'Role',
     choices: [
-      'contains',
-      'does not contain',
-      'is',
-      'is not',
-      'starts with',
-      'ends with'
+      {id: 'contains', label: 'contains'},
+      {id: 'does not contain', label: 'does not contain'},
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'starts with', label: 'starts with'},
+      {id: 'ends with', label: 'ends with'}
     ],
     value: 'string'
   },
   {
     title: 'Tag',
     choices: [
-      'is',
-      'is not'
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
     ],
     value: 'tag'
   },
   {
     title: 'Text',
     choices: [
-      'contains',
-      'does not contain',
-      'is',
-      'is not',
-      'starts with',
-      'ends with'
+      {id: 'contains', label: 'contains'},
+      {id: 'does not contain', label: 'does not contain'},
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'starts with', label: 'starts with'},
+      {id: 'ends with', label: 'ends with'}
     ],
     value: 'string'
   },
   {
     title: 'Theme',
     choices: [
-      'contains',
-      'does not contain',
-      'is',
-      'is not',
-      'starts with',
-      'ends with'
+      {id: 'contains', label: 'contains'},
+      {id: 'does not contain', label: 'does not contain'},
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'starts with', label: 'starts with'},
+      {id: 'ends with', label: 'ends with'}
     ],
     value: 'string',
     details: [
@@ -413,48 +428,48 @@ fields = [
   {
     title: 'Title',
     choices: [
-      'contains',
-      'does not contain',
-      'is',
-      'is not',
-      'starts with',
-      'ends with'
+      {id: 'contains', label: 'contains'},
+      {id: 'does not contain', label: 'does not contain'},
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'starts with', label: 'starts with'},
+      {id: 'ends with', label: 'ends with'}
     ],
     value: 'string'
   },
   {
     title: 'User email address',
     choices: [
-      'contains',
-      'does not contain',
-      'is',
-      'is not',
-      'starts with',
-      'ends with'
+      {id: 'contains', label: 'contains'},
+      {id: 'does not contain', label: 'does not contain'},
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'starts with', label: 'starts with'},
+      {id: 'ends with', label: 'ends with'}
     ],
     value: 'string'
   },
   {
     title: 'User name',
     choices: [
-      'contains',
-      'does not contain',
-      'is',
-      'is not',
-      'starts with',
-      'ends with'
+      {id: 'contains', label: 'contains'},
+      {id: 'does not contain', label: 'does not contain'},
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'starts with', label: 'starts with'},
+      {id: 'ends with', label: 'ends with'}
     ],
     value: 'string'
   },
   {
     title: 'Variable',
     choices: [
-      'contains',
-      'does not contain',
-      'is',
-      'is not',
-      'starts with',
-      'ends with'
+      {id: 'contains', label: 'contains'},
+      {id: 'does not contain', label: 'does not contain'},
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'starts with', label: 'starts with'},
+      {id: 'ends with', label: 'ends with'}
     ],
     value: 'string',
     details: [
