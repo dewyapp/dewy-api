@@ -52,17 +52,17 @@ exports.createDesignDoc = function(filterDoc, callback) {
     stringComparison = function(choice, field, value) {
         switch(choice) {
             case 'contains':
-                return field + '.contains("' + value + '")';
+                return field + '.indexOf("' + value + '") !== -1';
             case 'does not contain':
-                return '!(' + field + '.contains("' + value + '"))';
+                return field + '.indexOf("' + value + '") == -1';
             case 'is':
                 return field + ' == "' + value + '"';
             case 'is not':
                 return field + ' != "' + value + '"';
             case 'starts with':
-                return field + '.startsWith("' + value + '")';
+                return field + '.indexOf("' + value + '", 0) !== -1';
             case 'ends with':
-                return field + '.endsWith("' + value + '")';
+                return field + '.indexOf("' + value + '", ' + field + '.length - "' + value + '".length) !== -1';
         }
     }
 
