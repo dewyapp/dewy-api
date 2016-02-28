@@ -71,7 +71,7 @@ exports.audit = function(sid, errors, callback) {
                     attributes.users = _.keys(siteDoc.details.users).length;
                     attributes.avgLastAccess = attributes.avgLastAccess / attributes.users;
                     attributes.roles = _.keys(attributes.roles).length;
-                    attributes.diskSize = siteDoc.details.files.public.size + siteDoc.details.files.private.size + siteDoc.details.db_size;
+                    attributes.diskSize = Number(siteDoc.details.files.public.size) + Number(siteDoc.details.files.private.size) + Number(siteDoc.details.db_size);
 
                     // Roll up attributes into comparison factors
                     attributes.complexity = Math.log(attributes.modules + attributes.contentTypes + attributes.roles);

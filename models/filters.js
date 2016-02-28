@@ -22,7 +22,6 @@ exports.create = function(uid, filterDoc, callback) {
 }
 
 exports.createDesignDoc = function(filterDoc, callback) {
-    console.log(filterDoc);
 
     booleanComparison = function(choice, field) {
         switch(choice) {
