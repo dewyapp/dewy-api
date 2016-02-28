@@ -97,7 +97,7 @@ fields = [
       {id: 'is greater than or equal to', label: 'is greater than or equal to'},
       {id: 'is less than or equal to', label: 'is less than or equal to'}
     ],
-    value: 'integer'
+    value: 'number'
   },
   {
     title: 'Date added to Dewy',
@@ -196,7 +196,7 @@ fields = [
       {id: 'is greater than or equal to', label: 'is greater than or equal to'},
       {id: 'is less than or equal to', label: 'is less than or equal to'}
     ],
-    value: 'integer'
+    value: 'number'
   },
   {
     title: 'File size (public)',
@@ -208,7 +208,7 @@ fields = [
       {id: 'is greater than or equal to', label: 'is greater than or equal to'},
       {id: 'is less than or equal to', label: 'is less than or equal to'}
     ],
-    value: 'integer'
+    value: 'number'
   },
   {
     title: 'File size (db+private+public)',
@@ -220,7 +220,7 @@ fields = [
       {id: 'is greater than or equal to', label: 'is greater than or equal to'},
       {id: 'is less than or equal to', label: 'is less than or equal to'}
     ],
-    value: 'integer'
+    value: 'number'
   },
   {
     title: 'Maintenance mode',
