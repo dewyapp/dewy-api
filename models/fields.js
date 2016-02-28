@@ -24,6 +24,30 @@ fields = [
     value: 'boolean'
   },
   {
+    title: 'Available module',
+    choices: [
+      {id: 'contains', label: 'contains'},
+      {id: 'does not contain', label: 'does not contain'},
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'starts with', label: 'starts with'},
+      {id: 'ends with', label: 'ends with'}
+    ],
+    value: 'string'
+  },
+  {
+    title: 'Available theme',
+    choices: [
+      {id: 'contains', label: 'contains'},
+      {id: 'does not contain', label: 'does not contain'},
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'starts with', label: 'starts with'},
+      {id: 'ends with', label: 'ends with'}
+    ],
+    value: 'string'
+  },
+  {
     title: 'Base URL',
     choices: [
       {id: 'contains', label: 'contains'},
@@ -115,7 +139,43 @@ fields = [
     value: 'date'
   },
   {
+    title: 'Default theme',
+    choices: [
+      {id: 'contains', label: 'contains'},
+      {id: 'does not contain', label: 'does not contain'},
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'starts with', label: 'starts with'},
+      {id: 'ends with', label: 'ends with'}
+    ],
+    value: 'string'
+  },
+  {
     title: 'Drupal core',
+    choices: [
+      {id: 'contains', label: 'contains'},
+      {id: 'does not contain', label: 'does not contain'},
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'starts with', label: 'starts with'},
+      {id: 'ends with', label: 'ends with'}
+    ],
+    value: 'string'
+  },
+  {
+    title: 'Enabled module',
+    choices: [
+      {id: 'contains', label: 'contains'},
+      {id: 'does not contain', label: 'does not contain'},
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'starts with', label: 'starts with'},
+      {id: 'ends with', label: 'ends with'}
+    ],
+    value: 'string'
+  },
+  {
+    title: 'Enabled theme',
     choices: [
       {id: 'contains', label: 'contains'},
       {id: 'does not contain', label: 'does not contain'},
@@ -171,24 +231,7 @@ fields = [
     value: 'boolean'
   },
   {
-    title: 'Module',
-    choices: [
-      {id: 'contains', label: 'contains'},
-      {id: 'does not contain', label: 'does not contain'},
-      {id: 'is', label: 'is'},
-      {id: 'is not', label: 'is not'},
-      {id: 'starts with', label: 'starts with'},
-      {id: 'ends with', label: 'ends with'}
-    ],
-    value: 'string',
-    details: [
-      'and is available',
-      'and is enabled',
-      'and is disabled'
-    ]
-  },
-  {
-    title: 'Modules',
+    title: 'Module versions',
     choices: [
       {id: 0, label: 'are out-of-date'},
       {id: 1, label: 'are up-to-date'}
@@ -406,24 +449,6 @@ fields = [
       {id: 'ends with', label: 'ends with'}
     ],
     value: 'string'
-  },
-  {
-    title: 'Theme',
-    choices: [
-      {id: 'contains', label: 'contains'},
-      {id: 'does not contain', label: 'does not contain'},
-      {id: 'is', label: 'is'},
-      {id: 'is not', label: 'is not'},
-      {id: 'starts with', label: 'starts with'},
-      {id: 'ends with', label: 'ends with'}
-    ],
-    value: 'string',
-    details: [
-      'and is available',
-      'and is default',
-      'and is enabled',
-      'and is disabled'
-    ]
   },
   {
     title: 'Title',
