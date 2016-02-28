@@ -219,7 +219,8 @@ exports.getAll = function(uid, callback) {
 exports.delete = function(fid, callback) {
     var manager = db.manager();
     manager.removeDesignDocument('users-filter-' + fid, function(error, result) {
-        if (error) {
+        if (error && error != 'Error: missing') {
+            console.log(error);
             callback(error, null);
             return;
         }
