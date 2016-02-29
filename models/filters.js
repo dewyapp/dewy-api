@@ -111,13 +111,13 @@ exports.createDesignDoc = function(filterDoc, callback) {
             case 'is not':
                 return field + ' != "' + value + '"';
             case 'starts with':
-                return field + '.indexOf("' + value + '", 0) !== -1';
+                return field + '.indexOf("' + value + '") == 0';
             case 'ends with':
                 return field + '.indexOf("' + value + '", ' + field + '.length - "' + value + '".length) !== -1';
         }
     }
 
-    function processRule(rule) {
+    function processRule(rule, index) {
         if (rule.operator) {
             return operator(rule.operator, rule.rules);
         }
@@ -165,10 +165,10 @@ exports.createDesignDoc = function(filterDoc, callback) {
             'drupal core': 'doc.details.drupal_core',
             'php version': 'doc.details.php_version',
             'tag': 'doc.tags',
-            'title': 'doc.details.title'
+            'title': 'doc.details.title',
         }
 
-        var COMPLEXONES = {
+        var loops = {
             'available module': '',
             'available theme': '',
             'content type': '',
@@ -183,22 +183,29 @@ exports.createDesignDoc = function(filterDoc, callback) {
         }
 
         if (rule.field in booleans) {
-            return booleanComparison(rule.choice, booleans[rule.field]);
+            return { rule: booleanComparison(rule.choice, booleans[rule.field]) };
         }
         if (rule.field in dates) {
-            return dateComparison(rule.choice, dates[rule.field], rule.value);
+            return { rule: dateComparison(rule.choice, dates[rule.field], rule.value) };
         }
         if (rule.field in strings) {
-            return stringComparison(rule.choice, strings[rule.field], rule.value);
+            return { rule: stringComparison(rule.choice, strings[rule.field], rule.value) };
         }
         if (rule.field in numbers) {
-            return numberComparison(rule.choice, numbers[rule.field], rule.value);
+            return { rule: numberComparison(rule.choice, numbers[rule.field], rule.value) };
         }
 
-        return rule.field;
+        if (rule.field == 'user name') {
+            var testValue = 'test' + index;
+            var compare = stringComparison(rule.choice, 'i', rule.value);
+            var test = 'var ' + testValue + ' = false; for (var i in doc.details.users) { if (' + compare + ') { ' + testValue + ' = true } };';
+            return { rule: testValue, test: test };
+        }
+
+        return { rule: rule.field };
     }
 
-    function operator(operator, rules) {
+    function operator(operator, rules, tests) {
         var prefix, separator;
         if (operator == 'any') {
             separator = '||';
@@ -211,17 +218,23 @@ exports.createDesignDoc = function(filterDoc, callback) {
             separator = '&&';
         }
         var statement = '';
+        var tests = '';
         for (var i in rules) {
+            var processedRule = processRule(rules[i], i);
             if (prefix) {
                 statement = statement + prefix;
             }
-            statement = statement + '(' + processRule(rules[i]) + ')';
+            statement = statement + '(' + processedRule.rule + ')';
             if (i < rules.length-1) statement = statement + separator;
+            if (processedRule.test) {
+                tests = tests + processedRule.test;
+            }
         }
-        return statement;
+        return { rule: statement, test: tests };
     }
 
-    var sitesMap = 'function (doc, meta) { if (meta.id.substring(0, 6) == "site::" && doc.uid == "' + filterDoc.uid + '" && (' + operator(filterDoc.operator, filterDoc.rules) + ')) { emit([doc.uid], {sid: doc.sid, title: doc.details.title, baseurl: doc.baseurl, attributes: doc.attributes, tags: doc.tags}) }}';
+    var processedRules = operator(filterDoc.operator, filterDoc.rules);
+    var sitesMap = 'function (doc, meta) { ' + processedRules.test + 'if (meta.id.substring(0, 6) == "site::" && doc.uid == "' + filterDoc.uid + '" && (' + processedRules.rule + ')) { emit([doc.uid], {sid: doc.sid, title: doc.details.title, baseurl: doc.baseurl, attributes: doc.attributes, tags: doc.tags}) }}';
     console.log(sitesMap);
 
     var designDoc = {
