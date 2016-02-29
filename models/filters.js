@@ -32,6 +32,57 @@ exports.createDesignDoc = function(filterDoc, callback) {
         }
     }
 
+    dateComparison = function(choice, field, value) {
+        switch(choice) {
+            case 'is':
+                var valueDate = new Date(value.date1).toISOString().split('T')[0];
+                return 'new Date(' + field + '*1000).toISOString().split("T")[0] == "' + valueDate + '"';
+            case 'is not':
+                var valueDate = new Date(value.date1).toISOString().split('T')[0];
+                return 'new Date(' + field + '*1000).toISOString().split("T")[0] != "' + valueDate + '"';
+            case 'is after':
+                var valueDate = Math.round(new Date(value.date1).getTime()/(1000*86400));
+                return 'Math.round(new Date(' + field + '*1000).getTime()/(1000*86400)) > ' + valueDate;
+            case 'is before':
+                var valueDate = Math.round(new Date(value.date1).getTime()/(1000*86400));
+                return 'Math.round(new Date(' + field + '*1000).getTime()/(1000*86400)) < ' + valueDate;
+            case 'is between':
+                var valueDate1 = Math.round(new Date(value.date1).getTime()/(1000*86400));
+                var valueDate2 = Math.round(new Date(value.date2).getTime()/(1000*86400));
+                return 'Math.round(new Date(' + field + '*1000).getTime()/(1000*86400)) > ' + valueDate1 + ' && Math.round(new Date(' + field + '*1000).getTime()/(1000*86400)) < ' + valueDate2;
+            case 'is in the last':
+                var valueTime = new Date();
+                if (value.timeUnit == 'days') {
+                    valueTime.setDate(valueTime.getDate() - value.time);
+                }
+                else if (value.timeUnit == 'weeks') {
+                    valueTime.setDate(valueTime.getDate() - (value.time * 7));
+                }
+                else if (value.timeUnit == 'months') {
+                    valueTime.setMonth(valueTime.getMonth() - value.time);
+                }
+                else if (value.timeUnit == 'years') {
+                    valueTime.setFullYear(valueTime.getFullYear() - value.time);
+                }
+                return 'new Date(' + field + '*1000).getTime() >= ' + valueTime.getTime();
+            case 'is not in the last':
+                var valueTime = new Date();
+                if (value.timeUnit == 'days') {
+                    valueTime.setDate(valueTime.getDate() - value.time);
+                }
+                else if (value.timeUnit == 'weeks') {
+                    valueTime.setDate(valueTime.getDate() - (value.time * 7));
+                }
+                else if (value.timeUnit == 'months') {
+                    valueTime.setMonth(valueTime.getMonth() - value.time);
+                }
+                else if (value.timeUnit == 'years') {
+                    valueTime.setFullYear(valueTime.getFullYear() - value.time);
+                }
+                return 'new Date(' + field + '*1000).getTime() < ' + valueTime.getTime();
+        }
+    }
+
     numberComparison = function(choice, field, value) {
         switch(choice) {
             case 'is':
@@ -116,6 +167,9 @@ exports.createDesignDoc = function(filterDoc, callback) {
 
         if (rule.field in booleans) {
             return booleanComparison(rule.choice, booleans[rule.field]);
+        }
+        if (rule.field in dates) {
+            return dateComparison(rule.choice, dates[rule.field], rule.value);
         }
         if (rule.field in strings) {
             return stringComparison(rule.choice, strings[rule.field], rule.value);
