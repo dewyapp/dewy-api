@@ -22,9 +22,10 @@ exports.audit = function(sid, errors, callback) {
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
         }, function(error, response, body) {
-
+            var date = new Date().getTime() / 1000;
+            date = Math.round(date);
             siteDoc.audited = {
-                date: new Date().toISOString()
+                date: date
             }
             if (error) {
                 errors[siteDoc.sid] = error.toString();
@@ -55,7 +56,7 @@ exports.audit = function(sid, errors, callback) {
                     }
                     attributes.nodes = _.keys(siteDoc.details.nodes).length;
                     attributes.contentTypes = _.keys(attributes.contentTypes).length;
-                    attributes.avgLastModified = attributes.avgLastModified / attributes.nodes;
+                    attributes.avgLastModified = Math.round(attributes.avgLastModified / attributes.nodes);
                     attributes.roles = {};
                     attributes.lastAccess = 0;
                     attributes.avgLastAccess = 0;
@@ -69,7 +70,7 @@ exports.audit = function(sid, errors, callback) {
                         }
                     }
                     attributes.users = _.keys(siteDoc.details.users).length;
-                    attributes.avgLastAccess = attributes.avgLastAccess / attributes.users;
+                    attributes.avgLastAccess = Math.round(attributes.avgLastAccess / attributes.users);
                     attributes.roles = _.keys(attributes.roles).length;
                     attributes.diskSize = Number(siteDoc.details.files.public.size) + Number(siteDoc.details.files.private.size) + Number(siteDoc.details.db_size);
 
