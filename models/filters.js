@@ -133,7 +133,7 @@ exports.createDesignDoc = function(filterDoc, callback) {
             'caching for anonymous': 'doc.details.variables.cache',
             'database': '',
             'maintenance mode': 'doc.details.variables.maintenance_mode',
-            'modules': ''
+            'module versions': ''
         }
         var dates = {
             'date added to dewy': 'dateAdded',
@@ -141,28 +141,45 @@ exports.createDesignDoc = function(filterDoc, callback) {
             'date last edited': 'doc.attributes.lastModified',
         }
         var numbers = {
-            'database file size' : 'doc.details.db_size',
-            'file size (private)' : 'doc.details.files.private.size',
-            'file size (public)' : 'doc.details.files.public.size',
-            'file size (db+private+public)' : 'doc.details.db_size + doc.details.files.private.size + doc.details.files.public.size',
-            'number of broken links' : '',
-            'number of content types' : 'doc.attributes.contentTypes',
-            'number of files (private)' : 'doc.details.files.private.count',
-            'number of files (public)' : 'doc.details.files.public.count',
-            'number of files (total)' : 'doc.details.files.private.count + doc.details.files.public.count',
-            'number of modules' : 'doc.attributes.modules',
-            'number of nodes' : 'doc.attributes.nodes',
-            'number of roles' : 'doc.attributes.roles',
-            'number of themes' : 'doc.details.themes.length',
-            'number of users' : 'doc.attributes.users',
-            'number of words' : 'doc.attributes.words',
+            'database file size': 'doc.details.db_size',
+            'file size (private)': 'doc.details.files.private.size',
+            'file size (public)': 'doc.details.files.public.size',
+            'file size (db+private+public)': 'doc.details.db_size + doc.details.files.private.size + doc.details.files.public.size',
+            'number of broken links': '',
+            'number of content types': 'doc.attributes.contentTypes',
+            'number of files (private)': 'doc.details.files.private.count',
+            'number of files (public)': 'doc.details.files.public.count',
+            'number of files (total)': 'doc.details.files.private.count + doc.details.files.public.count',
+            'number of hits in past day': '',
+            'number of hits in past week': '',
+            'number of hits in past month': '',
+            'number of modules': 'doc.attributes.modules',
+            'number of nodes': 'doc.attributes.nodes',
+            'number of roles': 'doc.attributes.roles',
+            'number of themes': 'doc.details.themes.length',
+            'number of users': 'doc.attributes.users',
+            'number of words': 'doc.attributes.words',
         }
         var strings = {
             'base url': 'doc.baseurl',
             'drupal core': 'doc.details.drupal_core',
             'php version': 'doc.details.php_version',
             'tag': 'doc.tags',
-            'title' : 'doc.details.title'
+            'title': 'doc.details.title'
+        }
+
+        var COMPLEXONES = {
+            'available module': '',
+            'available theme': '',
+            'content type': '',
+            'default theme': '',
+            'enabled module': '',
+            'enabled theme': '',
+            'role': '',
+            'text': '',
+            'user email address': '',
+            'user name': '',
+            'variable': ''
         }
 
         if (rule.field in booleans) {
