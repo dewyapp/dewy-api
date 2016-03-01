@@ -133,7 +133,6 @@ exports.createDesignDoc = function(filterDoc, callback) {
             'aggregate css': 'doc.details.variables.preprocess_css',
             'aggregate js': 'doc.details.variables.preprocess_js',
             'caching for anonymous': 'doc.details.variables.cache',
-            'database': '',
             'maintenance mode': 'doc.details.variables.maintenance_mode',
             'module versions': ''
         }
@@ -200,6 +199,17 @@ exports.createDesignDoc = function(filterDoc, callback) {
             var testValue = 'test' + ruleIndex;
             var compare = stringComparison(rule.choice, 'doc.details.nodes[i].type', rule.value);
             var test = 'var ' + testValue + ' = false; for (var i in doc.details.nodes) { if (' + compare + ') { ' + testValue + ' = true } };';
+            return { rule: testValue, test: test };
+        }
+        else if (rule.field == 'database') {
+            var testValue = 'test' + ruleIndex;
+            var compare = '(doc.details.modules[i].schema != doc.details.modules[i].latest_schema)';
+            if (rule.choice) {
+                var test = 'var ' + testValue + ' = false; for (var i in doc.details.modules) { if ( doc.details.modules[i].schema != -1 && ' + compare + ') { ' + testValue + ' = true } };';
+            }
+            else {
+                var test = 'var ' + testValue + ' = true; for (var i in doc.details.modules) { if ( doc.details.modules[i].schema != -1 && ' + compare + ') { ' + testValue + ' = false } };';              
+            }
             return { rule: testValue, test: test };
         }
         else if (rule.field == 'enabled module') {

@@ -82,8 +82,8 @@ fields = [
   {
     title: 'Database',
     choices: [
-      {id: 0, label: 'is pending updates'},
-      {id: 1, label: 'is updated'}
+      {id: 1, label: 'is pending updates'},
+      {id: 0, label: 'is updated'}
     ],
     value: 'boolean'
   },
