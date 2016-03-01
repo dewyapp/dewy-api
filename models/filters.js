@@ -101,27 +101,29 @@ exports.createDesignDoc = function(filterDoc, callback) {
     }
 
     stringComparison = function(choice, field, value) {
+        value = value.toLowerCase();
         switch(choice) {
             case 'contains':
-                return field + '.indexOf("' + value + '") !== -1';
+                return field + '.toLowerCase().indexOf("' + value + '") !== -1';
             case 'does not contain':
-                return field + '.indexOf("' + value + '") == -1';
+                return field + '.toLowerCase().indexOf("' + value + '") == -1';
             case 'is':
-                return field + ' == "' + value + '"';
+                return field + '.toLowerCase() == "' + value + '"';
             case 'is not':
-                return field + ' != "' + value + '"';
+                return field + '.toLowerCase() != "' + value + '"';
             case 'starts with':
-                return field + '.indexOf("' + value + '") == 0';
+                return field + '.toLowerCase().indexOf("' + value + '") == 0';
             case 'ends with':
-                return field + '.indexOf("' + value + '", ' + field + '.length - "' + value + '".length) !== -1';
+                return field + '.toLowerCase().indexOf("' + value + '", ' + field + '.length - "' + value + '".length) !== -1';
         }
     }
 
-    function processRule(rule, index) {
+    function processRule(rule) {
         if (rule.operator) {
             return operator(rule.operator, rule.rules);
         }
 
+        ruleIndex++;
         rule.field = rule.field.toLowerCase();
         if (typeof rule.choice == 'string') {
             rule.choice = rule.choice.toLowerCase();
@@ -169,16 +171,16 @@ exports.createDesignDoc = function(filterDoc, callback) {
         }
 
         var loops = {
-            'available module': '',
+            // 'available module': '',
             'available theme': '',
             'content type': '',
             'default theme': '',
-            'enabled module': '',
+            // 'enabled module': '',
             'enabled theme': '',
-            'role': '',
+            // 'role': '',
             'text': '',
-            'user email address': '',
-            'user name': '',
+            // 'user email address': '',
+            // 'user name': '',
             'variable': ''
         }
 
@@ -195,8 +197,37 @@ exports.createDesignDoc = function(filterDoc, callback) {
             return { rule: numberComparison(rule.choice, numbers[rule.field], rule.value) };
         }
 
+        if (rule.field == 'available module') {
+            var testValue = 'test' + ruleIndex;
+            var compare = stringComparison(rule.choice, '(i + "-" + doc.details.modules[i].version)', rule.value);
+            var test = 'var ' + testValue + ' = false; for (var i in doc.details.modules) { if (' + compare + ') { ' + testValue + ' = true } };';
+            return { rule: testValue, test: test };
+        }
+
+        if (rule.field == 'enabled module') {
+            var testValue = 'test' + ruleIndex;
+            var compare = stringComparison(rule.choice, '(i + "-" + doc.details.modules[i].version)', rule.value);
+            var compare2 = numberComparison('is greater than', 'doc.details.modules[i].schema', -1);
+            var test = 'var ' + testValue + ' = false; for (var i in doc.details.modules) { if (' + compare + ' && ' + compare2 + ' ) { ' + testValue + ' = true } };';
+            return { rule: testValue, test: test };
+        }
+
+        if (rule.field == 'role') {
+            var testValue = 'test' + ruleIndex;
+            var compare = stringComparison(rule.choice, 'doc.details.users[i].roles[j]', rule.value);
+            var test = 'var ' + testValue + ' = false; for (var i in doc.details.users) { for (var j in doc.details.users[i].roles) { if (' + compare + ') { ' + testValue + ' = true } } };';
+            return { rule: testValue, test: test };
+        }
+
+        if (rule.field == 'user email address') {
+            var testValue = 'test' + ruleIndex;
+            var compare = stringComparison(rule.choice, 'doc.details.users[i].mail', rule.value);
+            var test = 'var ' + testValue + ' = false; for (var i in doc.details.users) { if (' + compare + ') { ' + testValue + ' = true } };';
+            return { rule: testValue, test: test };
+        }
+
         if (rule.field == 'user name') {
-            var testValue = 'test' + index;
+            var testValue = 'test' + ruleIndex;
             var compare = stringComparison(rule.choice, 'i', rule.value);
             var test = 'var ' + testValue + ' = false; for (var i in doc.details.users) { if (' + compare + ') { ' + testValue + ' = true } };';
             return { rule: testValue, test: test };
@@ -220,7 +251,7 @@ exports.createDesignDoc = function(filterDoc, callback) {
         var statement = '';
         var tests = '';
         for (var i in rules) {
-            var processedRule = processRule(rules[i], i);
+            var processedRule = processRule(rules[i]);
             if (prefix) {
                 statement = statement + prefix;
             }
@@ -233,6 +264,7 @@ exports.createDesignDoc = function(filterDoc, callback) {
         return { rule: statement, test: tests };
     }
 
+    var ruleIndex = 0;
     var processedRules = operator(filterDoc.operator, filterDoc.rules);
     var sitesMap = 'function (doc, meta) { ' + processedRules.test + 'if (meta.id.substring(0, 6) == "site::" && doc.uid == "' + filterDoc.uid + '" && (' + processedRules.rule + ')) { emit([doc.uid], {sid: doc.sid, title: doc.details.title, baseurl: doc.baseurl, attributes: doc.attributes, tags: doc.tags}) }}';
     console.log(sitesMap);
