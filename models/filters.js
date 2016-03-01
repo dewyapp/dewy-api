@@ -173,12 +173,12 @@ exports.createDesignDoc = function(filterDoc, callback) {
         var loops = {
             // 'available module': '',
             'available theme': '',
-            'content type': '',
+            // 'content type': '',
             'default theme': '',
             // 'enabled module': '',
             'enabled theme': '',
             // 'role': '',
-            'text': '',
+            // 'text': '',
             // 'user email address': '',
             // 'user name': '',
             'variable': ''
@@ -187,46 +187,54 @@ exports.createDesignDoc = function(filterDoc, callback) {
         if (rule.field in booleans) {
             return { rule: booleanComparison(rule.choice, booleans[rule.field]) };
         }
-        if (rule.field in dates) {
+        else if (rule.field in dates) {
             return { rule: dateComparison(rule.choice, dates[rule.field], rule.value) };
         }
-        if (rule.field in strings) {
+        else if (rule.field in strings) {
             return { rule: stringComparison(rule.choice, strings[rule.field], rule.value) };
         }
-        if (rule.field in numbers) {
+        else if (rule.field in numbers) {
             return { rule: numberComparison(rule.choice, numbers[rule.field], rule.value) };
         }
-
-        if (rule.field == 'available module') {
+        else if (rule.field == 'available module') {
             var testValue = 'test' + ruleIndex;
             var compare = stringComparison(rule.choice, '(i + "-" + doc.details.modules[i].version)', rule.value);
             var test = 'var ' + testValue + ' = false; for (var i in doc.details.modules) { if (' + compare + ') { ' + testValue + ' = true } };';
             return { rule: testValue, test: test };
         }
-
-        if (rule.field == 'enabled module') {
+        else if (rule.field == 'content type with nodes') {
+            var testValue = 'test' + ruleIndex;
+            var compare = stringComparison(rule.choice, 'doc.details.nodes[i].type', rule.value);
+            var test = 'var ' + testValue + ' = false; for (var i in doc.details.nodes) { if (' + compare + ') { ' + testValue + ' = true } };';
+            return { rule: testValue, test: test };
+        }
+        else if (rule.field == 'enabled module') {
             var testValue = 'test' + ruleIndex;
             var compare = stringComparison(rule.choice, '(i + "-" + doc.details.modules[i].version)', rule.value);
             var compare2 = numberComparison('is greater than', 'doc.details.modules[i].schema', -1);
             var test = 'var ' + testValue + ' = false; for (var i in doc.details.modules) { if (' + compare + ' && ' + compare2 + ' ) { ' + testValue + ' = true } };';
             return { rule: testValue, test: test };
         }
-
-        if (rule.field == 'role') {
+        else if (rule.field == 'text') {
+            var testValue = 'test' + ruleIndex;
+            var compare = stringComparison(rule.choice, 'doc.details.nodes[i].content[j]', rule.value);
+            var compare2 = stringComparison(rule.choice, 'doc.details.blocks[i]', rule.value);
+            var test = 'var ' + testValue + ' = false; for (var i in doc.details.nodes) { for (var j in doc.details.nodes[i].content) { if (' + compare + ') { ' + testValue + ' = true } } }; for (var i in doc.details.blocks) { if (' + compare2 + ') { ' + testValue + ' = true } };';
+            return { rule: testValue, test: test };
+        }
+        else if (rule.field == 'role') {
             var testValue = 'test' + ruleIndex;
             var compare = stringComparison(rule.choice, 'doc.details.users[i].roles[j]', rule.value);
             var test = 'var ' + testValue + ' = false; for (var i in doc.details.users) { for (var j in doc.details.users[i].roles) { if (' + compare + ') { ' + testValue + ' = true } } };';
             return { rule: testValue, test: test };
         }
-
-        if (rule.field == 'user email address') {
+        else if (rule.field == 'user email address') {
             var testValue = 'test' + ruleIndex;
             var compare = stringComparison(rule.choice, 'doc.details.users[i].mail', rule.value);
             var test = 'var ' + testValue + ' = false; for (var i in doc.details.users) { if (' + compare + ') { ' + testValue + ' = true } };';
             return { rule: testValue, test: test };
         }
-
-        if (rule.field == 'user name') {
+        else if (rule.field == 'user name') {
             var testValue = 'test' + ruleIndex;
             var compare = stringComparison(rule.choice, 'i', rule.value);
             var test = 'var ' + testValue + ' = false; for (var i in doc.details.users) { if (' + compare + ') { ' + testValue + ' = true } };';

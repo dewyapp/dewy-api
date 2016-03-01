@@ -68,7 +68,7 @@ fields = [
     value: 'boolean'
   },
   {
-    title: 'Content type',
+    title: 'Content type with nodes',
     choices: [
       {id: 'contains', label: 'contains'},
       {id: 'does not contain', label: 'does not contain'},
