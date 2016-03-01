@@ -164,23 +164,11 @@ exports.createDesignDoc = function(filterDoc, callback) {
         }
         var strings = {
             'base url': 'doc.baseurl',
+            'default theme': 'doc.details.variables.theme_default',
             'drupal core': 'doc.details.drupal_core',
             'php version': 'doc.details.php_version',
             'tag': 'doc.tags',
             'title': 'doc.details.title',
-        }
-
-        var loops = {
-            // 'available module': '',
-            'available theme': '',
-            // 'content type': '',
-            'default theme': '',
-            // 'enabled module': '',
-            'enabled theme': '',
-            // 'role': '',
-            // 'text': '',
-            // 'user email address': '',
-            // 'user name': '',
             'variable': ''
         }
 
@@ -202,6 +190,12 @@ exports.createDesignDoc = function(filterDoc, callback) {
             var test = 'var ' + testValue + ' = false; for (var i in doc.details.modules) { if (' + compare + ') { ' + testValue + ' = true } };';
             return { rule: testValue, test: test };
         }
+        else if (rule.field == 'available theme') {
+            var testValue = 'test' + ruleIndex;
+            var compare = stringComparison(rule.choice, 'i', rule.value);
+            var test = 'var ' + testValue + ' = false; for (var i in doc.details.themes) { if (' + compare + ') { ' + testValue + ' = true } };';
+            return { rule: testValue, test: test };
+        }
         else if (rule.field == 'content type with nodes') {
             var testValue = 'test' + ruleIndex;
             var compare = stringComparison(rule.choice, 'doc.details.nodes[i].type', rule.value);
@@ -213,6 +207,13 @@ exports.createDesignDoc = function(filterDoc, callback) {
             var compare = stringComparison(rule.choice, '(i + "-" + doc.details.modules[i].version)', rule.value);
             var compare2 = numberComparison('is greater than', 'doc.details.modules[i].schema', -1);
             var test = 'var ' + testValue + ' = false; for (var i in doc.details.modules) { if (' + compare + ' && ' + compare2 + ' ) { ' + testValue + ' = true } };';
+            return { rule: testValue, test: test };
+        }
+        else if (rule.field == 'enabled theme') {
+            var testValue = 'test' + ruleIndex;
+            var compare = stringComparison(rule.choice, 'i', rule.value);
+            var compare2 = stringComparison('is', 'doc.details.themes[i].status', '1');
+            var test = 'var ' + testValue + ' = false; for (var i in doc.details.themes) { if (' + compare + ' && ' + compare2 + ' ) { ' + testValue + ' = true } };';
             return { rule: testValue, test: test };
         }
         else if (rule.field == 'text') {
