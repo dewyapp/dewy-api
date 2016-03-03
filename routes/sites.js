@@ -71,15 +71,6 @@ router.post('/', function (req, res, next) {
     });
 });
 
-router.put('/', function (req, res, next) {
-    sites.auditAll(function(error,result) {
-        if (error) {
-            return res.status(500).send(error);
-        }
-        res.send(result);
-    });
-});
-
 router.get('/_filter/:fid?', oauth.authorise(), function (req, res, next) {
     filters.get(req.params.fid, function(error, result) {
         if (error) {

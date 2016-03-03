@@ -26,6 +26,19 @@ if (argv[0] === '--setup') {
         process.exit(0);
     });
 }
+// Run the audit
+else if (argv[0] === '--audit') {
+    var design = require('./admin.js');
+    design.audit(function(error, result) {
+        if (error) {
+            console.log(error);
+        } else {
+            console.log(result);
+        }
+        process.exit(0);
+    });
+}
+// Run the API
 else {
     // Allow API access from dewy.io
     app.use(function(req, res, next) {
