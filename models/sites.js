@@ -38,7 +38,16 @@ exports.audit = function(sid, errors, callback) {
                     // Calculate attributes
                     siteDoc.details = JSON.parse(body);
                     var attributes = {};
-
+                    attributes.databaseUpdates = 0;
+                    attributes.enabledModules = 0;
+                    for (var i in siteDoc.details.modules) {
+                        if (siteDoc.details.modules[i].schema != -1) {
+                            attributes.enabledModules = attributes.enabledModules + 1;
+                            if (siteDoc.details.modules[i].schema != siteDoc.details.modules[i].latest_schema) {
+                                attributes.databaseUpdates = attributes.databaseUpdates + 1;
+                            }
+                        }
+                    }
                     attributes.modules = _.keys(siteDoc.details.modules).length;
                     attributes.contentTypes = {};
                     attributes.lastModified = 0;
@@ -78,7 +87,7 @@ exports.audit = function(sid, errors, callback) {
                     attributes.complexity = Math.log(attributes.modules + attributes.contentTypes + attributes.roles);
                     attributes.size = Math.log(attributes.nodes + attributes.words + attributes.users + attributes.diskSize);
                     attributes.activity = Math.log(attributes.avgLastAccess + attributes.avgLastModified);
-                    attributes.health = Math.log(3);
+                    attributes.health = Math.log((attributes.enabledModules - attributes.databaseUpdates)*100/attributes.enabledModules);
 
                     siteDoc.attributes = attributes;
                 }
@@ -115,7 +124,6 @@ exports.auditAll = function(callback) {
                 exports.audit(row.value, errors, callback);
             },
             function(error) {
-                console.log(errors);
                 callback(null, errors);
             }
         );

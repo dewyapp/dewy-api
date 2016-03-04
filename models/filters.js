@@ -151,9 +151,9 @@ exports.createDesignDoc = function(filterDoc, callback) {
             'number of files (private)': 'doc.details.files.private.count',
             'number of files (public)': 'doc.details.files.public.count',
             'number of files (total)': 'doc.details.files.private.count + doc.details.files.public.count',
-            'number of hits in past day': '',
             'number of hits in past week': '',
             'number of hits in past month': '',
+            'number of hits in past year': '',
             'number of modules': 'doc.attributes.modules',
             'number of nodes': 'doc.attributes.nodes',
             'number of roles': 'doc.attributes.roles',
@@ -202,15 +202,7 @@ exports.createDesignDoc = function(filterDoc, callback) {
             return { rule: testValue, test: test };
         }
         else if (rule.field == 'database') {
-            var testValue = 'test' + ruleIndex;
-            var compare = '(doc.details.modules[i].schema != doc.details.modules[i].latest_schema)';
-            if (rule.choice) {
-                var test = 'var ' + testValue + ' = false; for (var i in doc.details.modules) { if ( doc.details.modules[i].schema != -1 && ' + compare + ') { ' + testValue + ' = true } };';
-            }
-            else {
-                var test = 'var ' + testValue + ' = true; for (var i in doc.details.modules) { if ( doc.details.modules[i].schema != -1 && ' + compare + ') { ' + testValue + ' = false } };';              
-            }
-            return { rule: testValue, test: test };
+            return { rule: numberComparison('is greater than', 'doc.attributes.databaseUpdates', 0) };
         }
         else if (rule.field == 'enabled module') {
             var testValue = 'test' + ruleIndex;
