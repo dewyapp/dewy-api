@@ -277,7 +277,7 @@ exports.createDesignDoc = function(filterDoc, callback) {
 
     var ruleIndex = 0;
     var processedRules = operator(filterDoc.operator, filterDoc.rules);
-    var sitesMap = 'function (doc, meta) { ' + processedRules.test + 'if (meta.id.substring(0, 6) == "site::" && doc.uid == "' + filterDoc.uid + '" && (' + processedRules.rule + ')) { emit([doc.uid], {sid: doc.sid, title: doc.details.title, baseurl: doc.baseurl, attributes: doc.attributes, tags: doc.tags}) }}';
+    var sitesMap = 'function (doc, meta) { ' + processedRules.test + 'if (meta.id.substring(0, 6) == "site::" && doc.uid == "' + filterDoc.uid + '" && !("error" in doc.audited) && (' + processedRules.rule + ')) { emit([doc.uid], {sid: doc.sid, title: doc.details.title, baseurl: doc.baseurl, attributes: doc.attributes, tags: doc.tags}) }}';
     console.log(sitesMap);
 
     var designDoc = {

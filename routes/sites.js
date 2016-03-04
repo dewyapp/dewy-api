@@ -124,7 +124,7 @@ router.put('/:sid', oauth.authorise(), function (req, res, next) {
                 if (error) {
                     return res.status(500).send(error);
                 }
-                if (errors) {
+                else if (errors.length) {
                     return res.status(500).send(errors);
                 }
                 res.send(result);
