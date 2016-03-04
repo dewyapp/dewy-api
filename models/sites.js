@@ -27,11 +27,8 @@ exports.audit = function(sid, errors, callback) {
             siteDoc.audited = {
                 date: date
             }
-            if (error) {
-                errors[siteDoc.sid] = error.toString();
-                siteDoc.audited.error = error.toString();
-            } else if (response.statusCode != 200) {
-                errors[siteDoc.sid] = response.statusCode;
+            if (response.statusCode != 200) {
+                errors.push({ sid: siteDoc.sid, statusCode: response.statusCode, error: error });
                 siteDoc.audited.error = response.statusCode;
             } else {
                 try {
@@ -92,7 +89,7 @@ exports.audit = function(sid, errors, callback) {
                     siteDoc.attributes = attributes;
                 }
                 catch(error) {
-                    errors[siteDoc.sid] = error.toString();
+                    errors.push({ sid: siteDoc.sid, statusCode: 500, error: error });
                     siteDoc.audited.error = error.toString();
                 }
             }
