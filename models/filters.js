@@ -166,7 +166,6 @@ exports.createDesignDoc = function(filterDoc, callback) {
             'default theme': 'doc.details.variables.theme_default',
             'drupal core': 'doc.details.drupal_core',
             'php version': 'doc.details.php_version',
-            'tag': 'doc.tags',
             'title': 'doc.details.title',
             'variable': ''
         }
@@ -216,6 +215,17 @@ exports.createDesignDoc = function(filterDoc, callback) {
             var compare = stringComparison(rule.choice, 'i', rule.value);
             var compare2 = stringComparison('is', 'doc.details.themes[i].status', '1');
             var test = 'var ' + testValue + ' = false; for (var i in doc.details.themes) { if (' + compare + ' && ' + compare2 + ' ) { ' + testValue + ' = true } };';
+            return { rule: testValue, test: test };
+        }
+        else if (rule.field == 'tag') {
+            var testValue = 'test' + ruleIndex
+            var compare = stringComparison('is', 'doc.tags[i]', rule.value);
+            if (rule.choice == 'is') {
+                var test = 'var ' + testValue + ' = false; for (var i in doc.tags) { if (' + compare + ') { ' + testValue + ' = true } };';
+            }
+            else {
+                var test = 'var ' + testValue + ' = true; for (var i in doc.tags) { if (' + compare + ') { ' + testValue + ' = false } };';
+            }
             return { rule: testValue, test: test };
         }
         else if (rule.field == 'text') {
