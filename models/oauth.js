@@ -64,6 +64,10 @@ exports.grantTypeAllowed = function (clientId, grantType, callback) {
 }
 
 exports.saveAccessToken = function (accessToken, clientId, expires, userId, callback) {
+    // Hack as seen in https://github.com/thomseddon/node-oauth2-server/issues/166
+    if (typeof userId.id == "string") {
+        userId = userId.id;
+    }
     var accessTokenDoc = {
         access_token: accessToken,
         client_id: clientId,
@@ -80,6 +84,10 @@ exports.saveAccessToken = function (accessToken, clientId, expires, userId, call
 }
 
 exports.saveRefreshToken = function (refreshToken, clientId, expires, userId, callback) {
+    // Hack as seen in https://github.com/thomseddon/node-oauth2-server/issues/166
+    if (typeof userId.id == "string") {
+        userId = userId.id;
+    }
     var refreshTokenDoc = {
         refresh_token: refreshToken,
         client_id: clientId,
