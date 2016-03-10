@@ -32,8 +32,10 @@ exports.audit = function(sid, errors, callback) {
                 siteDoc.audited.error = response.statusCode;
             } else {
                 try {
-                    // Calculate attributes
+                    // Store details
                     siteDoc.details = JSON.parse(body);
+
+                    // Calculate attributes
                     var attributes = {};
                     attributes.databaseUpdates = 0;
                     attributes.enabledModules = 0;

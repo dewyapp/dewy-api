@@ -116,7 +116,7 @@ router.put('/:uid', oauth.authorise(), function (req, res, next) {
             return res.status(500).send(error.toString());
         }
         if (req.params.uid != req.user.id) {
-            return res.status(403).send("You do not have permission to access this resource.");
+            return res.status(403).send('You do not have permission to access this resource.');
         }
 
         var userDoc = result;
@@ -124,6 +124,31 @@ router.put('/:uid', oauth.authorise(), function (req, res, next) {
         if (req.body.key) {
             userDoc.apikey = uuid.v4();
         }
+
+        if ('email' in req.body || 'password' in req.body) { 
+            if ('existingPassword' in req.body) {
+                return res.status(400).send('Your existing password must be provided.');
+            } else {
+                var password = forge.md.sha1.create().update(password).digest().toHex();
+                if (password != userDoc.password) { 
+                    return res.status(400).send('Your existing password was incorrect.');
+                }
+                else if ('email' in req.body) {
+                    if (!validator.isEmail(req.body.email)) {
+                        return res.status(400).send('A valid email address is required.');
+                    }
+                    userDoc.email = req.body.email;
+                }
+                else if ('password' in req.body) {
+                    if (!validator.isLength(req.body.password, {min: 8})) {
+                        return res.status(400).send('Your password must be at least 8 characters.');
+                    }
+                    req.body.password = forge.md.sha1.create().update(req.body.password).digest().toHex();
+                    userDoc.password = req.body.password;
+                }
+            }
+        }
+
         users.update(userDoc, function (error, result) {
             if (error) {
                 return res.status(500).send(error);
