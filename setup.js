@@ -28,10 +28,10 @@ exports.setup = function (callback) {
                             'core = core[0] + \'.x\';',
                             'for (var module in doc.details.modules) {',
                                 'if (doc.details.modules[module].project == null) {',
-                                    'emit(module + \'-\' + core, 1);',
+                                    'emit([module, core], 1);',
                                 '}',
                                 'else {',
-                                    'emit(doc.details.modules[module].project + \'-\' + core, 1);',
+                                    'emit([doc.details.modules[module].project, core], 1);',
                                 '}',
                             '}',
                         '}'
