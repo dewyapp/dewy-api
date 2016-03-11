@@ -26,10 +26,22 @@ if (argv[0] === '--setup') {
         process.exit(0);
     });
 }
-// Run the audit
+// Run a site audit
 else if (argv[0] === '--audit') {
     var design = require('./admin.js');
     design.audit(function(error, result) {
+        if (error) {
+            console.log(error);
+        } else {
+            console.log(result);
+        }
+        process.exit(0);
+    });
+}
+// Run a release retrieval
+else if (argv[0] === '--releases') {
+    var design = require('./admin.js');
+    design.releases(function(error, result) {
         if (error) {
             console.log(error);
         } else {
