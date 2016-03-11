@@ -33,6 +33,9 @@ exports.setup = function (callback) {
                                 '}',
                             '}',
                         '}'
+                        ].join('\n'),
+                    reduce: [
+                        '_count'
                         ].join('\n')
                 }
             }
