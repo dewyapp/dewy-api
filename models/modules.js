@@ -3,6 +3,16 @@ var db = require('../app.js').bucket;
 var request = require('request');
 var xml2json = require('xml2json');
 
+exports.createProject = function(projectDoc, callback) {
+    db.upsert('project::' + projectDoc.project + '-' + projectDoc.core, projectDoc, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+        callback(null, result);
+    });
+}
+
 exports.getReleases = function(callback) {
     query = couchbase.ViewQuery.from('modules', 'by_project')
         .group(true)
@@ -45,7 +55,9 @@ exports.getReleases = function(callback) {
                                     securityUpdate: securityUpdate
                                 });
                             }
-                            console.log(projectDoc);
+                            // Save project
+                            exports.createProject(projectDoc, function(error, result) {
+                            });
                         }
                     }
                 });
