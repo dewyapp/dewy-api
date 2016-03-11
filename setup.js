@@ -19,6 +19,24 @@ exports.setup = function (callback) {
                 }
             }
         },
+        modules: {
+            views: {
+                by_project: {
+                    map: [
+                        'function (doc, meta) {',
+                            'for (var module in doc.details.modules) {',
+                                'if (doc.details.modules[module].project == null) {',
+                                    'emit(module, 1);',
+                                '}',
+                                'else {',
+                                    'emit(doc.details.modules[module].project, 1);',
+                                '}',
+                            '}',
+                        '}'
+                        ].join('\n')
+                }
+            }
+        },
         oauth: {
             views: {
                 by_accesstoken: {
