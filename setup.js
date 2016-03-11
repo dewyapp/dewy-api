@@ -24,12 +24,14 @@ exports.setup = function (callback) {
                 by_project: {
                     map: [
                         'function (doc, meta) {',
+                            'var core = doc.details.drupal_core.split(\'.\');',
+                            'core = core[0] + \'.x\';',
                             'for (var module in doc.details.modules) {',
                                 'if (doc.details.modules[module].project == null) {',
-                                    'emit(module, 1);',
+                                    'emit(module + \'-\' + core, 1);',
                                 '}',
                                 'else {',
-                                    'emit(doc.details.modules[module].project, 1);',
+                                    'emit(doc.details.modules[module].project + \'-\' + core, 1);',
                                 '}',
                             '}',
                         '}'
