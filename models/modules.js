@@ -14,6 +14,29 @@ exports.createProject = function(projectDoc, callback) {
 }
 
 exports.getReleases = function(callback) {
+
+    getRelease = function(release) {
+        var securityUpdate = false;
+        
+        if ('terms' in release) {
+            if (Object.prototype.toString.call(release.terms.term) === '[object Array]' ) {
+                for (var j=0, termTotal=release.terms.term.length; j < termTotal; j++) {
+                    if (release.terms.term[j].name == 'Release type' && release.terms.term[j].value == 'Security update') {
+                        securityUpdate = true;
+                    }
+                }
+            }
+            else if (release.terms.term.name == 'Release type' && release.terms.term.value == 'Security update') {
+                securityUpdate = true;
+            }
+        }
+
+        return { 
+            version: release.version,
+            securityUpdate: securityUpdate
+        }
+    }
+
     query = couchbase.ViewQuery.from('modules', 'by_project')
         .group(true)
         .stale(1);
@@ -40,20 +63,15 @@ exports.getReleases = function(callback) {
                                 defaultMajor: project.project.default_major,
                                 releases: []
                             }
-                            var securityUpdate = false;
-                            for (var i=0, releaseTotal=project.project.releases.release.length; i < releaseTotal; i++) {
-                                if ('terms' in project.project.releases.release[i]) {
-                                    for (var j=0, termTotal=project.project.releases.release[i].terms.term.length; j < termTotal; j++) {
-                                        if (project.project.releases.release[i].terms.term[j].name == 'Release type' && project.project.releases.release[i].terms.term[j].value == 'Security update') {
-                                            securityUpdate = true;
-                                        }
-                                    }
-                                }
 
-                                projectDoc.releases.push({ 
-                                    version: project.project.releases.release[i].version,
-                                    securityUpdate: securityUpdate
-                                });
+                            // If array, loop through
+                            if (Object.prototype.toString.call(project.project.releases.release) === '[object Array]' ) {
+                                for (var i=0, releaseTotal=project.project.releases.release.length; i < releaseTotal; i++) {
+                                    projectDoc.releases.push(getRelease(project.project.releases.release[i]));
+                                }
+                            }
+                            else {
+                                projectDoc.releases.push(getRelease(project.project.releases.release));
                             }
                             // Save project
                             exports.createProject(projectDoc, function(error, result) {
