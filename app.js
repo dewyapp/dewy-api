@@ -74,10 +74,12 @@ else {
     // API endpoints
     var fieldRoutes = require('./routes/fields');
     var filterRoutes = require('./routes/filters');
+    var moduleRoutes = require('./routes/modules');
     var siteRoutes = require('./routes/sites');
     var userRoutes = require('./routes/users');
     app.use('/fields', fieldRoutes);
     app.use('/filters', filterRoutes);
+    app.use('/modules', moduleRoutes);
     app.use('/sites', siteRoutes);
     app.use('/users', userRoutes);
 

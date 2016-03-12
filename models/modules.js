@@ -13,6 +13,27 @@ exports.createProject = function(projectDoc, callback) {
     });
 }
 
+exports.getAll = function(uid, fid, callback) {
+    // If no filter is given, return all modules
+    if (fid == null) {
+        query = couchbase.ViewQuery.from('modules', 'audited_by_uid')
+            .key([uid])
+            .stale(1);
+    } else {
+        query = couchbase.ViewQuery.from('users-filter-' + fid, 'modules')
+            .group(true)
+            .range([null,null,null,{}], [{},{},{},null])
+            .stale(1);
+    }
+    db.query(query, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+        callback(null, result);
+    });
+}
+
 exports.getReleases = function(callback) {
 
     getRelease = function(release) {

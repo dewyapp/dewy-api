@@ -21,6 +21,30 @@ exports.setup = function (callback) {
         },
         modules: {
             views: {
+                audited_by_uid: {
+                    map: [
+                        'function (doc, meta) {',
+                            'if (meta.id.substring(0, 9) == "project::") {',
+                                'emit(["project", doc.project, doc.core, doc.releases]);',
+                            '}',
+                            'else if (meta.id.substring(0, 6) == "site::" && doc.enabled == "1" && ("details" in doc) && !("error" in doc.audited)) {',
+                                'var core = doc.details.drupal_core.split(".");',
+                                'core = core[0] + ".x";',
+                                'for (module in doc.details.modules) {',
+                                    'if (doc.details.modules[module].project == null) {',
+                                        'emit([null, "project", module, core, null]);',
+                                    '}',
+                                    'else {',
+                                        'emit([doc.uid, "project", doc.details.modules[module].project, core, doc.details.modules[module].version]);',
+                                    '}',
+                                '}',
+                            '}',
+                        '}'
+                        ].join('\n'),
+                    reduce: [
+                        '_count'
+                        ].join('\n')
+                },
                 by_project: {
                     map: [
                         'function (doc, meta) {',
@@ -28,10 +52,10 @@ exports.setup = function (callback) {
                             'core = core[0] + \'.x\';',
                             'for (var module in doc.details.modules) {',
                                 'if (doc.details.modules[module].project == null) {',
-                                    'emit([module, core], 1);',
+                                    'emit([module, core]);',
                                 '}',
                                 'else {',
-                                    'emit([doc.details.modules[module].project, core], 1);',
+                                    'emit([doc.details.modules[module].project, core]);',
                                 '}',
                             '}',
                         '}'
@@ -75,6 +99,15 @@ exports.setup = function (callback) {
         },
         sites: {
             views: {
+                audited_by_uid: {
+                    map: [
+                        'function (doc, meta) {',
+                            'if (meta.id.substring(0, 6) == "site::" && doc.enabled == "1" && ("details" in doc) && !("error" in doc.audited)) {',
+                                'emit([doc.uid], {sid: doc.sid, title: doc.details.title, baseurl: doc.baseurl, attributes: doc.attributes, tags: doc.tags});',
+                            '}',
+                        '}'
+                        ].join('\n')
+                },
                 by_uid: {
                     map: [
                         'function (doc, meta) {',
@@ -89,15 +122,6 @@ exports.setup = function (callback) {
                         'function (doc, meta) {',
                             'if (meta.id.substring(0, 6) == "site::") {',
                                 'emit([doc.uid, doc.baseurl], doc.sid);',
-                            '}',
-                        '}'
-                        ].join('\n')
-                },
-                audited_by_uid: {
-                    map: [
-                        'function (doc, meta) {',
-                            'if (meta.id.substring(0, 6) == "site::" && doc.enabled == "1" && ("details" in doc) && !("error" in doc.audited)) {',
-                                'emit([doc.uid], {sid: doc.sid, title: doc.details.title, baseurl: doc.baseurl, attributes: doc.attributes, tags: doc.tags});',
                             '}',
                         '}'
                         ].join('\n')
