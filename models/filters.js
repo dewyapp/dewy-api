@@ -287,16 +287,47 @@ exports.createDesignDoc = function(filterDoc, callback) {
 
     var ruleIndex = 0;
     var processedRules = operator(filterDoc.operator, filterDoc.rules);
-    var sitesMap = 'function (doc, meta) { ' + processedRules.test + 'if (meta.id.substring(0, 6) == "site::" && doc.uid == "' + filterDoc.uid + '" && !("error" in doc.audited) && (' + processedRules.rule + ')) { emit([doc.uid], {sid: doc.sid, title: doc.details.title, baseurl: doc.baseurl, attributes: doc.attributes, tags: doc.tags}) }}';
-    console.log(sitesMap);
 
     var designDoc = {
-        views : {
-            sites : {
-                map: sitesMap
+        views: {
+            modules: {
+                map: [
+                    'function (doc, meta) {',
+                        processedRules.test,
+                        'if (meta.id.substring(0, 9) == "project::") {',
+                            'emit(["project", doc.project, doc.core, doc.releases], 0);',
+                        '}',
+                        'else if (meta.id.substring(0, 6) == "site::" && doc.uid == "' + filterDoc.uid + '" && !("error" in doc.audited) && (' + processedRules.rule + ')) {',
+                            'var core = doc.details.drupal_core.split(".");',
+                            'core = core[0] + ".x";',
+                            'for (module in doc.details.modules) {',
+                                'if (doc.details.modules[module].project == null) {',
+                                    'emit(["project", module, core], 1);',
+                                '}',
+                                'else {',
+                                    'emit(["project", doc.details.modules[module].project, core, doc.details.modules[module].version], 1);',
+                                '}',
+                            '}',
+                        '}',
+                    '}'
+                    ].join('\n'),
+                reduce: [
+                    '_count'
+                    ].join('\n')
+            },
+            sites: {
+                map: [
+                    'function (doc, meta) { ',
+                        processedRules.test,
+                        'if (meta.id.substring(0, 6) == "site::" && doc.uid == "' + filterDoc.uid + '" && !("error" in doc.audited) && (' + processedRules.rule + ')) {',
+                            'emit([doc.uid], {sid: doc.sid, title: doc.details.title, baseurl: doc.baseurl, attributes: doc.attributes, tags: doc.tags});',
+                        '}',
+                    '}'
+                    ].join('\n')
             }
         }
     }
+    console.log(designDoc);
 
     var manager = db.manager();
     manager.upsertDesignDocument('users-filter-' + filterDoc.fid, designDoc, function(error, result) {
