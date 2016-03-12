@@ -22,7 +22,6 @@ exports.getAll = function(uid, fid, callback) {
     } else {
         query = couchbase.ViewQuery.from('users-filter-' + fid, 'modules')
             .group(true)
-            .range([null,null,null,{}], [{},{},{},null])
             .stale(1);
     }
     db.query(query, function(error, result) {
@@ -30,6 +29,7 @@ exports.getAll = function(uid, fid, callback) {
             callback(error, null);
             return;
         }
+        console.log(result);
         callback(null, result);
     });
 }
