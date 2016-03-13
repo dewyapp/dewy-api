@@ -29,8 +29,21 @@ exports.getAll = function(uid, fid, callback) {
             callback(error, null);
             return;
         }
-        console.log(result);
-        callback(null, result);
+        var modules = [];
+        for (item in result) {
+            var source = result[item].key[2];
+            if (source == 'drupal.org') {
+                drupalProject = {
+                    project: result[item].key[0],
+                    core: result[item].key[1],
+                    releases: result[item].key[3]
+                }
+            } else {
+
+            }
+            // modules.push(result[item].value);
+        }
+        callback(null, modules);
     });
 }
 
