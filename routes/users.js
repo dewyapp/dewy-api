@@ -9,70 +9,86 @@ var users = require('../models/users');
 var oauthModel = require('../models/oauth');
 var config = require('../config');
 
-router.post('/', function (req, res, next) {
-    username = function(callback) {
-        if (!req.body.username) {
-            callback(null, 'A username is required.');
-            return;
-        } else {
-            // Check if username is in use
-            users.getByUsername(req.body.username, function(error, result) {
-                if (error) {
-                    callback(error);
-                    return;
-                }
-                if (result.length) {
-                    callback(null, 'This username is in use.');
-                    return;
-                }
-                callback();
-            });
-        }
+usernameValidate = function(username, callback) {
+    if (!username) {
+        callback(null, 'A username is required.');
+        return;
+    } else {
+        // Check if username is in use
+        users.getByUsername(username, function(error, result) {
+            if (error) {
+                callback(error);
+                return;
+            }
+            if (result.length) {
+                callback(null, 'This username is in use.');
+                return;
+            }
+            callback();
+        });
     }
+}
 
-    email = function(callback) {
-        if (!req.body.email) {
-            callback(null, 'An email address is required.');
-            return;
-        }
-        else if (!validator.isEmail(req.body.email)) {
-            callback(null, 'A valid email address is required.');
-            return;
-        }
-        else {
-            // Check if email exists
-            users.getByEmail(req.body.email, function(error, result) {
-                if (error) {
-                    callback(error);
-                    return;
-                }
-                if (result.length) {
-                    callback(null, 'This email address is in use.');
-                    return;
-                }
-                callback();
-            });
-        }
+emailValidate = function(email, callback) {
+    if (!email) {
+        callback(null, 'An email address is required.');
+        return;
     }
+    else if (!validator.isEmail(email)) {
+        callback(null, 'A valid email address is required.');
+        return;
+    }
+    else {
+        // Check if email exists
+        users.getByEmail(email, function(error, result) {
+            if (error) {
+                callback(error);
+                return;
+            }
+            if (result.length) {
+                callback(null, 'This email address is in use.');
+                return;
+            }
+            callback();
+        });
+    }
+}
 
-    password = function(callback) {
-        if (!req.body.password) {
-            callback(null, 'A password is required.');
-            return
-        }
-        else if (!validator.isLength(req.body.password, {min: 8})) {
-            callback(null, 'Your password must be at least 8 characters.');
+passwordValidate = function(password, callback) {
+    if (!password) {
+        callback(null, 'A password is required.');
+        return;
+    }
+    else if (!validator.isLength(password, {min: 8})) {
+        callback(null, 'Your password must be at least 8 characters.');
+        return;
+    }
+    callback();
+}
+
+existingPasswordValidate = function(existingPassword, userPassword, callback) {
+    if(!existingPassword) {
+        callback(null, 'Your existing password must be provided.');
+        return;
+    }
+    else {
+        existingPassword = forge.md.sha1.create().update(existingPassword).digest().toHex();
+        if (existingPassword != userPassword) {
+            callback(null, 'Your existing password is incorrect.');
             return
         }
         callback();
     }
+}
 
+
+router.post('/', function (req, res, next) {
     if (('username' in req.body && 'email' in req.body && 'password' in req.body) ||
         (!('username' in req.body) && !('email' in req.body) && !('password' in req.body))) {
         async.parallel({
-            username,
-            email,
-            password
+            username: async.apply(usernameValidate, req.body.username),
+            email: async.apply(emailValidate, req.body.email),
+            password: async.apply(passwordValidate, req.body.password)
         }, function(error, results) {
             if (error) {
                 return res.status(500).send(error);
@@ -110,7 +126,7 @@ router.post('/', function (req, res, next) {
         });
     }
     else if ('username' in req.body) {
-        username(function(error, result) {
+        usernameValidate(req.body.username, function(error, result) {
             if (result == null) {
                 result = false;
             }
@@ -118,7 +134,7 @@ router.post('/', function (req, res, next) {
         });
     }
     else if ('email' in req.body) {
-        email(function(error, result) {
+        emailValidate(req.body.email, function(error, result) {
             if (result == null) {
                 result = false;
             }
@@ -126,7 +142,7 @@ router.post('/', function (req, res, next) {
         });
     }
     else if ('password' in req.body) {
-        password(function(error, result) {
+        passwordValidate(req.body.password, function(error, result) {
             if (result == null) {
                 result = false;
             }
@@ -158,36 +174,39 @@ router.put('/:uid', oauth.authorise(), function (req, res, next) {
         if (req.body.key) {
             userDoc.apikey = uuid.v4();
         }
-
         if ('email' in req.body || 'password' in req.body) { 
-            if ('existingPassword' in req.body) {
-                return res.status(400).send('Your existing password must be provided.');
-            } else {
-                var password = forge.md.sha1.create().update(password).digest().toHex();
-                if (password != userDoc.password) { 
-                    return res.status(400).send('Your existing password was incorrect.');
+            async.parallel({
+                email: async.apply(emailValidate, req.body.email),
+                password: async.apply(passwordValidate, req.body.password),
+                existingPassword: async.apply(existingPasswordValidate, req.body.existingPassword, userDoc.password),
+            }, function(error, results) {
+                if (error) {
+                    return res.status(500).send(error);
                 }
-                else if ('email' in req.body) {
-                    if (!validator.isEmail(req.body.email)) {
-                        return res.status(400).send('A valid email address is required.');
+
+                // User validation passed, update various fields
+                if (!results.existingPassword && ((req.body.email && !results.email) || (req.body.password && !results.password))) {
+                    if (req.body.email && !results.email) {
+                        userDoc.email = req.body.email;
                     }
-                    userDoc.email = req.body.email;
-                }
-                else if ('password' in req.body) {
-                    if (!validator.isLength(req.body.password, {min: 8})) {
-                        return res.status(400).send('Your password must be at least 8 characters.');
+                    if (req.body.password && !results.password) {
+                        req.body.password = forge.md.sha1.create().update(req.body.password).digest().toHex();
+                        userDoc.password = req.body.password;
                     }
-                    req.body.password = forge.md.sha1.create().update(req.body.password).digest().toHex();
-                    userDoc.password = req.body.password;
                 }
-            }
+                else {
+                    res.status(400).send(results);
+                }
+            });
         }
 
         users.update(userDoc, function (error, result) {
             if (error) {
                 return res.status(500).send(error);
             }
-            res.send(userDoc);
+            if (req.body.key) {
+                res.send(userDoc.apikey);
+            }
         });
     });
 });
