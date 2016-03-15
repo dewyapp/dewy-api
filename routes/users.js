@@ -68,7 +68,7 @@ passwordValidate = function(password, callback) {
 
 existingPasswordValidate = function(existingPassword, userPassword, callback) {
     if(!existingPassword) {
-        callback(null, 'Your existing password must be provided.');
+        callback(null, 'Your existing password is required.');
         return;
     }
     else {
@@ -168,13 +168,32 @@ router.put('/:uid', oauth.authorise(), function (req, res, next) {
         if (req.params.uid != req.user.id) {
             return res.status(403).send('You do not have permission to access this resource.');
         }
-
         var userDoc = result;
-        // If the key is specified to be updated, reset the api key
-        if (req.body.key) {
-            userDoc.apikey = uuid.v4();
+
+        if (req.body.check) {
+            if ('email' in req.body && !req.body.password && !req.body.existingPassword) {
+                emailValidate(req.body.email, function(error, result) {
+                    if (result == null || req.body.email.length == 0) {
+                        result = false;
+                    }
+                    res.send({error: result});
+                });
+            }
+            else if ('password' in req.body && !req.body.email && !req.body.existingPassword) {
+                passwordValidate(req.body.password, function(error, result) {
+                    if (result == null || req.body.password.length == 0) {
+                        result = false;
+                    }
+                    res.send({error: result});
+                });
+            }
         }
-        if ('email' in req.body || 'password' in req.body) { 
+        else {
+            // If the key is specified to be updated, reset the api key
+            if (req.body.key) {
+                userDoc.apikey = uuid.v4();
+            }
+
             async.parallel({
                 email: async.apply(emailValidate, req.body.email),
                 password: async.apply(passwordValidate, req.body.password),
@@ -195,19 +214,31 @@ router.put('/:uid', oauth.authorise(), function (req, res, next) {
                     }
                 }
                 else {
-                    res.status(400).send(results);
+                    if (!req.body.email) {
+                        results.email = null;
+                    }
+                    if (!req.body.password) {
+                        results.password = null;
+                    }
+                    if (!req.body.email && !req.body.password) {
+                        results.error = 'A new email address or new password is required.';
+                    }
+                    return res.status(400).send(results);
+                }
+            });
+
+            users.update(userDoc, function (error, result) {
+                if (error) {
+                    return res.status(500).send(error);
+                }
+                if (req.body.key) {
+                    res.send(userDoc.apikey);
+                }
+                else {
+                    res.send(result);
                 }
             });
         }
-
-        users.update(userDoc, function (error, result) {
-            if (error) {
-                return res.status(500).send(error);
-            }
-            if (req.body.key) {
-                res.send(userDoc.apikey);
-            }
-        });
     });
 });
 
