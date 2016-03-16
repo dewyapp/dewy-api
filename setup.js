@@ -24,19 +24,15 @@ exports.setup = function (callback) {
                 audited_by_uid: {
                     map: [
                         'function (doc, meta) {',
-                            'if (meta.id.substring(0, 9) == "project::") {',
-                                'emit(["project", doc.project, doc.core, "drupal.org", doc.releases]);',
-                            '}',
-                            'else if (meta.id.substring(0, 6) == "site::" && doc.enabled == "1" && ("details" in doc) && !("error" in doc.audited)) {',
+                            'if (meta.id.substring(0, 6) == "site::" && doc.enabled == "1" && ("details" in doc) && !("error" in doc.audited)) {',
                                 'var core = doc.details.drupal_core.split(".");',
                                 'core = core[0] + ".x";',
                                 'for (module in doc.details.modules) {',
-                                    'if (doc.details.modules[module].project == null) {',
-                                        'emit([null, module, core, "local", null]);',
+                                    'enabled = false',
+                                    'if (doc.details.modules[module].schema != -1) {',
+                                        'enabled = true',
                                     '}',
-                                    'else {',
-                                        'emit([doc.uid, doc.details.modules[module].project, core, "local", doc.details.modules[module].version]);',
-                                    '}',
+                                    'emit([doc.uid, module, core, enabled, doc.details.modules[module].version, doc.details.modules[module].project]);',
                                 '}',
                             '}',
                         '}'
@@ -57,6 +53,18 @@ exports.setup = function (callback) {
                                 'else {',
                                     'emit([doc.details.modules[module].project, core]);',
                                 '}',
+                            '}',
+                        '}'
+                        ].join('\n'),
+                    reduce: [
+                        '_count'
+                        ].join('\n')
+                },
+                drupalorg_by_project: {
+                    map: [
+                        'function (doc, meta) {',
+                            'if (meta.id.substring(0, 9) == "project::") {',
+                                'emit([doc.project, doc.core, doc.releases]);',
                             '}',
                         '}'
                         ].join('\n'),

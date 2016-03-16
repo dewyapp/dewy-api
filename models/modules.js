@@ -17,7 +17,8 @@ exports.getAll = function(uid, fid, callback) {
     // If no filter is given, return all modules
     if (fid == null) {
         query = couchbase.ViewQuery.from('modules', 'audited_by_uid')
-            .key([uid])
+            .range([uid, null],[uid, {}])
+            .group(true)
             .stale(1);
     } else {
         query = couchbase.ViewQuery.from('users-filter-' + fid, 'modules')
@@ -30,19 +31,46 @@ exports.getAll = function(uid, fid, callback) {
             return;
         }
         var modules = [];
+        var currentModule = {};
         for (item in result) {
-            var source = result[item].key[2];
-            if (source == 'drupal.org') {
-                drupalProject = {
-                    project: result[item].key[0],
-                    core: result[item].key[1],
-                    releases: result[item].key[3]
+            // If the module we are now looking at doesn't match the one we were looking at, push
+            if (result[item].key[1] != currentModule.module || result[item].key[2] != currentModule.core) {
+                if ('module' in currentModule) {
+                    modules.push(currentModule);
                 }
-            } else {
+                // Start a new module definition
+                currentModule = {
+                    module: result[item].key[1],
+                    core: result[item].key[2],
+                    package: result[item].key[5],
+                    total: 0,
+                    totalInstalls: 0,
+                    versions: {},
+                }
+            } 
 
+            // We are looking at the currentModule whether new or existing, so update totals and add to versions
+            currentModule.total = currentModule.total + result[item].value;
+            var installs = 0;
+            if (result[item].key[3]) {
+                var installs = result[item].value;
+                currentModule.totalInstalls = currentModule.totalInstalls + installs;
             }
-            // modules.push(result[item].value);
+
+            if (!(result[item].key[4] in currentModule.versions)) {
+                currentModule.versions[result[item].key[4]] = {
+                    total: result[item].value,
+                    totalInstalls: installs
+                }
+            }
+            else {
+                currentModule.versions[result[item].key[4]] = {
+                    total: currentModule.versions[result[item].key[4]].total + result[item].value, 
+                    totalInstalls: currentModule.versions[result[item].key[4]] + installs
+                }
+            }
         }
+        console.log(modules);
         callback(null, modules);
     });
 }
