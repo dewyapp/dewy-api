@@ -30,13 +30,17 @@ exports.getAll = function(uid, fid, callback) {
             callback(error, null);
             return;
         }
+        var projectKeys = [];
         var modules = [];
         var currentModule = {};
+
+        // Loop through users' (possibly-filtered) modules list
         for (item in result) {
             // If the module we are now looking at doesn't match the one we were looking at, push
             if (result[item].key[1] != currentModule.module || result[item].key[2] != currentModule.core) {
                 if ('module' in currentModule) {
                     modules.push(currentModule);
+                    projectKeys.push(currentModule.module + '-' + currentModule.core);
                 }
                 // Start a new module definition
                 currentModule = {
@@ -70,8 +74,19 @@ exports.getAll = function(uid, fid, callback) {
                 }
             }
         }
-        console.log(modules);
-        callback(null, modules);
+
+        // Get Drupal.org update information
+        query = couchbase.ViewQuery.from('modules', 'drupalorg_by_project')
+            .keys(projectKeys);
+        db.query(query, function(error, projectResult) {
+            if (error) {
+                console.log(error);
+                callback(error, null);
+                return;
+            }
+            console.log(projectResult);
+            callback(null, modules);
+        });
     });
 }
 

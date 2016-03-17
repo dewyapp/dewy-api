@@ -64,12 +64,9 @@ exports.setup = function (callback) {
                     map: [
                         'function (doc, meta) {',
                             'if (meta.id.substring(0, 9) == "project::") {',
-                                'emit([doc.project, doc.core, doc.releases]);',
+                                'emit(doc.project + "-" + doc.core, doc.releases);',
                             '}',
                         '}'
-                        ].join('\n'),
-                    reduce: [
-                        '_count'
                         ].join('\n')
                 }
             }
