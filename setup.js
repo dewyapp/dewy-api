@@ -230,4 +230,13 @@ exports.setup = function (callback) {
             }
         );
     });
+
+    // Create index
+    var query = couchbase.N1qlQuery.fromString('CREATE PRIMARY INDEX ON ' + config.couchbase.bucket);
+    db.query(query, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+    });
 }
