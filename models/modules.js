@@ -2,6 +2,7 @@ var couchbase = require('couchbase');
 var db = require('../app.js').bucket;
 var request = require('request');
 var xml2json = require('xml2json');
+var config = require('../config');
 
 exports.createProject = function(projectDoc, callback) {
     db.upsert('project::' + projectDoc.project + '-' + projectDoc.core, projectDoc, function(error, result) {
@@ -40,7 +41,7 @@ exports.getAll = function(uid, fid, callback) {
             if (result[item].key[1] != currentModule.module || result[item].key[2] != currentModule.core) {
                 if ('module' in currentModule) {
                     modules.push(currentModule);
-                    projectKeys.push(currentModule.module + '-' + currentModule.core);
+                    projectKeys.push('project::' + currentModule.module + '-' + currentModule.core);
                 }
                 // Start a new module definition
                 currentModule = {
@@ -70,21 +71,43 @@ exports.getAll = function(uid, fid, callback) {
             else {
                 currentModule.versions[result[item].key[4]] = {
                     total: currentModule.versions[result[item].key[4]].total + result[item].value, 
-                    totalInstalls: currentModule.versions[result[item].key[4]] + installs
+                    totalInstalls: currentModule.versions[result[item].key[4]].totalInstalls + installs
                 }
             }
         }
 
-        // Get Drupal.org update information
-        query = couchbase.ViewQuery.from('modules', 'drupalorg_by_project')
-            .keys(projectKeys);
-        db.query(query, function(error, projectResult) {
-            if (error) {
-                console.log(error);
-                callback(error, null);
-                return;
+        // Get Drupal.org update information and determine updates
+        db.getMulti(projectKeys, function(error, result) {
+            for (module in modules) {
+                var updates = result['project::' + modules[module].package + '-' + modules[module].core];
+                modules[module].updates = 0;
+                modules[module].securityUpdates = 0;
+                for (version in modules[module].versions) {
+                    if (updates && 'value' in updates) {
+                        var securityUpdate = false;
+                        var update = false;
+                        for (release in updates.value.releases) {
+                            if (updates.value.releases[release].version == version) {
+                                console.log('Done on ' + version + ' of ' + modules[module].module + ' with package ' + modules[module].package + ', ' + modules[module].updates + ' + ' + modules[module].versions[version].totalInstalls);
+                                if (securityUpdate) {
+                                    modules[module].securityUpdates = modules[module].securityUpdates + modules[module].versions[version].totalInstalls;
+                                    modules[module].updates = modules[module].updates + modules[module].versions[version].totalInstalls;
+                                } 
+                                else if (update) {
+                                    modules[module].updates = modules[module].updates + modules[module].versions[version].totalInstalls;
+                                }
+                                break;
+                            }
+                            else if (updates.value.releases[release].securityUpdate) {
+                                securityUpdate = true;
+                            }
+                            else {
+                                update = true;
+                            }
+                        }
+                    }
+                }
             }
-            console.log(projectResult);
             callback(null, modules);
         });
     });
