@@ -192,52 +192,58 @@ router.put('/:uid', oauth.authorise(), function (req, res, next) {
             // If the key is specified to be updated, reset the api key
             if (req.body.key) {
                 userDoc.apikey = uuid.v4();
+                users.update(userDoc, function (error, result) {
+                    if (error) {
+                        return res.status(500).send(error);
+                    }
+                    else {
+                        res.send(userDoc.apikey);
+                    }
+                });
             }
+            else {
+                async.parallel({
+                    email: async.apply(emailValidate, req.body.email),
+                    password: async.apply(passwordValidate, req.body.password),
+                    existingPassword: async.apply(existingPasswordValidate, req.body.existingPassword, userDoc.password),
+                }, function(error, results) {
+                    if (error) {
+                        return res.status(500).send(error);
+                    }
 
-            async.parallel({
-                email: async.apply(emailValidate, req.body.email),
-                password: async.apply(passwordValidate, req.body.password),
-                existingPassword: async.apply(existingPasswordValidate, req.body.existingPassword, userDoc.password),
-            }, function(error, results) {
-                if (error) {
-                    return res.status(500).send(error);
-                }
+                    // User validation passed, update various fields
+                    if (!results.existingPassword && ((req.body.email && !results.email) || (req.body.password && !results.password))) {
+                        if (req.body.email && !results.email) {
+                            userDoc.email = req.body.email;
+                        }
+                        if (req.body.password && !results.password) {
+                            req.body.password = forge.md.sha1.create().update(req.body.password).digest().toHex();
+                            userDoc.password = req.body.password;
+                        }
+                    }
+                    else {
+                        if (!req.body.email) {
+                            results.email = null;
+                        }
+                        if (!req.body.password) {
+                            results.password = null;
+                        }
+                        if (!req.body.email && !req.body.password) {
+                            results.error = 'A new email address or new password is required.';
+                        }
+                        return res.status(400).send(results);
+                    }
 
-                // User validation passed, update various fields
-                if (!results.existingPassword && ((req.body.email && !results.email) || (req.body.password && !results.password))) {
-                    if (req.body.email && !results.email) {
-                        userDoc.email = req.body.email;
-                    }
-                    if (req.body.password && !results.password) {
-                        req.body.password = forge.md.sha1.create().update(req.body.password).digest().toHex();
-                        userDoc.password = req.body.password;
-                    }
-                }
-                else {
-                    if (!req.body.email) {
-                        results.email = null;
-                    }
-                    if (!req.body.password) {
-                        results.password = null;
-                    }
-                    if (!req.body.email && !req.body.password) {
-                        results.error = 'A new email address or new password is required.';
-                    }
-                    return res.status(400).send(results);
-                }
-            });
-
-            users.update(userDoc, function (error, result) {
-                if (error) {
-                    return res.status(500).send(error);
-                }
-                if (req.body.key) {
-                    res.send(userDoc.apikey);
-                }
-                else {
-                    res.send(result);
-                }
-            });
+                    users.update(userDoc, function (error, result) {
+                        if (error) {
+                            return res.status(500).send(error);
+                        }
+                        else {
+                            res.send(result);
+                        }
+                    });
+                });
+            }
         }
     });
 });
