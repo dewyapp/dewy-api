@@ -170,8 +170,17 @@ router.put('/:uid', oauth.authorise(), function (req, res, next) {
         }
         var userDoc = result;
 
+        // Allow for checking of validity of individual fields without completing an update to the user
         if (req.body.check) {
-            if ('email' in req.body && !req.body.password && !req.body.existingPassword) {
+            if ('username' in req.body) {
+                usernameValidate(req.body.username, function(error, result) {
+                    if (result == null || req.body.username.length == 0) {
+                        result = false;
+                    }
+                    res.send({error: result});
+                });
+            }
+            else if ('email' in req.body) {
                 emailValidate(req.body.email, function(error, result) {
                     if (result == null || req.body.email.length == 0) {
                         result = false;
@@ -179,7 +188,7 @@ router.put('/:uid', oauth.authorise(), function (req, res, next) {
                     res.send({error: result});
                 });
             }
-            else if ('password' in req.body && !req.body.email && !req.body.existingPassword) {
+            else if ('password' in req.body) {
                 passwordValidate(req.body.password, function(error, result) {
                     if (result == null || req.body.password.length == 0) {
                         result = false;
@@ -201,8 +210,27 @@ router.put('/:uid', oauth.authorise(), function (req, res, next) {
                     }
                 });
             }
+            else if (req.body.username) {
+                usernameValidate(req.body.username, function(error, result) {
+                    if (error) {
+                        return res.status(500).send(error.toString());
+                    }
+                    else if (!result) {
+                        userDoc.username = req.body.username;
+                        users.update(userDoc, function (error, result) {
+                            if (error) {
+                                return res.status(500).send(error);
+                            }
+                            else {
+                                res.send(result);
+                            }
+                        });
+                    }
+                });
+            }
             else {
                 async.parallel({
+                    username: async.apply(usernameValidate, req.body.username),
                     email: async.apply(emailValidate, req.body.email),
                     password: async.apply(passwordValidate, req.body.password),
                     existingPassword: async.apply(existingPasswordValidate, req.body.existingPassword, userDoc.password),
