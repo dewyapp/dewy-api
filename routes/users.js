@@ -83,8 +83,37 @@ existingPasswordValidate = function(existingPassword, userPassword, callback) {
 
 
 router.post('/', function (req, res, next) {
-    if (('username' in req.body && 'email' in req.body && 'password' in req.body) ||
-        (!('username' in req.body) && !('email' in req.body) && !('password' in req.body))) {
+    // Allow for checking of validity of individual fields without completing an update to the user
+    if (req.body.check) {
+        if ('username' in req.body) {
+            usernameValidate(req.body.username, function(error, result) {
+                if (result == null) {
+                    result = false;
+                }
+                res.send({error: result});
+            });
+        }
+        else if ('email' in req.body) {
+            emailValidate(req.body.email, function(error, result) {
+                if (result == null) {
+                    result = false;
+                }
+                res.send({error: result});
+            });
+        }
+        else if ('password' in req.body) {
+            passwordValidate(req.body.password, function(error, result) {
+                if (result == null) {
+                    result = false;
+                }
+                res.send({error: result});
+            });
+        }
+        else {
+            res.status(400).send('No values to check.');
+        }
+    }
+    else {
         async.parallel({
             username: async.apply(usernameValidate, req.body.username),
             email: async.apply(emailValidate, req.body.email),
@@ -123,30 +152,6 @@ router.post('/', function (req, res, next) {
             } else {
                 res.status(400).send(results);
             }
-        });
-    }
-    else if ('username' in req.body) {
-        usernameValidate(req.body.username, function(error, result) {
-            if (result == null) {
-                result = false;
-            }
-            res.send({error: result});
-        });
-    }
-    else if ('email' in req.body) {
-        emailValidate(req.body.email, function(error, result) {
-            if (result == null) {
-                result = false;
-            }
-            res.send({error: result});
-        });
-    }
-    else if ('password' in req.body) {
-        passwordValidate(req.body.password, function(error, result) {
-            if (result == null) {
-                result = false;
-            }
-            res.send({error: result});
         });
     }
 });
@@ -195,6 +200,9 @@ router.put('/:uid', oauth.authorise(), function (req, res, next) {
                     }
                     res.send({error: result});
                 });
+            }
+            else {
+                res.status(400).send('No values to check.');
             }
         }
         else {
