@@ -88,7 +88,6 @@ exports.getAll = function(uid, fid, callback) {
                         var update = false;
                         for (release in updates.value.releases) {
                             if (updates.value.releases[release].version == version) {
-                                console.log('Done on ' + version + ' of ' + modules[module].module + ' with package ' + modules[module].package + ', ' + modules[module].updates + ' + ' + modules[module].versions[version].totalInstalls);
                                 if (securityUpdate) {
                                     modules[module].securityUpdates = modules[module].securityUpdates + modules[module].versions[version].totalInstalls;
                                     modules[module].updates = modules[module].updates + modules[module].versions[version].totalInstalls;

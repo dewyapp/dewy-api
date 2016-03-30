@@ -8,6 +8,10 @@
 		"client_id": "",
 		"client_secret": ""
     },
+    "mailgun": {
+        "api_key": "",
+        "domain": ""
+    },
     "oauth": {
     	"accessTokenLifetime": ,
     	"refreshTokenLifetime": 

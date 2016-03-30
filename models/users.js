@@ -2,21 +2,41 @@ var uuid = require('uuid');
 var couchbase = require('couchbase');
 var db = require('../app.js').bucket;
 var md5 = require('md5');
+var nodemailer = require('nodemailer');
+var mg = require('nodemailer-mailgun-transport');
+var config = require('../config');
 
-exports.create = function(params, callback) {
+exports.create = function(userDoc, callback) {
     // Construct user document
     var userDoc = {
         uid: uuid.v4(),
         apikey: uuid.v4(),
-        username: params.username,
-        email: params.email,
-        password: params.password
+        username: userDoc.username,
+        email: userDoc.email,
+        password: userDoc.password,
+        verified: false
     };
     db.insert('user::' + userDoc.uid, userDoc, function(error, result) {
         if (error) {
             callback(error, null);
             return;
         }
+
+        var nodemailerMailgun = nodemailer.createTransport(mg({auth: config.mailgun}));
+        nodemailerMailgun.sendMail({
+            from: 'noreply@dewy.io',
+            to: userDoc.email,
+            subject: 'Welcome to Dewy',
+            text: 'Hi!',
+        }, function (error, result) {
+            if (error) {
+                console.log('Error: ' + error);
+            }
+            else {
+                console.log('Response: ' + result);
+            }
+        });
+
         callback(null, userDoc);
     });
 }
