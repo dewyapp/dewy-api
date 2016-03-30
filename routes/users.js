@@ -173,7 +173,15 @@ router.put('/:uid', oauth.authorise(), function (req, res, next) {
         if (req.params.uid != req.user.id) {
             return res.status(403).send('You do not have permission to access this resource.');
         }
-        var userDoc = result;
+        var existingUserDoc = result;
+        var newUserDoc = {
+            uid: existingUserDoc.uid,
+            apikey: existingUserDoc.apikey,
+            username: existingUserDoc.username,
+            email: existingUserDoc.email,
+            password: existingUserDoc.password,
+            verified: existingUserDoc.verified
+        }
 
         // Allow for checking of validity of individual fields without completing an update to the user
         if (req.body.check) {
@@ -208,13 +216,13 @@ router.put('/:uid', oauth.authorise(), function (req, res, next) {
         else {
             // If the key is specified to be updated, reset the api key
             if (req.body.key) {
-                userDoc.apikey = uuid.v4();
-                users.update(userDoc, function (error, result) {
+                newUserDoc.apikey = uuid.v4();
+                users.update(existingUserDoc, newUserDoc, function (error, result) {
                     if (error) {
                         return res.status(500).send(error);
                     }
                     else {
-                        res.send(userDoc.apikey);
+                        res.send(newUserDoc.apikey);
                     }
                 });
             }
@@ -224,8 +232,8 @@ router.put('/:uid', oauth.authorise(), function (req, res, next) {
                         return res.status(500).send(error.toString());
                     }
                     else if (!result) {
-                        userDoc.username = req.body.username;
-                        users.update(userDoc, function (error, result) {
+                        newUserDoc.username = req.body.username;
+                        users.update(existingUserDoc, newUserDoc, function (error, result) {
                             if (error) {
                                 return res.status(500).send(error);
                             }
@@ -241,7 +249,7 @@ router.put('/:uid', oauth.authorise(), function (req, res, next) {
                     username: async.apply(usernameValidate, req.body.username),
                     email: async.apply(emailValidate, req.body.email),
                     password: async.apply(passwordValidate, req.body.password),
-                    existingPassword: async.apply(existingPasswordValidate, req.body.existingPassword, userDoc.password),
+                    existingPassword: async.apply(existingPasswordValidate, req.body.existingPassword, existingUserDoc.password),
                 }, function(error, results) {
                     if (error) {
                         return res.status(500).send(error);
@@ -250,11 +258,11 @@ router.put('/:uid', oauth.authorise(), function (req, res, next) {
                     // User validation passed, update various fields
                     if (!results.existingPassword && ((req.body.email && !results.email) || (req.body.password && !results.password))) {
                         if (req.body.email && !results.email) {
-                            userDoc.email = req.body.email;
+                            newUserDoc.email = req.body.email;
                         }
                         if (req.body.password && !results.password) {
                             req.body.password = forge.md.sha1.create().update(req.body.password).digest().toHex();
-                            userDoc.password = req.body.password;
+                            newUserDoc.password = req.body.password;
                         }
                     }
                     else {
@@ -270,7 +278,7 @@ router.put('/:uid', oauth.authorise(), function (req, res, next) {
                         return res.status(400).send(results);
                     }
 
-                    users.update(userDoc, function (error, result) {
+                    users.update(existingUserDoc, newUserDoc, function (error, result) {
                         if (error) {
                             return res.status(500).send(error);
                         }

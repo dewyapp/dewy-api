@@ -93,11 +93,32 @@ exports.getByUsername = function(username, callback) {
     });
 }
 
-exports.update = function(userDoc, callback) {
-    db.replace('user::' + userDoc.uid, userDoc, function(error, result) {
+exports.update = function(existingUserDoc, newUserDoc, callback) {
+    if (existingUserDoc.email != newUserDoc.email) {
+        newUserDoc.verified = false;
+    }
+    db.replace('user::' + existingUserDoc.uid, newUserDoc, function(error, result) {
         if (error) {
             callback(error, null);
             return;
+        }
+
+        if (existingUserDoc.email != newUserDoc.email) {
+            var nodemailerMailgun = nodemailer.createTransport(mg({auth: config.mailgun}));
+            nodemailerMailgun.sendMail({
+                from: 'noreply@dewy.io',
+                to: newUserDoc.email,
+                cc: existingUserDoc.email,
+                subject: 'Your Dewy email address has changed',
+                text: 'Hi!',
+            }, function (error, result) {
+                if (error) {
+                    console.log('Error: ' + error);
+                }
+                else {
+                    console.log('Response: ' + result);
+                }
+            });
         }
         callback(null, result);
     });
