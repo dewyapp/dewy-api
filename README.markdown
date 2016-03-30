@@ -4,7 +4,7 @@
 
 ## Installation
 
-* Configure Couchbase and OAuth:
+* Configure Couchbase, Mailgun and OAuth:
 
         cp config.json.default config.json
 
