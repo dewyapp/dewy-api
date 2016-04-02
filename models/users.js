@@ -1,3 +1,5 @@
+var express = require('express');
+var app = express();
 var uuid = require('uuid');
 var couchbase = require('couchbase');
 var db = require('../app.js').bucket;
@@ -5,6 +7,12 @@ var md5 = require('md5');
 var nodemailer = require('nodemailer');
 var mg = require('nodemailer-mailgun-transport');
 var config = require('../config');
+
+// Define email template render engine
+var mustacheExpress = require('mustache-express');
+app.engine('mustache', mustacheExpress());
+app.set('view engine', 'mustache');
+app.set('views', __dirname + '/../views');
 
 exports.create = function(userDoc, callback) {
     // Construct user document
@@ -22,19 +30,24 @@ exports.create = function(userDoc, callback) {
             return;
         }
 
-        var nodemailerMailgun = nodemailer.createTransport(mg({auth: config.mailgun}));
-        nodemailerMailgun.sendMail({
-            from: 'noreply@dewy.io',
-            to: userDoc.email,
-            subject: 'Welcome to Dewy',
-            text: 'Hi!',
-        }, function (error, result) {
-            if (error) {
-                console.log('Error: ' + error);
-            }
-            else {
-                console.log('Response: ' + result);
-            }
+        app.render('email', {
+            header: 'Your Dewy email address has changed',
+            text: emailText
+        }, function(err, html) {
+            var nodemailerMailgun = nodemailer.createTransport(mg({auth: config.mailgun}));
+            nodemailerMailgun.sendMail({
+                from: 'noreply@dewy.io',
+                to: userDoc.email,
+                subject: 'Welcome to Dewy',
+                text: 'Hi!',
+            }, function (error, result) {
+                if (error) {
+                    console.log('Error: ' + error);
+                }
+                else {
+                    console.log('Response: ' + result);
+                }
+            });
         });
 
         callback(null, userDoc);
@@ -104,20 +117,28 @@ exports.update = function(existingUserDoc, newUserDoc, callback) {
         }
 
         if (existingUserDoc.email != newUserDoc.email) {
-            var nodemailerMailgun = nodemailer.createTransport(mg({auth: config.mailgun}));
-            nodemailerMailgun.sendMail({
-                from: 'noreply@dewy.io',
-                to: newUserDoc.email,
-                cc: existingUserDoc.email,
-                subject: 'Your Dewy email address has changed',
-                text: 'Hi!',
-            }, function (error, result) {
-                if (error) {
-                    console.log('Error: ' + error);
-                }
-                else {
-                    console.log('Response: ' + result);
-                }
+            emailText = 'Hi ' + newUserDoc.username + '! Your email address has changed, please visit this link to verify your new email address.';
+            app.render('email', {
+                header: 'Your Dewy email address has changed',
+                text: emailText
+            }, function(err, html) {
+                var nodemailerMailgun = nodemailer.createTransport(mg({auth: config.mailgun}));
+                nodemailerMailgun.sendMail({
+                    from: 'noreply@dewy.io',
+                    to: newUserDoc.email,
+                    cc: existingUserDoc.email,
+                    subject: 'Your Dewy email address has changed',
+                    text: emailText,
+                    html: html
+                }, function (error, result) {
+                    if (error) {
+                        console.log('Error: ' + error);
+                    }
+                    else {
+                        console.log('Response: ' + result);
+                    }
+                });
+
             });
         }
         callback(null, result);
