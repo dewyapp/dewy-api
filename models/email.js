@@ -10,27 +10,36 @@ app.engine('mustache', mustacheExpress());
 app.set('view engine', 'mustache');
 app.set('views', __dirname + '/../views');
 
-exports.send = function(to, cc, subject, text) {
+exports.send = function(params, callback) {
     app.render('email', {
-        header: subject,
-        text: text
+        header: params.subject,
+        text: params.text
     }, function(err, html) {
-        var nodemailerMailgun = nodemailer.createTransport(mg({auth: config.mailgun}));
-        nodemailerMailgun.sendMail({
+        var mail = {
             from: 'noreply@dewy.io',
-            to: to,
-            cc: cc,
-            subject: subject,
-            text: text,
+            to: params.to,
+            subject: params.subject,
+            text: params.text,
             html: html
-        }, function (error, result) {
+        }
+        if (params.cc) {
+            mail = {
+                from: 'noreply@dewy.io',
+                to: params.to,
+                cc: params.cc,
+                subject: params.subject,
+                text: params.text,
+                html: html
+            }
+        }
+        var nodemailerMailgun = nodemailer.createTransport(mg({auth: config.mailgun}));
+        nodemailerMailgun.sendMail(mail, function (error, result) {
             if (error) {
-                console.log('Error: ' + error);
+                callback(error, null);
             }
             else {
-                console.log('Response: ' + result);
+                callback(null, result);
             }
         });
-
     });
 }

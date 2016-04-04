@@ -15,7 +15,7 @@ exports.create = function(userDoc, callback) {
         username: userDoc.username,
         email: userDoc.email,
         password: userDoc.password,
-        verified: false
+        verify: uuid.v4()
     };
     db.insert('user::' + userDoc.uid, userDoc, function(error, result) {
         if (error) {
@@ -23,26 +23,13 @@ exports.create = function(userDoc, callback) {
             return;
         }
 
-        app.render('email', {
-            header: 'Your Dewy email address has changed',
-            text: emailText
-        }, function(err, html) {
-            var nodemailerMailgun = nodemailer.createTransport(mg({auth: config.mailgun}));
-            nodemailerMailgun.sendMail({
-                from: 'noreply@dewy.io',
-                to: userDoc.email,
-                subject: 'Welcome to Dewy',
-                text: 'Hi!',
-            }, function (error, result) {
-                if (error) {
-                    console.log('Error: ' + error);
-                }
-                else {
-                    console.log('Response: ' + result);
-                }
-            });
-        });
+        email.send({
+            to: userDoc.email,
+            subject: 'Welcome to Dewy',
+            text: 'Hi ' + userDoc.username + '! Welcome to Dewy. Please verify your email address by visiting this link: http://dewy.io/auth/verify/' + userDoc.uid + '/' + userDoc.verify
+        }, function(error, result) {
 
+        });
         callback(null, userDoc);
     });
 }
@@ -101,7 +88,7 @@ exports.getByUsername = function(username, callback) {
 
 exports.update = function(existingUserDoc, newUserDoc, callback) {
     if (existingUserDoc.email != newUserDoc.email) {
-        newUserDoc.verified = false;
+        newUserDoc.verify = uuid.v4();
     }
     db.replace('user::' + existingUserDoc.uid, newUserDoc, function(error, result) {
         if (error) {
@@ -110,11 +97,24 @@ exports.update = function(existingUserDoc, newUserDoc, callback) {
         }
 
         if (existingUserDoc.email != newUserDoc.email) {
-            email.send(
-                newUserDoc.email,
-                existingUserDoc.email,
-                'Your Dewy email address has changed',
-                'Hi ' + newUserDoc.username + '! Your email address has changed, please visit this link to verify your new email address.');
+            email.send({
+                to: newUserDoc.email,
+                cc: existingUserDoc.email,
+                subject: 'Your Dewy email address has changed',
+                text: 'Hi ' + newUserDoc.username + '! Your email address has changed, please verify your email address by visiting this link: http://dewy.io/auth/verify/' + newUserDoc.uid + '/' + newUserDoc.verify
+            }, function(error, result) {
+
+            });
+        }
+        else if (existingUserDoc.verify && !newUserDoc.verify) {
+            email.send({
+                to: newUserDoc.email,
+                cc: existingUserDoc.email,
+                subject: 'Your Dewy email address has been verified',
+                text: 'Hi ' + newUserDoc.username + '! Your email address has been verified successfully.'
+            }, function(error, result) {
+
+            });
         }
         callback(null, result);
     });

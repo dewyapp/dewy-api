@@ -6,6 +6,7 @@ var forge = require('node-forge');
 var validator = require('validator');
 var uuid = require('uuid');
 var users = require('../models/users');
+var email = require('../models/email');
 var oauthModel = require('../models/oauth');
 var config = require('../config');
 
@@ -165,6 +166,60 @@ router.get('/', oauth.authorise(), function (req, res, next) {
     });
 });
 
+router.get('/_verify/:uid', function (req, res, next) {
+    users.get(req.params.uid, function(error, result) {
+        if (error) {
+            return res.status(500).send(error.toString());
+        }
+        if (!result.verify) {
+            return res.status(400).send('The user has already been verified.');
+        }
+        var userDoc = result;
+        email.send({
+                to: result.email,
+                cc: null,
+                subject: 'Your Dewy email address requires verification',
+                text: 'Hi ' + userDoc.username + '! Your email address requires verification, please verify your email address by visiting this link: http://dewy.io/auth/verify/' + userDoc.uid + '/' + userDoc.verify,
+            }, function(error, result) {
+                if (error) {
+                    return res.status(500).send(error.toString());
+                }
+                res.send('Verification email sent.');
+            });
+    });
+});
+
+router.put('/_verify/:uid/:verify', function (req, res, next) {
+    users.get(req.params.uid, function(error, result) {
+        if (error) {
+            return res.status(500).send(error.toString());
+        }
+        var existingUserDoc = result;
+        if (!existingUserDoc.verify) {
+            return res.status(400).send('The user has already been verified.');
+        }
+        if (req.params.verify != existingUserDoc.verify) {
+            return res.status(400).send('The verification code is incorrect.');
+        }
+        var newUserDoc = {
+            uid: existingUserDoc.uid,
+            apikey: existingUserDoc.apikey,
+            username: existingUserDoc.username,
+            email: existingUserDoc.email,
+            password: existingUserDoc.password,
+            verify: false
+        } 
+        users.update(existingUserDoc, newUserDoc, function (error, result) {
+            if (error) {
+                return res.status(500).send(error);
+            }
+            else {
+                res.send(result);
+            }
+        });
+    });
+});
+
 router.put('/:uid', oauth.authorise(), function (req, res, next) {
     users.get(req.user.id, function(error, result) {
         if (error) {
@@ -180,7 +235,7 @@ router.put('/:uid', oauth.authorise(), function (req, res, next) {
             username: existingUserDoc.username,
             email: existingUserDoc.email,
             password: existingUserDoc.password,
-            verified: existingUserDoc.verified
+            verify: existingUserDoc.verify
         }
 
         // Allow for checking of validity of individual fields without completing an update to the user
