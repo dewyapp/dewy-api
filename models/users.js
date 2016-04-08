@@ -116,6 +116,9 @@ exports.update = function(existingUserDoc, newUserDoc, callback) {
 
             });
         }
-        callback(null, result);
+        // Hash email for Gravatar
+        var userDoc = newUserDoc;
+        userDoc.gravatar = md5(userDoc.email); 
+        callback(null, userDoc);
     });
 }
