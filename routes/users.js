@@ -179,7 +179,7 @@ router.get('/_verify/:uid', function (req, res, next) {
                 to: result.email,
                 cc: null,
                 subject: 'Your Dewy email address requires verification',
-                text: 'Hi ' + userDoc.username + '! Your email address requires verification, please verify your email address by visiting this link: http://dewy.io/auth/verify/' + userDoc.uid + '/' + userDoc.verify,
+                text: 'Hi ' + userDoc.username + '! Your email address requires verification, please verify your email address by visiting this link: http://dewy.io/verify/' + userDoc.uid + '/' + userDoc.verify,
             }, function(error, result) {
                 if (error) {
                     return res.status(500).send(error.toString());
@@ -189,14 +189,14 @@ router.get('/_verify/:uid', function (req, res, next) {
     });
 });
 
-router.put('/_verify/:uid/:verify', function (req, res, next) {
+router.post('/_verify/:uid/:verify', function (req, res, next) {
     users.get(req.params.uid, function(error, result) {
         if (error) {
             return res.status(500).send(error.toString());
         }
         var existingUserDoc = result;
         if (!existingUserDoc.verify) {
-            return res.status(400).send('The user has already been verified.');
+            return res.status(400).send('The email address has already been verified.');
         }
         if (req.params.verify != existingUserDoc.verify) {
             return res.status(400).send('The verification code is incorrect.');
@@ -214,7 +214,21 @@ router.put('/_verify/:uid/:verify', function (req, res, next) {
                 return res.status(500).send(error);
             }
             else {
-                res.send(result);
+                // The user has been verified, create and return an access token (authenticate them)
+                var expires = new Date(this.now);
+                expires.setSeconds(expires.getSeconds() + config.oauth.accessTokenLifetime);
+                var token = {
+                    access_token: uuid.v4(),
+                    client_id: config.client.client_id,
+                    expires: expires,
+                    uid: newUserDoc.uid
+                }
+                oauthModel.saveAccessToken(token.access_token, token.client_id, token.expires, token.uid, function(error, result) {
+                    if (error) {
+                        return res.status(500).send(error);
+                    }
+                    res.send(token);
+                });
             }
         });
     });
