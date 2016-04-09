@@ -311,6 +311,9 @@ router.put('/:uid', oauth.authorise(), function (req, res, next) {
                             }
                         });
                     }
+                    else {
+                        res.status(400).send(result);
+                    }
                 });
             }
             else {
