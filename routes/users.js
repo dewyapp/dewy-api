@@ -166,8 +166,8 @@ router.get('/', oauth.authorise(), function (req, res, next) {
     });
 });
 
-router.get('/_verify/:uid', function (req, res, next) {
-    users.get(req.params.uid, function(error, result) {
+router.get('/_verify/:uid', oauth.authorise(), function (req, res, next) {
+    users.get(req.user.id, function(error, result) {
         if (error) {
             return res.status(500).send(error.toString());
         }
