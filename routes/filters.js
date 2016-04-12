@@ -23,6 +23,24 @@ router.post('/', oauth.authorise(), function (req, res, next) {
     });
 });
 
+router.get('/_index', oauth.authorise(), function (req, res, next) {
+    filters.getIndex(req.user.id, function(error, result) {
+        if (error) {
+            return res.status(500).send(error.toString());
+        }
+        res.send(result);
+    });
+});
+
+router.post('/_index', oauth.authorise(), function (req, res, next) {
+    filters.updateIndex(req.user.id, function(error, result) {
+        if (error) {
+            return res.status(500).send(error.toString());
+        }
+        res.send(result);
+    });
+});
+
 router.get('/:fid', oauth.authorise(), function (req, res, next) {
     filters.get(req.params.fid, function(error, result) {
         if (error) {

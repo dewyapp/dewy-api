@@ -384,6 +384,37 @@ exports.getAll = function(uid, callback) {
     });
 }
 
+exports.getIndex = function(uid, callback) {
+    db.get('filterIndex::' + uid, function(error, result) {
+        // Return a default filterIndex if no filterIndex is found
+        if (error) {
+            query = couchbase.ViewQuery.from('filters', 'by_uid')
+                .key([uid])
+                .stale(1);
+            db.query(query, function(error, result) {
+                if (error) {
+                    callback(error, null);
+                    return;
+                }
+                var filterIndex = {
+                    uid: uid,
+                    filters: []
+                };
+                for (item in result) {
+                    filterIndex.filters.push({
+                        fid: result[item].value.fid
+                    });
+                }
+                callback(null, filterIndex);
+            });
+        }
+        else {
+            filterIndex = result.value;
+            callback(null, filterIndex);
+        }
+    });
+}
+
 exports.delete = function(fid, callback) {
     var manager = db.manager();
     manager.removeDesignDocument('users-filter-' + fid, function(error, result) {
@@ -416,5 +447,16 @@ exports.update = function(fid, filterDoc, callback) {
             }
             callback(null, filterDoc);
         })
+    });
+}
+
+exports.updateIndex = function(uid, filterIndex, callback) {
+    // TODO: Check if data is any good
+    db.replace('filterIndex::' + uid, filterIndex, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+        callback(null, filterIndex);
     });
 }
