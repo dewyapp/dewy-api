@@ -33,7 +33,7 @@ router.get('/_index', oauth.authorise(), function (req, res, next) {
 });
 
 router.post('/_index', oauth.authorise(), function (req, res, next) {
-    filters.updateIndex(req.user.id, function(error, result) {
+    filters.updateIndex(req.user.id, req.body, function(error, result) {
         if (error) {
             return res.status(500).send(error.toString());
         }
