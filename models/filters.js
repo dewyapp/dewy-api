@@ -376,9 +376,9 @@ exports.getAll = function(uid, callback) {
             callback(error, null);
             return;
         }
-        var filters = [];
+        var filters = {};
         for (item in result) {
-            filters.push(result[item].value);
+            filters[result[item].value.fid] = {title: result[item].value.title, notifications: result[item].value.notifications};
         }
         callback(null, filters);
     });

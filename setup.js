@@ -12,7 +12,11 @@ exports.setup = function (callback) {
                     map: [
                         'function (doc, meta) {',
                             'if (meta.id.substring(0, 8) == "filter::") {',
-                                'emit([doc.uid], doc);',
+                                'var notifications = false;',
+                                'if (doc.notifications.appears || doc.notifications.appears || doc.notifications.total) {',
+                                    'notifications = true;',
+                                '}',
+                                'emit([doc.uid], {fid: doc.fid, title: doc.title, notifications: notifications});',
                             '}',
                         '}'
                         ].join('\n')
