@@ -452,7 +452,7 @@ exports.update = function(fid, filterDoc, callback) {
 
 exports.updateIndex = function(uid, filterIndex, callback) {
     // TODO: Check if data is any good
-    db.replace('filterIndex::' + uid, filterIndex, function(error, result) {
+    db.upsert('filterIndex::' + uid, filterIndex, function(error, result) {
         if (error) {
             callback(error, null);
             return;
