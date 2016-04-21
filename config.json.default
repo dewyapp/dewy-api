@@ -5,15 +5,15 @@
         "password": ""
     },
     "client": {
-		"client_id": "",
-		"client_secret": ""
+        "client_id": "",
+        "client_secret": ""
     },
     "mailgun": {
         "api_key": "",
         "domain": ""
     },
     "oauth": {
-    	"accessTokenLifetime": ,
-    	"refreshTokenLifetime": 
+        "accessTokenLifetime": 3600,
+        "refreshTokenLifetime": 604800
     }
 }
