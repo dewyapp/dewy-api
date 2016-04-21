@@ -19,7 +19,7 @@
 	
 			docker-compose up
 
-	5. Visit the Couchbase Console at http://<docker-machine-ip>/index.html, and set up the server with a username and password
+	5. Visit the Couchbase Console at http://<docker-machine-ip>/index.html, and set up the server with a username and password, then delete the default bucket and add a Dewy bucket with a password
 
 * Configure Couchbase, Mailgun and OAuth:
 
