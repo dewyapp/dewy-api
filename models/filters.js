@@ -11,13 +11,38 @@ exports.create = function(uid, filterDoc, callback) {
             callback(error, null);
             return;
         }
+        // Add design document for new filter
         exports.createDesignDoc(filterDoc, function(error, result) {
             if (error) {
                 callback(error, null);
                 return;
             }
-            callback(null, filterDoc);
-        })
+
+            // Add filter to filter index
+            exports.getIndex(uid, function(error, result) {
+                if (error) {
+                    callback(error, null);
+                    return;
+                }
+
+                var filterIndex = result;
+                filterIndex.filters.push({fid: filterDoc.fid});
+
+                // Save filter index
+                exports.updateIndex(uid, filterIndex, function(error, result) {
+                    if (error) {
+                        callback(error, null);
+                        return
+                    }
+
+                    callback(null, filterDoc);
+                });
+
+                // TODO: This should be probably be refactored as 
+                // two async tasks, creating design doc + updating filter
+                // and if any one fails, delete everything
+            });
+        });
     });
 }
 
@@ -415,7 +440,7 @@ exports.getIndex = function(uid, callback) {
     });
 }
 
-exports.delete = function(fid, callback) {
+exports.delete = function(uid, fid, callback) {
     var manager = db.manager();
     manager.removeDesignDocument('users-filter-' + fid, function(error, result) {
         if (error && error != 'Error: missing') {
@@ -423,12 +448,50 @@ exports.delete = function(fid, callback) {
             callback(error, null);
             return;
         }
-        db.remove('filter::' + fid, function(error, result) {
+
+        // Remove filter from filter index
+        exports.getIndex(uid, function(error, result) {
             if (error) {
                 callback(error, null);
                 return;
             }
-            callback(null, result);
+
+            var filterIndex = result;
+            function walk(target) {
+                var filters = target.filters, i;
+                if (filters) {
+                    i = filters.length;
+                    while (i--) {
+                        if (filters[i].fid == fid) {
+                            filters.splice(i, 1);
+                            return;
+                        }
+                        else {
+                            walk(filters[i]);
+                        }
+                    }
+                }
+            }
+            walk(filterIndex);
+
+            // Save filter index
+            exports.updateIndex(uid, filterIndex, function(error, result) {
+                if (error) {
+                    callback(error, null);
+                    return
+                }
+
+                // TODO: This should be probably be refactored as 
+                // two async tasks, removing design doc + removing filter index
+                // and if any one fails, don't do anything
+                db.remove('filter::' + fid, function(error, result) {
+                    if (error) {
+                        callback(error, null);
+                        return;
+                    }
+                    callback(null, result);
+                });
+            });
         });
     });
 }

@@ -61,7 +61,7 @@ router.delete('/:fid', oauth.authorise(), function (req, res, next) {
         if (result.uid != req.user.id) {
             return res.status(403).send("You do not have permission to access this resource.");
         }
-        filters.delete(req.params.fid, function(error, result) {
+        filters.delete(req.user.id, req.params.fid, function(error, result) {
             if (error) {
                 return res.status(500).send(error.toString());
             }
