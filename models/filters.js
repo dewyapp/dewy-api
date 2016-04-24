@@ -148,17 +148,17 @@ exports.createDesignDoc = function(filterDoc, callback) {
         value = value.toLowerCase();
         switch(choice) {
             case 'contains':
-                return field + '.toLowerCase().indexOf("' + value + '") !== -1';
+                return field + '.toString().toLowerCase().indexOf("' + value + '") !== -1';
             case 'does not contain':
-                return field + '.toLowerCase().indexOf("' + value + '") == -1';
+                return field + '.toString().toLowerCase().indexOf("' + value + '") == -1';
             case 'is':
-                return field + '.toLowerCase() == "' + value + '"';
+                return field + '.toString().toLowerCase() == "' + value + '"';
             case 'is not':
-                return field + '.toLowerCase() != "' + value + '"';
+                return field + '.toString().toLowerCase() != "' + value + '"';
             case 'starts with':
-                return field + '.toLowerCase().indexOf("' + value + '") == 0';
+                return field + '.toString().toLowerCase().indexOf("' + value + '") == 0';
             case 'ends with':
-                return field + '.toLowerCase().indexOf("' + value + '", ' + field + '.length - "' + value + '".length) !== -1';
+                return field + '.toString().toLowerCase().indexOf("' + value + '", ' + field + '.length - "' + value + '".length) !== -1';
         }
     }
 
