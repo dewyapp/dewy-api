@@ -496,12 +496,7 @@ fields = [
       {id: 'starts with', label: 'starts with'},
       {id: 'ends with', label: 'ends with'}
     ],
-    value: 'string',
-    details: [
-      'and has a setting',
-      'and is true',
-      'and is false'
-    ]
+    value: 'variable'
   }
 ]
 

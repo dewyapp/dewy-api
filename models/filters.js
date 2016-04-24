@@ -211,7 +211,6 @@ exports.createDesignDoc = function(filterDoc, callback) {
             'drupal core': 'doc.details.drupal_core',
             'php version': 'doc.details.php_version',
             'title': 'doc.details.title',
-            'variable': ''
         }
 
         if (rule.field in booleans) {
@@ -296,6 +295,9 @@ exports.createDesignDoc = function(filterDoc, callback) {
             var compare = stringComparison(rule.choice, 'i', rule.value);
             var test = 'var ' + testValue + ' = false; for (var i in doc.details.users) { if (' + compare + ') { ' + testValue + ' = true } };';
             return { rule: testValue, test: test };
+        }
+        else if (rule.field == 'variable') {
+            return { rule: stringComparison(rule.choice, 'doc.details.variables.' + rule.variable, rule.value) };
         }
 
         return { rule: rule.field };
