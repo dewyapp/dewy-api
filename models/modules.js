@@ -112,6 +112,16 @@ exports.getAll = function(uid, fid, callback) {
     });
 }
 
+exports.getProject = function(project, core, callback) {
+    db.get('project::' + project + '-' + core, function (error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+        callback(null, result.value);
+    });
+}
+
 exports.getReleases = function(callback) {
 
     getRelease = function(release) {
@@ -172,9 +182,33 @@ exports.getReleases = function(callback) {
                             else {
                                 projectDoc.releases.push(getRelease(project.project.releases.release));
                             }
-                            // Save project
-                            exports.createProject(projectDoc, function(error, result) {
-                            });
+
+                            // With projectDoc compiled, lets compare to the existing one
+                            exports.getProject(projectDoc.project, projectDoc.core, function(error, result) {
+                                if (error) {
+                                    // No project matches, so create project
+                                    console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' does not exist, creating it')
+                                    // exports.createProject(projectDoc, function(error, result) {});
+                                } else {
+                                    // Otherwise compare projects
+                                    var index = 0;
+                                    var update = false;
+                                    var securityUpdate = false;
+                                    while (projectDoc.releases[index].version != result.releases[0].version) {
+                                        update = true;
+                                        if (projectDoc.releases[index].securityUpdate) {
+                                            securityUpdate = true;
+                                        }
+                                        index = index+1;
+                                    }
+                                    // Updates have been found, update document and affected sites
+                                    if (update) {
+                                        console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' has new updates')
+                                        // exports.createProject(projectDoc, function(error, result) {});
+                                    }
+                                }
+
+                            })
                         }
                     }
                 });
