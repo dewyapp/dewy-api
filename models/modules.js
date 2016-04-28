@@ -2,6 +2,7 @@ var couchbase = require('couchbase');
 var db = require('../app.js').bucket;
 var request = require('request');
 var xml2json = require('xml2json');
+var async = require('async');
 var config = require('../config');
 
 exports.createProject = function(projectDoc, callback) {
@@ -154,9 +155,10 @@ exports.getReleases = function(callback) {
             callback(error, null);
             return;
         }
-        for (index in result) {
-            var projectTitle = result[index].key[0];
-            var core = result[index].key[1];
+        var updatedProjects = [];
+        async.forEach(result, function(resultProject, callback) {
+            var projectTitle = resultProject.key[0];
+            var core = resultProject.key[1];
             console.log('Getting releases for ' + projectTitle + '-' + core);
             (function(projectTitle, core) {
                 request('https://updates.drupal.org/release-history/' + projectTitle + '/' + core, 
@@ -201,9 +203,9 @@ exports.getReleases = function(callback) {
                                         }
                                         index = index+1;
                                     }
-                                    // Updates have been found, update document and affected sites
+                                    // Updates have been found for this project, add to list
                                     if (update) {
-                                        console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' has new updates')
+                                        updatedProjects.push(projectDoc);
                                         // exports.createProject(projectDoc, function(error, result) {});
                                     }
                                 }
@@ -211,9 +213,14 @@ exports.getReleases = function(callback) {
                             })
                         }
                     }
+                    callback();
                 });
             })(projectTitle, core);
-        }
-        // callback(null, null);
+        }, function(error) {
+            for (index in updatedProjects) {
+                console.log('Project ' + updatedProjects[index].project + '-' + updatedProjects[index].core + ' has new updates');
+            }
+            callback(null, 'Release gathering complete');
+        });
     });
 }
