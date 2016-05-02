@@ -12,12 +12,13 @@ exports.audit = function(sid, errors, callback) {
             return;
         }
         var siteDoc = result.value;
-        console.log('Auditing ' + result.value.sid);
+        console.log('Auditing ' + result.value.sid + ' at ' + siteDoc.baseurl + '/admin/reports/dewy');
         request({
             uri: siteDoc.baseurl + '/admin/reports/dewy',
             method: 'POST',
             body: 'token=' + siteDoc.token,
             rejectUnauthorized: false,
+            charset: 'utf-8',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
@@ -34,20 +35,24 @@ exports.audit = function(sid, errors, callback) {
                 try {
                     // Store details
                     siteDoc.details = JSON.parse(body);
+                    console.log(body);
 
                     // Calculate attributes
                     var attributes = {};
                     attributes.databaseUpdates = 0;
                     attributes.enabledModules = 0;
-                    for (var i in siteDoc.details.modules) {
-                        if (siteDoc.details.modules[i].schema != -1) {
-                            attributes.enabledModules = attributes.enabledModules + 1;
-                            if (siteDoc.details.modules[i].schema != siteDoc.details.modules[i].latest_schema) {
-                                attributes.databaseUpdates = attributes.databaseUpdates + 1;
+                    attributes.modules = 0;
+                    for (var i in siteDoc.details.projects) {
+                        for (var j in siteDoc.details.projects[i].modules) {
+                            attributes.modules = attributes.modules + 1;
+                            if (siteDoc.details.projects[i].modules[j].schema != -1) {
+                                attributes.enabledModules = attributes.enabledModules + 1;
+                                if (siteDoc.details.projects[i].modules[j].schema != siteDoc.details.projects[i].modules[j].latest_schema) {
+                                    attributes.databaseUpdates = attributes.databaseUpdates + 1;
+                                }
                             }
                         }
                     }
-                    attributes.modules = _.keys(siteDoc.details.modules).length;
                     attributes.contentTypes = {};
                     attributes.lastModified = 0;
                     attributes.avgLastModified = 0;

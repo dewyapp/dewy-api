@@ -198,7 +198,6 @@ exports.createDesignDoc = function(filterDoc, callback) {
             'number of hits in past week': '',
             'number of hits in past month': '',
             'number of hits in past year': '',
-            'number of modules': 'doc.attributes.modules',
             'number of nodes': 'doc.attributes.nodes',
             'number of roles': 'doc.attributes.roles',
             'number of themes': 'doc.details.themes.length',
@@ -227,8 +226,8 @@ exports.createDesignDoc = function(filterDoc, callback) {
         }
         else if (rule.field == 'available module') {
             var testValue = 'test' + ruleIndex;
-            var compare = stringComparison(rule.choice, '(i + "-" + doc.details.modules[i].version)', rule.value);
-            var test = 'var ' + testValue + ' = false; for (var i in doc.details.modules) { if (' + compare + ') { ' + testValue + ' = true } };';
+            var compare = stringComparison(rule.choice, '(j + "-" + doc.details.projects[i].version)', rule.value);
+            var test = 'var ' + testValue + ' = false; for (var i in doc.details.projects) { for (var j in doc.details.projects[i].modules) { if (' + compare + ') { ' + testValue + ' = true } } };';
             return { rule: testValue, test: test };
         }
         else if (rule.field == 'available theme') {
@@ -248,9 +247,9 @@ exports.createDesignDoc = function(filterDoc, callback) {
         }
         else if (rule.field == 'enabled module') {
             var testValue = 'test' + ruleIndex;
-            var compare = stringComparison(rule.choice, '(i + "-" + doc.details.modules[i].version)', rule.value);
-            var compare2 = numberComparison('is greater than', 'doc.details.modules[i].schema', -1);
-            var test = 'var ' + testValue + ' = false; for (var i in doc.details.modules) { if (' + compare + ' && ' + compare2 + ' ) { ' + testValue + ' = true } };';
+            var compare = stringComparison(rule.choice, '(j + "-" + doc.details.projects[i].version)', rule.value);
+            var compare2 = numberComparison('is greater than', 'doc.details.projects[i].modules[j].schema', -1);
+            var test = 'var ' + testValue + ' = false; for (var i in doc.details.projects) { for (var j in doc.details.projects[i].modules) { if (' + compare + ' && ' + compare2 + ' ) { ' + testValue + ' = true } } };';
             return { rule: testValue, test: test };
         }
         else if (rule.field == 'enabled theme') {
@@ -259,6 +258,11 @@ exports.createDesignDoc = function(filterDoc, callback) {
             var compare2 = stringComparison('is', 'doc.details.themes[i].status', '1');
             var test = 'var ' + testValue + ' = false; for (var i in doc.details.themes) { if (' + compare + ' && ' + compare2 + ' ) { ' + testValue + ' = true } };';
             return { rule: testValue, test: test };
+        }
+        else if (rule.field == 'number of modules') {
+            var testValue = 'test' + ruleIndex;
+            var test = 'var ' + testValue + ' = 0; for (var i in doc.details.projects) { for (var j in doc.details.projects[i].modules) { ' + testValue + ' = ' + testValue + ' + 1 } };';
+            return { rule: numberComparison(rule.choice, testValue, rule.value), test: test };
         }
         else if (rule.field == 'tag') {
             var testValue = 'test' + ruleIndex
@@ -344,12 +348,14 @@ exports.createDesignDoc = function(filterDoc, callback) {
                             'if (' + processedRules.rule + ') {',
                                 'var core = doc.details.drupal_core.split(".");',
                                 'core = core[0] + ".x";',
-                                'for (module in doc.details.modules) {',
-                                    'enabled = false',
-                                    'if (doc.details.modules[module].schema != -1) {',
-                                        'enabled = true',
+                                'for (project in doc.details.projects) {',
+                                    'for (module in doc.details.projects[projects].modules) {',
+                                        'enabled = false',
+                                        'if (doc.details.projects[projects].modules[module].schema != -1) {',
+                                            'enabled = true',
+                                        '}',
+                                        'emit([doc.uid, module, core, enabled, doc.details.projects[projects].modules[module].version, project]);',
                                     '}',
-                                    'emit([doc.uid, module, core, enabled, doc.details.modules[module].version, doc.details.modules[module].project]);',
                                 '}',
                             '}',
                         '}',

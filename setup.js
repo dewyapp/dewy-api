@@ -31,12 +31,14 @@ exports.setup = function (callback) {
                             'if (meta.id.substring(0, 6) == "site::" && doc.enabled == "1" && ("details" in doc) && !("error" in doc.audited)) {',
                                 'var core = doc.details.drupal_core.split(".");',
                                 'core = core[0] + ".x";',
-                                'for (module in doc.details.modules) {',
-                                    'enabled = false',
-                                    'if (doc.details.modules[module].schema != -1) {',
-                                        'enabled = true',
+                                'for (project in doc.details.projects) {',
+                                    'for (module in doc.details.projects[projects].modules) {',
+                                        'enabled = false',
+                                        'if (doc.details.projects[projects].modules[module].schema != -1) {',
+                                            'enabled = true',
+                                        '}',
+                                        'emit([doc.uid, module, core, enabled, doc.details.projects[projects].modules[module].version, project]);',
                                     '}',
-                                    'emit([doc.uid, module, core, enabled, doc.details.modules[module].version, doc.details.modules[module].project]);',
                                 '}',
                             '}',
                         '}'
@@ -48,11 +50,13 @@ exports.setup = function (callback) {
                 by_project: {
                     map: [
                         'function (doc, meta) {',
-                            'var core = doc.details.drupal_core.split(\'.\');',
-                            'core = core[0] + \'.x\';',
-                            'for (var module in doc.details.modules) {',
-                                'if (doc.details.modules[module].project != null) {',
-                                    'emit([doc.details.modules[module].project, core]);',
+                            'if (meta.id.substring(0, 6) == "site::") {',
+                                'var core = doc.details.drupal_core.split(\'.\');',
+                                'core = core[0] + \'.x\';',
+                                'for (var project in doc.details.projects) {',
+                                    'if (project != null) {',
+                                        'emit([project, core]);',
+                                    '}',
                                 '}',
                             '}',
                         '}'
@@ -110,6 +114,15 @@ exports.setup = function (callback) {
                         'function (doc, meta) {',
                             'if (meta.id.substring(0, 6) == "site::" && doc.enabled == "1" && ("details" in doc) && !("error" in doc.audited)) {',
                                 'emit([doc.uid], {sid: doc.sid, title: doc.details.title, baseurl: doc.baseurl, attributes: doc.attributes, tags: doc.tags});',
+                            '}',
+                        '}'
+                        ].join('\n')
+                },
+                by_project: {
+                    map: [
+                        'function (doc, meta) {',
+                            'if (meta.id.substring(0, 6) == "site::") {',
+                                'emit([doc.uid], doc.sid);',
                             '}',
                         '}'
                         ].join('\n')
