@@ -218,8 +218,15 @@ exports.getReleases = function(callback) {
                                         core: projectDoc.core,
                                         securityUpdate: securityUpdate
                                     });
-                                    // exports.createProject(projectDoc, function(error, result) {});
-                                    callback();
+                                    exports.createProject(projectDoc, function(error, result) {
+                                        if (error) {
+                                            console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' failed to be updated in the database: ' + error);
+                                            callback();
+                                        }
+                                        else {
+                                            callback();
+                                        }
+                                    });
                                 }
                                 else {
                                     callback();
