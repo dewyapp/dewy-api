@@ -4,6 +4,7 @@ var request = require('request');
 var xml2json = require('xml2json');
 var async = require('async');
 var config = require('../config');
+var sites = require('../models/sites');
 
 exports.createProject = function(projectDoc, callback) {
     db.upsert('project::' + projectDoc.project + '-' + projectDoc.core, projectDoc, function(error, result) {
@@ -189,7 +190,7 @@ exports.getReleases = function(callback) {
                             if (error) {
                                 // No project matches, so create project
                                 console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' does not exist, creating it')
-                                // exports.createProject(projectDoc, function(error, result) {});
+                                exports.createProject(projectDoc, function(error, result) {});
                             } else {
                                 // Otherwise compare projects
                                 var index = 0;
@@ -204,7 +205,11 @@ exports.getReleases = function(callback) {
                                 }
                                 // Updates have been found for this project, add to list
                                 if (update) {
-                                    updatedProjects.push(projectDoc);
+                                    updatedProjects.push({
+                                        project: projectDoc.project,
+                                        core: projectDoc.core,
+                                        securityUpdate: securityUpdate
+                                    });
                                     // exports.createProject(projectDoc, function(error, result) {});
                                 }
                             }
@@ -217,8 +222,42 @@ exports.getReleases = function(callback) {
         }, function(error) {
             for (index in updatedProjects) {
                 console.log('Project ' + updatedProjects[index].project + '-' + updatedProjects[index].core + ' has new updates');
+
+                // Get affected sites and update them
+                var maxModuleUpdateLevel = 0;
+                if (updatedProjects[index].securityUpdate) {
+                    maxModuleUpdateLevel = 1;
+                }
+                // TODO: This will not scale well when we are dealing with 1000s of sites, would need to do this in batches using startKey & limit
+                sites.getByProject(updatedProjects[index].project, updatedProjects[index].core, maxModuleUpdateLevel, function(error, result) {
+                    if (error) {
+                        console.log('Failed to retrieve affected sites: ' + error);
+                    }
+                    else {
+                        for (item in result) {
+                            var sid = result[item]
+                            sites.get(sid, function(error, result) {
+                                if (error) {
+                                    console.log('Failed to retrive site ' + siteDoc.sid + ': ' + error);
+                                }
+                                else {
+                                    var siteDoc = result;
+                                    siteDoc.attributes.moduleUpdateLevel = maxModuleUpdateLevel + 1;
+                                    sites.update(siteDoc, function(error, result) {
+                                        if (error) {
+                                            console.log('Failed to update site ' + siteDoc.sid + ': ' + error);
+                                        }
+                                        else {
+                                            console.log('Updated site ' + siteDoc.sid);
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    }
+                });
             }
-            callback(null, 'Release gathering complete');
+            // callback(null, 'Release gathering complete');
         });
     });
 }

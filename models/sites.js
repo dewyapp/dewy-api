@@ -86,6 +86,7 @@ exports.audit = function(sid, errors, callback) {
                     attributes.avgLastAccess = Math.round(attributes.avgLastAccess / attributes.users);
                     attributes.roles = _.keys(attributes.roles).length;
                     attributes.diskSize = Number(siteDoc.details.files.public.size) + Number(siteDoc.details.files.private.size) + Number(siteDoc.details.db_size);
+                    attributes.moduleUpdateLevel = 0;
 
                     // Roll up attributes into comparison factors
                     attributes.complexity = Math.log(attributes.modules + attributes.contentTypes + attributes.roles);
@@ -241,6 +242,23 @@ exports.getByBaseurl = function(params, callback) {
         }
         callback(null, result);
     });
+}
+
+exports.getByProject = function(project, core, maxModuleUpdateLevel, callback) {
+    query = couchbase.ViewQuery.from('sites', 'by_project')
+        .range([project, core, 0], [project, core, maxModuleUpdateLevel])
+        .stale(1);
+    db.query(query, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+        var sites = [];
+        for (item in result) {
+            sites.push(result[item].value);
+        }
+        callback(null, sites);
+    })
 }
 
 exports.update = function(siteDoc, callback) {

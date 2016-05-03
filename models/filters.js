@@ -178,7 +178,7 @@ exports.createDesignDoc = function(filterDoc, callback) {
             'aggregate js': 'doc.details.variables.preprocess_js',
             'caching for anonymous': 'doc.details.variables.cache',
             'maintenance mode': 'doc.details.variables.maintenance_mode',
-            'module versions': ''
+            'module versions': 'doc.attributes.moduleUpdateLevel'
         }
         var dates = {
             'date added to dewy': 'dateAdded',

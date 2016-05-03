@@ -121,8 +121,14 @@ exports.setup = function (callback) {
                 by_project: {
                     map: [
                         'function (doc, meta) {',
-                            'if (meta.id.substring(0, 6) == "site::") {',
-                                'emit([doc.uid], doc.sid);',
+                            'if (meta.id.substring(0, 6) == "site::" && doc.enabled == "1" && ("details" in doc) && !("error" in doc.audited)) {',
+                                'var core = doc.details.drupal_core.split(\'.\');',
+                                'core = core[0] + \'.x\';',
+                                'for (var project in doc.details.projects) {',
+                                    'if (project != null) {',
+                                        'emit([project, core, doc.attributes.moduleUpdateLevel], doc.sid);',
+                                    '}',
+                                '}',
                             '}',
                         '}'
                         ].join('\n')
