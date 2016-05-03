@@ -190,7 +190,15 @@ exports.getReleases = function(callback) {
                             if (error) {
                                 // No project matches, so create project
                                 console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' does not exist, creating it')
-                                exports.createProject(projectDoc, function(error, result) {});
+                                exports.createProject(projectDoc, function(error, result) {
+                                    if (error) {
+                                        console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' failed to be created: ' + error);
+                                        callback();
+                                    }
+                                    else {
+                                        callback();
+                                    }
+                                });
                             } else {
                                 // Otherwise compare projects
                                 var index = 0;
@@ -211,27 +219,38 @@ exports.getReleases = function(callback) {
                                         securityUpdate: securityUpdate
                                     });
                                     // exports.createProject(projectDoc, function(error, result) {});
+                                    callback();
+                                }
+                                else {
+                                    callback();
                                 }
                             }
-
-                        })
+                        });
+                    }
+                    else {
+                        console.log('Project ' + projectTitle + '-' + core + ' is invalid');
+                        callback();
                     }
                 }
-                callback();
+                else {
+                    console.log('Failed to retrieve version history for ' + projectTitle + '-' + core + ': ' + error);
+                    callback();
+                }
             });
         }, function(error) {
-            for (index in updatedProjects) {
-                console.log('Project ' + updatedProjects[index].project + '-' + updatedProjects[index].core + ' has new updates');
+            async.forEach(updatedProjects, function(updatedProject, callback) {
+                console.log('Project ' + updatedProject.project + '-' + updatedProject.core + ' has new updates');
 
                 // Get affected sites and update them
                 var maxModuleUpdateLevel = 0;
-                if (updatedProjects[index].securityUpdate) {
+                if (updatedProject.securityUpdate) {
                     maxModuleUpdateLevel = 1;
                 }
                 // TODO: This will not scale well when we are dealing with 1000s of sites, would need to do this in batches using startKey & limit
-                sites.getByProject(updatedProjects[index].project, updatedProjects[index].core, maxModuleUpdateLevel, function(error, result) {
+                sites.getByProject(updatedProject.project, updatedProject.core, maxModuleUpdateLevel, function(error, result) {
                     if (error) {
                         console.log('Failed to retrieve affected sites: ' + error);
+                        callback();
                     }
                     else {
                         for (item in result) {
@@ -239,6 +258,7 @@ exports.getReleases = function(callback) {
                             sites.get(sid, function(error, result) {
                                 if (error) {
                                     console.log('Failed to retrive site ' + siteDoc.sid + ': ' + error);
+                                    callback();
                                 }
                                 else {
                                     var siteDoc = result;
@@ -246,18 +266,23 @@ exports.getReleases = function(callback) {
                                     sites.update(siteDoc, function(error, result) {
                                         if (error) {
                                             console.log('Failed to update site ' + siteDoc.sid + ': ' + error);
+                                            callback();
                                         }
                                         else {
                                             console.log('Updated site ' + siteDoc.sid);
+                                            callback();
                                         }
                                     });
                                 }
                             });
                         }
+                        console.log('No sites were affected by the update to ' + updatedProject.project);
+                        callback();
                     }
                 });
-            }
-            // callback(null, 'Release gathering complete');
+            }, function(error) {
+                callback(null, 'Release gathering complete');
+            });
         });
     });
 }
