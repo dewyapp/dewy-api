@@ -25,6 +25,7 @@ exports.audit = function(sid, errors, callback) {
         }, function(error, response, body) {
             var date = new Date().getTime() / 1000;
             date = Math.round(date);
+            siteDoc.lastUpdated = date;
             siteDoc.audited = {
                 date: date
             }
@@ -35,7 +36,6 @@ exports.audit = function(sid, errors, callback) {
                 try {
                     // Store details
                     siteDoc.details = JSON.parse(body);
-                    console.log(body);
 
                     // Calculate attributes
                     var attributes = {};
@@ -127,6 +127,8 @@ exports.auditAll = function(callback) {
         async.each(result,
             function(row, callback) {
                 exports.audit(row.value, errors, callback);
+                // Add projects that aren't in Dewy
+                // Update 
             },
             function(error) {
                 callback(null, errors);

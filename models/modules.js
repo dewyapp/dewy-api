@@ -269,6 +269,9 @@ exports.getReleases = function(callback) {
                                 }
                                 else {
                                     var siteDoc = result;
+                                    var date = new Date().getTime() / 1000;
+                                    date = Math.round(date);
+                                    siteDoc.lastUpdated = date;
                                     siteDoc.attributes.moduleUpdateLevel = maxModuleUpdateLevel + 1;
                                     sites.update(siteDoc, function(error, result) {
                                         if (error) {
