@@ -59,17 +59,21 @@ exports.getAll = function(uid, fid, callback) {
             // We are looking at the currentModule whether new or existing, so update totals and add to versions
             currentModule.total = currentModule.total + result[item].value;
             var installs = 0;
+
+            // If the module is enabled, add to version-agnostic totals
             if (result[item].key[3]) {
                 var installs = result[item].value;
                 currentModule.totalInstalls = currentModule.totalInstalls + installs;
             }
 
+            // A new version of this module has been found, start new totals for this version
             if (!(result[item].key[4] in currentModule.versions)) {
                 currentModule.versions[result[item].key[4]] = {
                     total: result[item].value,
                     totalInstalls: installs
                 }
             }
+            // This is the same version of the module, add to existing totals for this version
             else {
                 currentModule.versions[result[item].key[4]] = {
                     total: currentModule.versions[result[item].key[4]].total + result[item].value, 
@@ -78,54 +82,14 @@ exports.getAll = function(uid, fid, callback) {
             }
         }
 
-        // Get Drupal.org update information and determine updates
-        exports.getModuleProjectUpdates(projectKeys, modules, function(error, result) {
+        // Pair Drupal.org project information with module data and determine updates
+        exports.pairModulesToProjectUpdates(projectKeys, modules, function(error, result) {
             if (error) {
                 return callback(error);
             }
             callback(null, result);
         });
     });
-}
-
-exports.getModuleProjectUpdates = function(projectKeys, modules, callback) {
-    if (!projectKeys.length) {
-        callback(null, modules);
-    }
-    else {
-        db.getMulti(projectKeys, function(error, result) {
-            for (module in modules) {
-                var updates = result['project::' + modules[module].project + '-' + modules[module].core];
-                modules[module].updates = 0;
-                modules[module].securityUpdates = 0;
-                for (version in modules[module].versions) {
-                    if (updates && 'value' in updates) {
-                        var securityUpdate = false;
-                        var update = false;
-                        for (release in updates.value.releases) {
-                            if (updates.value.releases[release].version == version) {
-                                if (securityUpdate) {
-                                    modules[module].securityUpdates = modules[module].securityUpdates + modules[module].versions[version].totalInstalls;
-                                    modules[module].updates = modules[module].updates + modules[module].versions[version].totalInstalls;
-                                } 
-                                else if (update) {
-                                    modules[module].updates = modules[module].updates + modules[module].versions[version].totalInstalls;
-                                }
-                                break;
-                            }
-                            else if (updates.value.releases[release].securityUpdate) {
-                                securityUpdate = true;
-                            }
-                            else {
-                                update = true;
-                            }
-                        }
-                    }
-                }
-            }
-            callback(null, modules);
-        });
-    }
 }
 
 exports.getProject = function(project, core, callback) {
@@ -309,4 +273,44 @@ exports.getReleases = function(callback) {
             });
         });
     });
+}
+
+exports.pairModulesToProjectUpdates = function(projectKeys, modules, callback) {
+    if (!projectKeys.length) {
+        callback(null, modules);
+    }
+    else {
+        db.getMulti(projectKeys, function(error, result) {
+            for (module in modules) {
+                var updates = result['project::' + modules[module].project + '-' + modules[module].core];
+                modules[module].updates = 0;
+                modules[module].securityUpdates = 0;
+                for (version in modules[module].versions) {
+                    if (updates && 'value' in updates) {
+                        var securityUpdate = false;
+                        var update = false;
+                        for (release in updates.value.releases) {
+                            if (updates.value.releases[release].version == version) {
+                                if (securityUpdate) {
+                                    modules[module].securityUpdates = modules[module].securityUpdates + modules[module].versions[version].totalInstalls;
+                                    modules[module].updates = modules[module].updates + modules[module].versions[version].totalInstalls;
+                                } 
+                                else if (update) {
+                                    modules[module].updates = modules[module].updates + modules[module].versions[version].totalInstalls;
+                                }
+                                break;
+                            }
+                            else if (updates.value.releases[release].securityUpdate) {
+                                securityUpdate = true;
+                            }
+                            else {
+                                update = true;
+                            }
+                        }
+                    }
+                }
+            }
+            callback(null, modules);
+        });
+    }
 }
