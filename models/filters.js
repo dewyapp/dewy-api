@@ -354,7 +354,7 @@ exports.createDesignDoc = function(filterDoc, callback) {
                                         'if (doc.details.projects[project].modules[module].schema != -1) {',
                                             'enabled = true',
                                         '}',
-                                        'emit([doc.uid, module, core, enabled, doc.details.projects[project].modules[module].version, project]);',
+                                        'emit([doc.uid, module, core, enabled, doc.details.projects[project].version, project]);',
                                     '}',
                                 '}',
                             '}',
