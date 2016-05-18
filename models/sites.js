@@ -4,6 +4,7 @@ var couchbase = require('couchbase');
 var db = require('../app.js').bucket;
 var async = require('async');
 var request = require('request');
+var modules = require('../models/modules');
 
 exports.audit = function(sid, errors, callback) {
     db.get('site::' + sid, function(error, result) {
@@ -86,7 +87,50 @@ exports.audit = function(sid, errors, callback) {
                     attributes.avgLastAccess = Math.round(attributes.avgLastAccess / attributes.users);
                     attributes.roles = _.keys(attributes.roles).length;
                     attributes.diskSize = Number(siteDoc.details.files.public.size) + Number(siteDoc.details.files.private.size) + Number(siteDoc.details.db_size);
+
+                    // Grab up projects and modules determine pending updates
+                    var projectKeys = [];
+                    var siteModules = [];
+                    var core = siteDoc.details.drupal_core.split(".");
+                    core = core[0] + '.x';
+                    for (var project in siteDoc.details.projects) {
+                        projectKeys.push('project::' + project + '-' + core);
+                        for (var module in siteDoc.details.projects[project].modules) {
+                            var installed = 0;
+                            if (siteDoc.details.projects[project].modules[module].schema != -1) {
+                                installed = 1;
+                            }
+                            var version = {};
+                            version[siteDoc.details.projects[project].version] = {
+                                total: 1,
+                                totalInstalls: installed
+                            };
+                            siteModules.push({
+                                module: module,
+                                core: core,
+                                project: project,
+                                total: 1,
+                                totalInstalls: installed,
+                                versions: version
+                            })
+                        }
+                    }
                     attributes.moduleUpdateLevel = 0;
+                    // TODO: Need some async magic, as this is updating
+                    // the level after the rest of the function has ran through
+                    modules.pairModulesToProjectUpdates(projectKeys, siteModules, function(error, result) {
+                        if (!error) {
+                            for (var i in result) {
+                                if (result[i].securityUpdates) {
+                                    attributes.moduleUpdateLevel = 2;
+                                    break;
+                                }
+                                else if (result[i].updates) {
+                                    attributes.moduleUpdateLevel = 1;
+                                }
+                            }
+                        }
+                    });
 
                     // Roll up attributes into comparison factors
                     attributes.complexity = Math.log(attributes.modules + attributes.contentTypes + attributes.roles);
@@ -127,8 +171,6 @@ exports.auditAll = function(callback) {
         async.each(result,
             function(row, callback) {
                 exports.audit(row.value, errors, callback);
-                // Add projects that aren't in Dewy
-                // Update 
             },
             function(error) {
                 callback(null, errors);
