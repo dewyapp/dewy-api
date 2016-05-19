@@ -30,129 +30,137 @@ exports.audit = function(sid, errors, callback) {
             siteDoc.audited = {
                 date: date
             }
-            if (response.statusCode != 200) {
-                errors.push({ sid: siteDoc.sid, statusCode: response.statusCode, error: error });
-                siteDoc.audited.error = response.statusCode;
-            } else {
-                try {
-                    // Store details
-                    siteDoc.details = JSON.parse(body);
+            async.series([
+                function(callback) {
+                    if (response.statusCode != 200) {
+                        errors.push({ sid: siteDoc.sid, statusCode: response.statusCode, error: error });
+                        siteDoc.audited.error = response.statusCode;
+                    } 
+                    else {
+                        try {
+                            // Store details
+                            siteDoc.details = JSON.parse(body);
+                            siteDoc.attributes = {};
 
-                    // Calculate attributes
-                    var attributes = {};
-                    attributes.databaseUpdates = 0;
-                    attributes.enabledModules = 0;
-                    attributes.modules = 0;
-                    for (var i in siteDoc.details.projects) {
-                        for (var j in siteDoc.details.projects[i].modules) {
-                            attributes.modules = attributes.modules + 1;
-                            if (siteDoc.details.projects[i].modules[j].schema != -1) {
-                                attributes.enabledModules = attributes.enabledModules + 1;
-                                if (siteDoc.details.projects[i].modules[j].schema != siteDoc.details.projects[i].modules[j].latest_schema) {
-                                    attributes.databaseUpdates = attributes.databaseUpdates + 1;
+                            siteDoc.attributes.databaseUpdates = 0;
+                            siteDoc.attributes.enabledModules = 0;
+                            siteDoc.attributes.modules = 0;
+                            for (var i in siteDoc.details.projects) {
+                                for (var j in siteDoc.details.projects[i].modules) {
+                                    siteDoc.attributes.modules = siteDoc.attributes.modules + 1;
+                                    if (siteDoc.details.projects[i].modules[j].schema != -1) {
+                                        siteDoc.attributes.enabledModules = siteDoc.attributes.enabledModules + 1;
+                                        if (siteDoc.details.projects[i].modules[j].schema != siteDoc.details.projects[i].modules[j].latest_schema) {
+                                            siteDoc.attributes.databaseUpdates = siteDoc.attributes.databaseUpdates + 1;
+                                        }
+                                    }
                                 }
                             }
-                        }
-                    }
-                    attributes.contentTypes = {};
-                    attributes.lastModified = 0;
-                    attributes.avgLastModified = 0;
-                    attributes.words = 0;
-                    for (var i in siteDoc.details.nodes) {
-                        attributes.contentTypes[siteDoc.details.nodes[i].type] = 1;
-                        attributes.avgLastModified = attributes.avgLastModified + Number(siteDoc.details.nodes[i].changed);
-                        if (siteDoc.details.nodes[i].changed > attributes.lastModified) {
-                            attributes.lastModified = siteDoc.details.nodes[i].changed;
-                        }
-                        for (var j in siteDoc.details.nodes[i].content) {
-                            attributes.words = attributes.words + siteDoc.details.nodes[i].content[j].split(' ').length;
-                        }
-                    }
-                    attributes.nodes = _.keys(siteDoc.details.nodes).length;
-                    attributes.contentTypes = _.keys(attributes.contentTypes).length;
-                    attributes.avgLastModified = Math.round(attributes.avgLastModified / attributes.nodes);
-                    attributes.roles = {};
-                    attributes.lastAccess = 0;
-                    attributes.avgLastAccess = 0;
-                    for (var i in siteDoc.details.users) {
-                        attributes.avgLastAccess = attributes.avgLastAccess + Number(siteDoc.details.users[i].last_access);
-                        if (siteDoc.details.users[i].last_access > attributes.lastAccess) {
-                            attributes.lastAccess = siteDoc.details.users[i].last_access;
-                        }
-                        for (var j in siteDoc.details.users[i].roles) {
-                            attributes.roles[siteDoc.details.users[i].roles[j]] = 1;
-                        }
-                    }
-                    attributes.users = _.keys(siteDoc.details.users).length;
-                    attributes.avgLastAccess = Math.round(attributes.avgLastAccess / attributes.users);
-                    attributes.roles = _.keys(attributes.roles).length;
-                    attributes.diskSize = Number(siteDoc.details.files.public.size) + Number(siteDoc.details.files.private.size) + Number(siteDoc.details.db_size);
+                            siteDoc.attributes.contentTypes = {};
+                            siteDoc.attributes.lastModified = 0;
+                            siteDoc.attributes.avgLastModified = 0;
+                            siteDoc.attributes.words = 0;
+                            for (var i in siteDoc.details.nodes) {
+                                siteDoc.attributes.contentTypes[siteDoc.details.nodes[i].type] = 1;
+                                siteDoc.attributes.avgLastModified = siteDoc.attributes.avgLastModified + Number(siteDoc.details.nodes[i].changed);
+                                if (siteDoc.details.nodes[i].changed > siteDoc.attributes.lastModified) {
+                                    siteDoc.attributes.lastModified = siteDoc.details.nodes[i].changed;
+                                }
+                                for (var j in siteDoc.details.nodes[i].content) {
+                                    siteDoc.attributes.words = siteDoc.attributes.words + siteDoc.details.nodes[i].content[j].split(' ').length;
+                                }
+                            }
+                            siteDoc.attributes.nodes = _.keys(siteDoc.details.nodes).length;
+                            siteDoc.attributes.contentTypes = _.keys(siteDoc.attributes.contentTypes).length;
+                            siteDoc.attributes.avgLastModified = Math.round(siteDoc.attributes.avgLastModified / siteDoc.attributes.nodes);
+                            siteDoc.attributes.roles = {};
+                            siteDoc.attributes.lastAccess = 0;
+                            siteDoc.attributes.avgLastAccess = 0;
+                            for (var i in siteDoc.details.users) {
+                                siteDoc.attributes.avgLastAccess = siteDoc.attributes.avgLastAccess + Number(siteDoc.details.users[i].last_access);
+                                if (siteDoc.details.users[i].last_access > siteDoc.attributes.lastAccess) {
+                                    siteDoc.attributes.lastAccess = siteDoc.details.users[i].last_access;
+                                }
+                                for (var j in siteDoc.details.users[i].roles) {
+                                    siteDoc.attributes.roles[siteDoc.details.users[i].roles[j]] = 1;
+                                }
+                            }
+                            siteDoc.attributes.users = _.keys(siteDoc.details.users).length;
+                            siteDoc.attributes.avgLastAccess = Math.round(siteDoc.attributes.avgLastAccess / siteDoc.attributes.users);
+                            siteDoc.attributes.roles = _.keys(siteDoc.attributes.roles).length;
+                            siteDoc.attributes.diskSize = Number(siteDoc.details.files.public.size) + Number(siteDoc.details.files.private.size) + Number(siteDoc.details.db_size);
 
+                            // Roll up siteDoc.attributes into comparison factors
+                            siteDoc.attributes.complexity = Math.log(siteDoc.attributes.modules + siteDoc.attributes.contentTypes + siteDoc.attributes.roles);
+                            siteDoc.attributes.size = Math.log(siteDoc.attributes.nodes + siteDoc.attributes.words + siteDoc.attributes.users + siteDoc.attributes.diskSize);
+                            siteDoc.attributes.activity = Math.log(siteDoc.attributes.avgLastAccess + siteDoc.attributes.avgLastModified);
+                            siteDoc.attributes.health = Math.log((siteDoc.attributes.enabledModules - siteDoc.attributes.databaseUpdates)*100/siteDoc.attributes.enabledModules);
+                        }
+                        catch(error) {
+                            errors.push({ sid: siteDoc.sid, statusCode: 500, error: error });
+                            siteDoc.audited.error = error.toString();
+                        }
+                    }
+                    callback();
+                },
+                function(callback) {
                     // Grab up projects and modules determine pending updates
-                    var projectKeys = [];
-                    var siteModules = [];
-                    var core = siteDoc.details.drupal_core.split(".");
-                    core = core[0] + '.x';
-                    for (var project in siteDoc.details.projects) {
-                        projectKeys.push('project::' + project + '-' + core);
-                        for (var module in siteDoc.details.projects[project].modules) {
-                            var installed = 0;
-                            if (siteDoc.details.projects[project].modules[module].schema != -1) {
-                                installed = 1;
+                    try {
+                        var projectKeys = [];
+                        var siteModules = [];
+                        var core = siteDoc.details.drupal_core.split(".");
+                        core = core[0] + '.x';
+                        for (var project in siteDoc.details.projects) {
+                            projectKeys.push('project::' + project + '-' + core);
+                            for (var module in siteDoc.details.projects[project].modules) {
+                                var installed = 0;
+                                if (siteDoc.details.projects[project].modules[module].schema != -1) {
+                                    installed = 1;
+                                }
+                                var version = {};
+                                version[siteDoc.details.projects[project].version] = {
+                                    total: 1,
+                                    totalInstalls: installed
+                                };
+                                siteModules.push({
+                                    module: module,
+                                    core: core,
+                                    project: project,
+                                    total: 1,
+                                    totalInstalls: installed,
+                                    versions: version
+                                })
                             }
-                            var version = {};
-                            version[siteDoc.details.projects[project].version] = {
-                                total: 1,
-                                totalInstalls: installed
-                            };
-                            siteModules.push({
-                                module: module,
-                                core: core,
-                                project: project,
-                                total: 1,
-                                totalInstalls: installed,
-                                versions: version
-                            })
                         }
+                        siteDoc.attributes.moduleUpdateLevel = 0;
+                        modules.pairModulesToProjectUpdates(projectKeys, siteModules, function(error, result) {
+                            if (!error) {
+                                for (var i in result) {
+                                    if (result[i].securityUpdates) {
+                                        siteDoc.attributes.moduleUpdateLevel = 2;
+                                        break;
+                                    }
+                                    else if (result[i].updates) {
+                                        siteDoc.attributes.moduleUpdateLevel = 1;
+                                    }
+                                }
+                            }
+                            callback();
+                        });
                     }
-                    attributes.moduleUpdateLevel = 0;
-                    // TODO: Need some async magic, as this is updating
-                    // the level after the rest of the function has ran through
-                    modules.pairModulesToProjectUpdates(projectKeys, siteModules, function(error, result) {
-                        if (!error) {
-                            for (var i in result) {
-                                if (result[i].securityUpdates) {
-                                    attributes.moduleUpdateLevel = 2;
-                                    break;
-                                }
-                                else if (result[i].updates) {
-                                    attributes.moduleUpdateLevel = 1;
-                                }
-                            }
-                        }
-                    });
-
-                    // Roll up attributes into comparison factors
-                    attributes.complexity = Math.log(attributes.modules + attributes.contentTypes + attributes.roles);
-                    attributes.size = Math.log(attributes.nodes + attributes.words + attributes.users + attributes.diskSize);
-                    attributes.activity = Math.log(attributes.avgLastAccess + attributes.avgLastModified);
-                    attributes.health = Math.log((attributes.enabledModules - attributes.databaseUpdates)*100/attributes.enabledModules);
-
-                    siteDoc.attributes = attributes;
+                    catch(error) {
+                        callback();
+                    }
                 }
-                catch(error) {
-                    errors.push({ sid: siteDoc.sid, statusCode: 500, error: error });
-                    siteDoc.audited.error = error.toString();
-                }
-            }
-
-            // Update siteDoc with either site details, or the error
-            exports.update(siteDoc, function(error, result) {
-                if (error) {
-                    callback(error, null);
-                    return;
-                }
-                callback(null, result);
+            ], function(error) {
+                // Update siteDoc with either site details, or the error
+                exports.update(siteDoc, function(error, result) {
+                    if (error) {
+                        callback(error, null);
+                        return;
+                    }
+                    callback(null, result);
+                });
             });
         });
     });
