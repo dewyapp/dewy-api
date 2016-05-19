@@ -178,7 +178,6 @@ exports.createDesignDoc = function(filterDoc, callback) {
             'aggregate js': 'doc.details.variables.preprocess_js',
             'caching for anonymous': 'doc.details.variables.cache',
             'maintenance mode': 'doc.details.variables.maintenance_mode',
-            'module versions': 'doc.attributes.moduleUpdateLevel'
         }
         var dates = {
             'date added to dewy': 'dateAdded',
@@ -190,14 +189,14 @@ exports.createDesignDoc = function(filterDoc, callback) {
             'file size (private)': 'doc.details.files.private.size',
             'file size (public)': 'doc.details.files.public.size',
             'file size (db+private+public)': 'doc.details.db_size + doc.details.files.private.size + doc.details.files.public.size',
-            'number of broken links': '',
+            // 'number of broken links': '',
             'number of content types': 'doc.attributes.contentTypes',
             'number of files (private)': 'doc.details.files.private.count',
             'number of files (public)': 'doc.details.files.public.count',
             'number of files (total)': 'doc.details.files.private.count + doc.details.files.public.count',
-            'number of hits in past week': '',
-            'number of hits in past month': '',
-            'number of hits in past year': '',
+            // 'number of hits in past week': '',
+            // 'number of hits in past month': '',
+            // 'number of hits in past year': '',
             'number of nodes': 'doc.attributes.nodes',
             'number of roles': 'doc.attributes.roles',
             'number of themes': 'doc.details.themes.length',
@@ -258,6 +257,17 @@ exports.createDesignDoc = function(filterDoc, callback) {
             var compare2 = stringComparison('is', 'doc.details.themes[i].status', '1');
             var test = 'var ' + testValue + ' = false; for (var i in doc.details.themes) { if (' + compare + ' && ' + compare2 + ' ) { ' + testValue + ' = true } };';
             return { rule: testValue, test: test };
+        }
+        else if (rule.field == 'module versions') {
+            if (rule.choice == 1) {
+                return { rule: numberComparison('is', 'doc.attributes.moduleUpdateLevel', 2) };
+            }
+            else if (rule.choice == 2) {
+                return { rule: numberComparison('is', 'doc.attributes.moduleUpdateLevel', 1) };
+            }
+            else {
+                return { rule: numberComparison('is greater than', 'doc.attributes.moduleUpdateLevel', 0) };
+            }
         }
         else if (rule.field == 'number of modules') {
             var testValue = 'test' + ruleIndex;
