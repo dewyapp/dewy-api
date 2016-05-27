@@ -313,6 +313,40 @@ exports.getByProject = function(project, core, maxModuleUpdateLevel, callback) {
     })
 }
 
+exports.getDetail = function(sid, detail, callback) {
+    db.get('site::' + sid, function (error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+        var siteDoc = result.value;
+        var details = {
+            uid: siteDoc.uid
+        };
+        if (detail == '_meta')
+        {
+
+        }
+        else if (detail == '_complexity')
+        {
+
+        }
+        else if (detail == '_size')
+        {
+
+        }
+        else if (detail == '_activity')
+        {
+
+        }        
+        else if (detail == '_health')
+        {
+
+        }
+        callback(null, details);
+    });
+}
+
 exports.update = function(siteDoc, callback) {
     db.replace('site::' + siteDoc.sid, siteDoc, function(error, result) {
         if (error) {
