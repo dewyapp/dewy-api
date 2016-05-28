@@ -321,7 +321,21 @@ exports.getDetail = function(siteDoc, detail) {
         }
     }
     else if (detail == '_complexity') {
-
+        var availableModules = [];
+        var enabledModules = [];
+        siteDoc.attributes.modules = 0;
+        for (var i in siteDoc.details.projects) {
+            for (var j in siteDoc.details.projects[i].modules) {
+                availableModules.push(j);
+                if (siteDoc.details.projects[i].modules[j].schema != -1) {
+                    enabledModules.push(j);
+                }
+            }
+        }
+        return {
+            availableModules: availableModules,
+            enabledModules: enabledModules
+        }
     }
     else if (detail == '_size') {
 
