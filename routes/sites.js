@@ -180,14 +180,14 @@ router.get('/:sid/:detail', oauth.authorise(), function (req, res, next) {
     ) {
         return res.status(404).send();
     }
-    sites.getDetail(req.params.sid, req.params.detail, function (error, result) {
+    sites.get(req.params.sid, function (error, result) {
         if (error) {
             return res.status(500).send(error);
         }
         if (result.uid != req.user.id) {
             return res.status(403).send("You do not have permission to access this resource.");
         }
-        res.send(result);
+        res.send(sites.getDetail(result, req.params.detail));
     });
 });
 
