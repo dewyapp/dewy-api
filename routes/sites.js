@@ -187,7 +187,12 @@ router.get('/:sid/:detail', oauth.authorise(), function (req, res, next) {
         if (result.uid != req.user.id) {
             return res.status(403).send("You do not have permission to access this resource.");
         }
-        res.send(sites.getDetail(result, req.params.detail));
+        sites.getDetail(result, req.params.detail, function(error, result) {
+            if (error) {
+                return res.status(500).send(error);
+            } 
+            res.send(result);
+        });
     });
 });
 

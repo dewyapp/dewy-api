@@ -313,14 +313,15 @@ exports.getByProject = function(project, core, maxModuleUpdateLevel, callback) {
     })
 }
 
-exports.getDetail = function(siteDoc, detail) {
+exports.getDetail = function(siteDoc, detail, callback) {
     if (detail == '_meta') {
-        return {
+        callback(null, {
             tags: siteDoc.tags,
             dateAdded: siteDoc.dateAdded
-        }
+        });
     }
     else if (detail == '_complexity') {
+
         var availableModules = [];
         var enabledModules = [];
         siteDoc.attributes.modules = 0;
@@ -332,19 +333,130 @@ exports.getDetail = function(siteDoc, detail) {
                 }
             }
         }
-        return {
-            availableModules: availableModules,
-            enabledModules: enabledModules
+
+        var contentTypes = [];
+        for (var i in siteDoc.details.nodes) {
+            if (contentTypes.indexOf(siteDoc.details.nodes[i].type) == '-1') {
+                contentTypes.push(siteDoc.details.nodes[i].type)
+            }
         }
+
+        var roles = [];
+        for (var i in siteDoc.details.users) {
+            for (var j in siteDoc.details.users[i].roles) {
+                if (contentTypes.indexOf(siteDoc.details.users[i].roles[j]) == '-1') {
+                    roles.push(siteDoc.details.users[i].roles[j]);
+                }
+            }
+        }
+
+        callback(null, {
+            availableModules: availableModules,
+            enabledModules: enabledModules,
+            contentTypes: contentTypes,
+            roles: roles
+        });
     }
     else if (detail == '_size') {
 
+        var users = [];
+        for (var i in siteDoc.details.users) {
+            users.push(i);
+        }
+
+        var words = 0;
+        for (var i in siteDoc.details.nodes) {
+            for (var j in siteDoc.details.nodes[i].content) {
+                words = words + siteDoc.details.nodes[i].content[j].split(' ').length;
+            }
+        }
+
+        callback(null, {
+            users: users,
+            nodes: _.keys(siteDoc.details.nodes).length,
+            files: siteDoc.details.files.public.count + siteDoc.details.files.private.count,
+            words: words
+        });
     }
     else if (detail == '_activity') {
 
+        var lastModified = 0;
+        var avgLastModified = 0;
+        for (var i in siteDoc.details.nodes) {
+            avgLastModified = avgLastModified + Number(siteDoc.details.nodes[i].changed);
+            if (siteDoc.details.nodes[i].changed > lastModified) {
+                lastModified = siteDoc.details.nodes[i].changed;
+            }
+        }
+        var nodes = _.keys(siteDoc.details.nodes).length;
+        avgLastModified = Math.round(avgLastModified / siteDoc.attributes.nodes);
+
+
+        var lastAccess = 0;
+        var avgLastAccess = 0;
+        for (var i in siteDoc.details.users) {
+            avgLastAccess = avgLastAccess + Number(siteDoc.details.users[i].last_access);
+            if (siteDoc.details.users[i].last_access > lastAccess) {
+                lastAccess = siteDoc.details.users[i].last_access;
+            }
+        }
+        var users = _.keys(siteDoc.details.users).length;
+        avgLastAccess = Math.round(avgLastAccess / users);
+
+        callback(null, {
+            lastModified: lastModified,
+            avgLastModified: avgLastModified,
+            lastAccess: lastAccess,
+            avgLastAccess: avgLastAccess
+        });
     }        
     else if (detail == '_health') {
 
+        var databaseUpdates = 0;
+        var projectKeys = [];
+        for (var i in siteDoc.details.projects) {
+            if (siteDoc.details.projects[i].version) {
+                var version = siteDoc.details.projects[i].version.split('-');
+                var core = version[0];
+                projectKeys.push('project::' + i + '-' + core);
+                for (var j in siteDoc.details.projects[i].modules) {
+                    if (siteDoc.details.projects[i].modules[j].schema != -1) {
+                        if (siteDoc.details.projects[i].modules[j].schema != siteDoc.details.projects[i].modules[j].latest_schema) {
+                            databaseUpdates = databaseUpdates + 1;
+                        }
+                    }
+                }
+            }
+        }
+        var modulesWithUpdates = [];
+        var modulesWithSecurityUpdates = [];
+        modules.getReleasesFromProjects(projectKeys, function(error, result) {
+            if (error) {
+                callback(error, null);
+                return;
+            }
+            for (var i in siteDoc.details.projects) {
+                if (siteDoc.details.projects[i].version) {
+                    var version = siteDoc.details.projects[i].version.split('-');
+                    var core = version[0];
+                    var releases = result['project::' + i + '-' + core].value;
+                    updateResult = modules.checkVersionForUpdate(releases, siteDoc.details.projects[i].version);
+                    for (var j in siteDoc.details.projects[i].modules) {
+                        if (updateResult.update) {
+                            modulesWithUpdates.push(j);
+                        }
+                        if (updateResult.securityUpdate) {
+                            modulesWithSecurityUpdates.push(j);
+                        }
+                    }
+                }
+            }
+            callback(null, {
+                databaseUpdates: databaseUpdates,
+                modulesWithUpdates: modulesWithUpdates,
+                modulesWithSecurityUpdates: modulesWithSecurityUpdates
+            });
+        });
     }
 }
 

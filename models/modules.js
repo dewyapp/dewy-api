@@ -16,6 +16,26 @@ exports.createProject = function(projectDoc, callback) {
     });
 }
 
+exports.checkVersionForUpdate = function(project, version) {
+    var securityUpdate = false;
+    var update = false;
+    if (project && project.releases) {
+        for (release in project.releases) {
+            if (project.releases[release].version == version) {
+                break;
+            }
+            else if (project.releases[release].securityUpdate) {
+                securityUpdate = true;
+                update = true;
+            }
+            else {
+                update = true;
+            }
+        }
+    }
+    return {securityUpdate: securityUpdate, update: update};
+}
+
 exports.getAll = function(uid, fid, callback) {
     // If no filter is given, return all modules
     if (fid == null) {
@@ -275,42 +295,34 @@ exports.getReleases = function(callback) {
     });
 }
 
-exports.pairModulesToProjectUpdates = function(projectKeys, modules, callback) {
+exports.getReleasesFromProjects = function(projectKeys, callback) {
     if (!projectKeys.length) {
-        callback(null, modules);
+        // No releases found
+        callback(null, null);
+        return;
     }
-    else {
-        db.getMulti(projectKeys, function(error, result) {
-            for (module in modules) {
-                var updates = result['project::' + modules[module].project + '-' + modules[module].core];
-                modules[module].updates = 0;
-                modules[module].securityUpdates = 0;
-                for (version in modules[module].versions) {
-                    if (updates && 'value' in updates) {
-                        var securityUpdate = false;
-                        var update = false;
-                        for (release in updates.value.releases) {
-                            if (updates.value.releases[release].version == version) {
-                                if (securityUpdate) {
-                                    modules[module].securityUpdates = modules[module].securityUpdates + modules[module].versions[version].totalInstalls;
-                                    modules[module].updates = modules[module].updates + modules[module].versions[version].totalInstalls;
-                                } 
-                                else if (update) {
-                                    modules[module].updates = modules[module].updates + modules[module].versions[version].totalInstalls;
-                                }
-                                break;
-                            }
-                            else if (updates.value.releases[release].securityUpdate) {
-                                securityUpdate = true;
-                            }
-                            else {
-                                update = true;
-                            }
-                        }
-                    }
+    db.getMulti(projectKeys, function(error, result) {
+        callback(null, result);
+    });
+}
+
+exports.pairModulesToProjectUpdates = function(projectKeys, modules, callback) {
+    getReleasesFromProjects(projectKeys, function(error, result) {
+        for (module in modules) {
+            var project = result['project::' + modules[module].project + '-' + modules[module].core];
+            modules[module].updates = 0;
+            modules[module].securityUpdates = 0;
+            for (version in modules[module].versions) {
+                var result = exports.checkVersionForUpdate(project.value, version)
+                if (result.securityUpdate) {
+                    modules[module].securityUpdates = modules[module].securityUpdates + modules[module].versions[version].totalInstalls;
+                    modules[module].updates = modules[module].updates + modules[module].versions[version].totalInstalls;
+                } 
+                else if (result.update) {
+                    modules[module].updates = modules[module].updates + modules[module].versions[version].totalInstalls;
                 }
             }
-            callback(null, modules);
-        });
-    }
+        }
+        callback(null, modules);
+    });
 }
