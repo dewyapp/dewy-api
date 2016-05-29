@@ -307,19 +307,21 @@ exports.getReleasesFromProjects = function(projectKeys, callback) {
 }
 
 exports.pairModulesToProjectUpdates = function(projectKeys, modules, callback) {
-    getReleasesFromProjects(projectKeys, function(error, result) {
+    exports.getReleasesFromProjects(projectKeys, function(error, result) {
         for (module in modules) {
             var project = result['project::' + modules[module].project + '-' + modules[module].core];
-            modules[module].updates = 0;
-            modules[module].securityUpdates = 0;
-            for (version in modules[module].versions) {
-                var result = exports.checkVersionForUpdate(project.value, version)
-                if (result.securityUpdate) {
-                    modules[module].securityUpdates = modules[module].securityUpdates + modules[module].versions[version].totalInstalls;
-                    modules[module].updates = modules[module].updates + modules[module].versions[version].totalInstalls;
-                } 
-                else if (result.update) {
-                    modules[module].updates = modules[module].updates + modules[module].versions[version].totalInstalls;
+            if (project && project.value) {
+                modules[module].updates = 0;
+                modules[module].securityUpdates = 0;
+                for (version in modules[module].versions) {
+                    var result = exports.checkVersionForUpdate(project.value, version);
+                    if (result.securityUpdate) {
+                        modules[module].securityUpdates = modules[module].securityUpdates + modules[module].versions[version].totalInstalls;
+                        modules[module].updates = modules[module].updates + modules[module].versions[version].totalInstalls;
+                    } 
+                    else if (result.update) {
+                        modules[module].updates = modules[module].updates + modules[module].versions[version].totalInstalls;
+                    }
                 }
             }
         }

@@ -344,7 +344,7 @@ exports.getDetail = function(siteDoc, detail, callback) {
         var roles = [];
         for (var i in siteDoc.details.users) {
             for (var j in siteDoc.details.users[i].roles) {
-                if (contentTypes.indexOf(siteDoc.details.users[i].roles[j]) == '-1') {
+                if (roles.indexOf(siteDoc.details.users[i].roles[j]) == '-1') {
                     roles.push(siteDoc.details.users[i].roles[j]);
                 }
             }
@@ -439,14 +439,24 @@ exports.getDetail = function(siteDoc, detail, callback) {
                 if (siteDoc.details.projects[i].version) {
                     var version = siteDoc.details.projects[i].version.split('-');
                     var core = version[0];
-                    var releases = result['project::' + i + '-' + core].value;
-                    updateResult = modules.checkVersionForUpdate(releases, siteDoc.details.projects[i].version);
-                    for (var j in siteDoc.details.projects[i].modules) {
+                    if (result['project::' + i + '-' + core] && result['project::' + i + '-' + core].value) {
+                        var releases = result['project::' + i + '-' + core].value;
+                        updateResult = modules.checkVersionForUpdate(releases, siteDoc.details.projects[i].version);
+                        // If we were recording individual modules, we would use this code
+                        // for (var j in siteDoc.details.projects[i].modules) {
+                        //     if (updateResult.update) {
+                        //         modulesWithUpdates.push(j);
+                        //     }
+                        //     if (updateResult.securityUpdate) {
+                        //         modulesWithSecurityUpdates.push(j);
+                        //     }
+                        // }
+                        // But we're reporting projects instead
                         if (updateResult.update) {
-                            modulesWithUpdates.push(j);
+                            modulesWithUpdates.push(i);
                         }
                         if (updateResult.securityUpdate) {
-                            modulesWithSecurityUpdates.push(j);
+                            modulesWithSecurityUpdates.push(i);
                         }
                     }
                 }
