@@ -315,8 +315,13 @@ exports.getByProject = function(project, core, maxModuleUpdateLevel, callback) {
 
 exports.getDetail = function(siteDoc, detail, callback) {
     if (detail == '_meta') {
+
+        var tags = [];
+        if (siteDoc.tags) {
+            tags = siteDoc.tags;
+        }
         callback(null, {
-            tags: siteDoc.tags,
+            tags: tags,
             dateAdded: siteDoc.dateAdded
         });
     }
