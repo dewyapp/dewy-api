@@ -170,16 +170,7 @@ router.delete('/:sid', oauth.authorise(), function (req, res, next) {
     });
 });
 
-router.get('/:sid/:detail', oauth.authorise(), function (req, res, next) {
-    if (
-        req.params.detail != '_meta' && 
-        req.params.detail != '_complexity' && 
-        req.params.detail != '_size' && 
-        req.params.detail != '_activity' &&
-        req.params.detail != '_health' 
-    ) {
-        return res.status(404).send();
-    }
+router.get('/:sid/_detail', oauth.authorise(), function (req, res, next) {
     sites.get(req.params.sid, function (error, result) {
         if (error) {
             return res.status(500).send(error);
@@ -187,12 +178,7 @@ router.get('/:sid/:detail', oauth.authorise(), function (req, res, next) {
         if (result.uid != req.user.id) {
             return res.status(403).send("You do not have permission to access this resource.");
         }
-        sites.getDetail(result, req.params.detail, function(error, result) {
-            if (error) {
-                return res.status(500).send(error);
-            } 
-            res.send(result);
-        });
+        res.send(sites.getDetail(result));
     });
 });
 
