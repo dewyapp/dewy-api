@@ -376,11 +376,15 @@ exports.getDetail = function(siteDoc, detail, callback) {
             }
         }
 
+        var diskSpace = Number(siteDoc.details.files.public.size) + Number(siteDoc.details.files.private.size) + Number(siteDoc.details.db_size)
+        diskSpace = +diskSpace.toFixed(2);
+
         callback(null, {
             users: users,
             nodes: _.keys(siteDoc.details.nodes).length,
             files: siteDoc.details.files.public.count + siteDoc.details.files.private.count,
-            words: words
+            words: words,
+            diskSpace: diskSpace
         });
     }
     else if (detail == '_activity') {
