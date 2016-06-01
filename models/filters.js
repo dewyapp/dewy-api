@@ -197,6 +197,8 @@ exports.createDesignDoc = function(filterDoc, callback) {
             // 'number of hits in past week': '',
             // 'number of hits in past month': '',
             // 'number of hits in past year': '',
+            'number of modules with a security update': 'doc.attributes.modulesWithSecurityUpdates',
+            'number of modules with an update': 'doc.attributes.modulesWithUpdates',
             'number of nodes': 'doc.attributes.nodes',
             'number of roles': 'doc.attributes.roles',
             'number of themes': 'doc.details.themes.length',
@@ -257,17 +259,6 @@ exports.createDesignDoc = function(filterDoc, callback) {
             var compare2 = stringComparison('is', 'doc.details.themes[i].status', '1');
             var test = 'var ' + testValue + ' = false; for (var i in doc.details.themes) { if (' + compare + ' && ' + compare2 + ' ) { ' + testValue + ' = true } };';
             return { rule: testValue, test: test };
-        }
-        else if (rule.field == 'module versions') {
-            if (rule.choice == 1) {
-                return { rule: numberComparison('is', 'doc.attributes.moduleUpdateLevel', 2) };
-            }
-            else if (rule.choice == 2) {
-                return { rule: numberComparison('is', 'doc.attributes.moduleUpdateLevel', 1) };
-            }
-            else {
-                return { rule: numberComparison('is greater than', 'doc.attributes.moduleUpdateLevel', 0) };
-            }
         }
         else if (rule.field == 'number of modules') {
             var testValue = 'test' + ruleIndex;

@@ -230,15 +230,6 @@ fields = [
     ],
     value: 'boolean'
   },
-  {
-    title: 'Module versions',
-    choices: [
-      {id: 0, label: 'are out-of-date'},
-      {id: 1, label: 'are out-of-date and insecure'},
-      {id: 2, label: 'are out-of-date but secure'}
-    ],
-    value: 'boolean'
-  },
   // {
   //   title: 'Number of broken links',
   //   choices: [
@@ -337,6 +328,30 @@ fields = [
   // },
   {
     title: 'Number of modules',
+    choices: [
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'is greater than', label: 'is greater than'},
+      {id: 'is less than', label: 'is less than'},
+      {id: 'is greater than or equal to', label: 'is greater than or equal to'},
+      {id: 'is less than or equal to', label: 'is less than or equal to'}
+    ],
+    value: 'integer'
+  },
+  {
+    title: 'Number of modules with a security update',
+    choices: [
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'is greater than', label: 'is greater than'},
+      {id: 'is less than', label: 'is less than'},
+      {id: 'is greater than or equal to', label: 'is greater than or equal to'},
+      {id: 'is less than or equal to', label: 'is less than or equal to'}
+    ],
+    value: 'integer'
+  },
+  {
+    title: 'Number of modules with an update',
     choices: [
       {id: 'is', label: 'is'},
       {id: 'is not', label: 'is not'},
