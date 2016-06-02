@@ -80,14 +80,6 @@ fields = [
     value: 'string'
   },
   {
-    title: 'Database',
-    choices: [
-      {id: 1, label: 'is pending updates'},
-      {id: 0, label: 'is updated'}
-    ],
-    value: 'boolean'
-  },
-  {
     title: 'Database file size',
     choices: [
       {id: 'is', label: 'is'},
@@ -364,6 +356,18 @@ fields = [
   },
   {
     title: 'Number of nodes',
+    choices: [
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'is greater than', label: 'is greater than'},
+      {id: 'is less than', label: 'is less than'},
+      {id: 'is greater than or equal to', label: 'is greater than or equal to'},
+      {id: 'is less than or equal to', label: 'is less than or equal to'}
+    ],
+    value: 'integer'
+  },
+  {
+    title: 'Number of pending database updates',
     choices: [
       {id: 'is', label: 'is'},
       {id: 'is not', label: 'is not'},

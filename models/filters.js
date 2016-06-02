@@ -200,6 +200,7 @@ exports.createDesignDoc = function(filterDoc, callback) {
             'number of modules with a security update': 'doc.attributes.modulesWithSecurityUpdates',
             'number of modules with an update': 'doc.attributes.modulesWithUpdates',
             'number of nodes': 'doc.attributes.nodes',
+            'number of pending database updates': 'doc.attributes.databaseUpdates',
             'number of roles': 'doc.attributes.roles',
             'number of themes': 'doc.details.themes.length',
             'number of users': 'doc.attributes.users',
@@ -242,9 +243,6 @@ exports.createDesignDoc = function(filterDoc, callback) {
             var compare = stringComparison(rule.choice, 'doc.details.nodes[i].type', rule.value);
             var test = 'var ' + testValue + ' = false; for (var i in doc.details.nodes) { if (' + compare + ') { ' + testValue + ' = true } };';
             return { rule: testValue, test: test };
-        }
-        else if (rule.field == 'database') {
-            return { rule: numberComparison('is greater than', 'doc.attributes.databaseUpdates', 0) };
         }
         else if (rule.field == 'enabled module') {
             var testValue = 'test' + ruleIndex;
