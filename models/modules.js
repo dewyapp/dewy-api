@@ -112,6 +112,50 @@ exports.getAll = function(uid, fid, callback) {
     });
 }
 
+exports.getDetails = function(uid, moduleWithCore, callback) {
+    moduleWithCore = moduleWithCore.split('-');
+    var module = moduleWithCore[0];
+    var core = moduleWithCore[1];
+    var query = couchbase.ViewQuery.from('sites', 'by_module')
+        .range([uid, module, core, null],[uid, module, core, {}])
+        .stale(1);
+    db.query(query, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+
+        var sitesWithAvailable = [];
+        var sitesWithEnabled = [];
+        var sitesWithDatabaseUpdates = [];
+        var sitesWithUpdates = [];
+        var sitesWithSecurityUpdates = [];
+        for (item in result) {
+            var siteResult = result[item].value;
+            sitesWithAvailable.push(siteResult.baseurl);
+            if (siteResult.enabled) {
+                sitesWithEnabled.push(siteResult.baseurl);
+            }
+            if (siteResult.databaseUpdate) {
+                sitesWithDatabaseUpdates.push(siteResult.baseurl);
+            }
+            if (siteResult.update) {
+                sitesWithUpdates.push(siteResult.baseurl);
+            }
+            if (siteResult.securityUpdate) {
+                sitesWithSecurityUpdates.push(siteResult.baseurl);
+            }
+        }
+        callback(null, {
+            sitesWithAvailable: sitesWithAvailable,
+            sitesWithEnabled: sitesWithEnabled,
+            sitesWithDatabaseUpdates: sitesWithDatabaseUpdates,
+            sitesWithUpdates: sitesWithUpdates,
+            sitesWithSecurityUpdates: sitesWithSecurityUpdates
+        });
+    });
+}
+
 exports.getProject = function(project, core, callback) {
     db.get('project::' + project + '-' + core, function (error, result) {
         if (error) {
