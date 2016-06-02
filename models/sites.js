@@ -48,7 +48,7 @@ exports.audit = function(sid, errors, callback) {
                 siteDoc.attributes = {};
 
                 // Process projects
-                var databaseUpdates = 0;
+                var databaseUpdates = [];
                 var projectKeys = [];
                 var availableModules = [];
                 var enabledModules = [];
@@ -61,7 +61,7 @@ exports.audit = function(sid, errors, callback) {
                     for (var j in siteDoc.details.projects[i].modules) {
                         if (siteDoc.details.projects[i].modules[j].schema != -1) {
                             if (siteDoc.details.projects[i].modules[j].schema != siteDoc.details.projects[i].modules[j].latest_schema) {
-                                databaseUpdates = databaseUpdates + 1;
+                                databaseUpdates.push(j);
                             }
                         }
                         availableModules.push(j);
@@ -162,7 +162,7 @@ exports.audit = function(sid, errors, callback) {
                         avgLastModified: avgLastModified,
                         lastAccess: lastAccess,
                         avgLastAccess: avgLastAccess,
-                        databaseUpdates: databaseUpdates,
+                        databaseUpdates: databaseUpdates.length,
                         modulesWithUpdates: modulesWithUpdates.length,
                         modulesWithSecurityUpdates: modulesWithSecurityUpdates.length
                     }
@@ -173,6 +173,7 @@ exports.audit = function(sid, errors, callback) {
                         contentTypes: contentTypes,
                         roles: roles,
                         users: users,
+                        databaseUpdates: databaseUpdates,
                         modulesWithUpdates: modulesWithUpdates,
                         modulesWithSecurityUpdates: modulesWithSecurityUpdates
                     }
