@@ -37,14 +37,23 @@ exports.setup = function (callback) {
                                         'if (doc.details.projects[project].modules[module].schema != -1) {',
                                             'enabled = true',
                                         '}',
-                                        'emit([doc.uid, module, core, enabled, doc.details.projects[project].version, project]);',
+                                        'databaseUpdate = false;',
+                                        'if (doc.details.projects[project].modules[module].schema != doc.details.projects[project].modules[module].latest_schema) {',
+                                            'databaseUpdate = true',
+                                        '}',
+                                        'update = false;',
+                                        'if (module in doc.attributeDetails.modulesWithUpdates) {',
+                                            'update = true; ',
+                                        '}',
+                                        'securityUpdate = false;',
+                                        'if (module in doc.attributeDetails.modulesWithSecurityUpdates) {',
+                                            'securityUpdate = true; ',
+                                        '}',
+                                        'emit([doc.uid], {sid: doc.sid, baseurl: doc.baseurl, module: module, core: core, version: doc.details.projects[project].version, enabled: enabled, databaseUpdate: databaseUpdate, update: update, securityUpdate: securityUpdate});',
                                     '}',
                                 '}',
                             '}',
                         '}'
-                        ].join('\n'),
-                    reduce: [
-                        '_count'
                         ].join('\n')
                 },
                 by_project: {
@@ -114,37 +123,6 @@ exports.setup = function (callback) {
                         'function (doc, meta) {',
                             'if (meta.id.substring(0, 6) == "site::" && doc.enabled == "1" && ("details" in doc) && !("error" in doc.audited)) {',
                                 'emit([doc.uid], {sid: doc.sid, title: doc.details.title, baseurl: doc.baseurl, attributes: doc.attributes, tags: doc.tags, dateAdded: doc.dateAdded});',
-                            '}',
-                        '}'
-                        ].join('\n')
-                },
-                by_module: {
-                    map: [
-                        'function (doc, meta) {',
-                            'if (meta.id.substring(0, 6) == "site::" && doc.enabled == "1" && ("details" in doc) && !("error" in doc.audited)) {',
-                                'var core = doc.details.drupal_core.split(".");',
-                                'core = core[0] + ".x";',
-                                'for (project in doc.details.projects) {',
-                                    'for (module in doc.details.projects[project].modules) {',
-                                        'enabled = false',
-                                        'if (doc.details.projects[project].modules[module].schema != -1) {',
-                                            'enabled = true',
-                                        '}',
-                                        'databaseUpdate = false;',
-                                        'if (doc.details.projects[project].modules[module].schema != doc.details.projects[project].modules[module].latest_schema) {',
-                                            'databaseUpdate = true',
-                                        '}',
-                                        'update = false;',
-                                        'if (module in doc.attributeDetails.modulesWithUpdates) {',
-                                            'update = true; ',
-                                        '}',
-                                        'securityUpdate = false;',
-                                        'if (module in doc.attributeDetails.modulesWithSecurityUpdates) {',
-                                            'securityUpdate = true; ',
-                                        '}',
-                                        'emit([doc.uid, module, core, doc.details.projects[project].version, project, update, securityUpdate], {sid: doc.sid, baseurl: doc.baseurl, enabled: enabled, databaseUpdate: databaseUpdate, update: update, securityUpdate: securityUpdate});',
-                                    '}',
-                                '}',
                             '}',
                         '}'
                         ].join('\n')

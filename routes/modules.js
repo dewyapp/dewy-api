@@ -21,13 +21,4 @@ router.get('/_filter/:fid?', oauth.authorise(), function (req, res, next) {
     });
 });
 
-router.get('/:module/_detail', oauth.authorise(), function (req, res, next) {
-    modules.getDetails(req.user.id, req.params.module, function (error, result) {
-        if (error) {
-            return res.status(500).send(error);
-        }
-        res.send(result);
-    });
-});
-
 module.exports = router;

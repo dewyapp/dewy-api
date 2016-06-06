@@ -40,12 +40,10 @@ exports.getAll = function(uid, fid, callback) {
     // If no filter is given, return all modules
     if (fid == null) {
         query = couchbase.ViewQuery.from('modules', 'audited_by_uid')
-            .range([uid, null],[uid, {}])
-            .group(true)
+            .key([uid])
             .stale(1);
     } else {
         query = couchbase.ViewQuery.from('users-filter-' + fid, 'modules')
-            .group(true)
             .stale(1);
     }
     db.query(query, function(error, result) {
@@ -53,106 +51,49 @@ exports.getAll = function(uid, fid, callback) {
             callback(error, null);
             return;
         }
-        var projectKeys = [];
+
         var modules = [];
-        var currentModule = {};
+        var modulesIndex = {}
 
-        // Loop through users' (possibly-filtered) modules list
-        for (item in result) {
-            // If the module we are now looking at doesn't match the one we were looking at, push
-            if (result[item].key[1] != currentModule.module || result[item].key[2] != currentModule.core) {
-                if ('module' in currentModule) {
-                    modules.push(currentModule);
-                    projectKeys.push('project::' + currentModule.project + '-' + currentModule.core);
-                }
-                // Start a new module definition
-                currentModule = {
-                    module: result[item].key[1],
-                    core: result[item].key[2],
-                    project: result[item].key[5],
-                    total: 0,
-                    totalInstalls: 0,
-                    versions: {},
-                }
-            } 
-
-            // We are looking at the currentModule whether new or existing, so update totals and add to versions
-            currentModule.total = currentModule.total + result[item].value;
-            var installs = 0;
-
-            // If the module is enabled, add to version-agnostic totals
-            if (result[item].key[3]) {
-                var installs = result[item].value;
-                currentModule.totalInstalls = currentModule.totalInstalls + installs;
-            }
-
-            // A new version of this module has been found, start new totals for this version
-            if (!(result[item].key[4] in currentModule.versions)) {
-                currentModule.versions[result[item].key[4]] = {
-                    total: result[item].value,
-                    totalInstalls: installs
-                }
-            }
-            // This is the same version of the module, add to existing totals for this version
-            else {
-                currentModule.versions[result[item].key[4]] = {
-                    total: currentModule.versions[result[item].key[4]].total + result[item].value, 
-                    totalInstalls: currentModule.versions[result[item].key[4]].totalInstalls + installs
-                }
-            }
-        }
-
-        // Pair Drupal.org project information with module data and determine updates
-        exports.pairModulesToProjectUpdates(projectKeys, modules, function(error, result) {
-            if (error) {
-                return callback(error);
-            }
-            callback(null, result);
-        });
-    });
-}
-
-exports.getDetails = function(uid, moduleWithCore, callback) {
-    moduleWithCore = moduleWithCore.split('-');
-    var module = moduleWithCore[0];
-    var core = moduleWithCore[1];
-    var query = couchbase.ViewQuery.from('sites', 'by_module')
-        .range([uid, module, core, null],[uid, module, core, {}])
-        .stale(1);
-    db.query(query, function(error, result) {
-        if (error) {
-            callback(error, null);
-            return;
-        }
-
-        var sitesWithAvailable = [];
-        var sitesWithEnabled = [];
-        var sitesWithDatabaseUpdates = [];
-        var sitesWithUpdates = [];
-        var sitesWithSecurityUpdates = [];
         for (item in result) {
             var siteResult = result[item].value;
-            sitesWithAvailable.push(siteResult.baseurl);
+            var module = siteResult.module + '-' + siteResult.core;
+
+            if (!(module in modulesIndex)) {
+                modules.push({
+                    module: module,
+                    sitesWithAvailable: [],
+                    sitesWithEnabled: [],
+                    sitesWithDatabaseUpdates: [],
+                    sitesWithUpdates: [],
+                    sitesWithSecurityUpdates: [],
+                    versions: {}
+                });
+                modulesIndex[module] = modules.length-1;
+            }
+
+            modules[modulesIndex[module]].sitesWithAvailable.push(siteResult.baseurl);
             if (siteResult.enabled) {
-                sitesWithEnabled.push(siteResult.baseurl);
+                modules[modulesIndex[module]].sitesWithEnabled.push(siteResult.baseurl);
             }
             if (siteResult.databaseUpdate) {
-                sitesWithDatabaseUpdates.push(siteResult.baseurl);
+                modules[modulesIndex[module]].sitesWithDatabaseUpdates.push(siteResult.baseurl);
             }
             if (siteResult.update) {
-                sitesWithUpdates.push(siteResult.baseurl);
+                modules[modulesIndex[module]].sitesWithUpdates.push(siteResult.baseurl);
             }
             if (siteResult.securityUpdate) {
-                sitesWithSecurityUpdates.push(siteResult.baseurl);
+                modules[modulesIndex[module]].sitesWithSecurityUpdates.push(siteResult.baseurl);
+            }
+            if (!(siteResult.version in modules[modulesIndex[module]].versions)) {
+                modules[modulesIndex[module]].versions[siteResult.version] = [];
+                modules[modulesIndex[module]].versions[siteResult.version].push(siteResult.baseurl);
+            }
+            else {
+                modules[modulesIndex[module]].versions[siteResult.version].push(siteResult.baseurl);
             }
         }
-        callback(null, {
-            sitesWithAvailable: sitesWithAvailable,
-            sitesWithEnabled: sitesWithEnabled,
-            sitesWithDatabaseUpdates: sitesWithDatabaseUpdates,
-            sitesWithUpdates: sitesWithUpdates,
-            sitesWithSecurityUpdates: sitesWithSecurityUpdates
-        });
+        callback(null, modules);
     });
 }
 
