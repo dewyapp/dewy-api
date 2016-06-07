@@ -365,7 +365,7 @@ exports.createDesignDoc = function(filterDoc, callback) {
                                         'if (module in doc.attributeDetails.modulesWithSecurityUpdates) {',
                                             'securityUpdate = true; ',
                                         '}',
-                                        'emit([doc.uid], {sid: doc.sid, baseurl: doc.baseurl, module: module, core: core, version: doc.details.projects[project].version, enabled: enabled, databaseUpdate: databaseUpdate, update: update, securityUpdate: securityUpdate});',
+                                        'emit([doc.uid], {sid: doc.sid, baseurl: doc.baseurl, module: module, core: core, version: doc.details.projects[project].version, project: project, enabled: enabled, databaseUpdate: databaseUpdate, update: update, securityUpdate: securityUpdate});',
                                     '}',
                                 '}',
                             '}',

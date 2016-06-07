@@ -56,12 +56,13 @@ exports.getAll = function(uid, fid, callback) {
         var modulesIndex = {}
 
         for (item in result) {
-            var siteResult = result[item].value;
-            var module = siteResult.module + '-' + siteResult.core;
+            var moduleResult = result[item].value;
+            var module = moduleResult.module + '-' + moduleResult.core;
 
             if (!(module in modulesIndex)) {
                 modules.push({
                     module: module,
+                    project: moduleResult.project,
                     sitesWithAvailable: [],
                     sitesWithEnabled: [],
                     sitesWithDatabaseUpdates: [],
@@ -72,25 +73,25 @@ exports.getAll = function(uid, fid, callback) {
                 modulesIndex[module] = modules.length-1;
             }
 
-            modules[modulesIndex[module]].sitesWithAvailable.push(siteResult.baseurl);
-            if (siteResult.enabled) {
-                modules[modulesIndex[module]].sitesWithEnabled.push(siteResult.baseurl);
+            modules[modulesIndex[module]].sitesWithAvailable.push(moduleResult.baseurl);
+            if (moduleResult.enabled) {
+                modules[modulesIndex[module]].sitesWithEnabled.push(moduleResult.baseurl);
             }
-            if (siteResult.databaseUpdate) {
-                modules[modulesIndex[module]].sitesWithDatabaseUpdates.push(siteResult.baseurl);
+            if (moduleResult.databaseUpdate) {
+                modules[modulesIndex[module]].sitesWithDatabaseUpdates.push(moduleResult.baseurl);
             }
-            if (siteResult.update) {
-                modules[modulesIndex[module]].sitesWithUpdates.push(siteResult.baseurl);
+            if (moduleResult.update) {
+                modules[modulesIndex[module]].sitesWithUpdates.push(moduleResult.baseurl);
             }
-            if (siteResult.securityUpdate) {
-                modules[modulesIndex[module]].sitesWithSecurityUpdates.push(siteResult.baseurl);
+            if (moduleResult.securityUpdate) {
+                modules[modulesIndex[module]].sitesWithSecurityUpdates.push(moduleResult.baseurl);
             }
-            if (!(siteResult.version in modules[modulesIndex[module]].versions)) {
-                modules[modulesIndex[module]].versions[siteResult.version] = [];
-                modules[modulesIndex[module]].versions[siteResult.version].push(siteResult.baseurl);
+            if (!(moduleResult.version in modules[modulesIndex[module]].versions)) {
+                modules[modulesIndex[module]].versions[moduleResult.version] = [];
+                modules[modulesIndex[module]].versions[moduleResult.version].push(moduleResult.baseurl);
             }
             else {
-                modules[modulesIndex[module]].versions[siteResult.version].push(siteResult.baseurl);
+                modules[modulesIndex[module]].versions[moduleResult.version].push(moduleResult.baseurl);
             }
         }
         callback(null, modules);
