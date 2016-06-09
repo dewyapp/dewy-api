@@ -247,38 +247,41 @@ exports.getReleases = function(callback) {
                     else {
                         // TODO: We may be getting the same site multiple times if it has multiple modules per project
                         // Should cache previous site result
-                        var modulesUpdated = 0;
+                        var sitesUpdated = 0;
                         async.eachSeries(result, function(siteResult, callback) {
-                            var sid = siteResult.sid;
-                            var module = siteResult.module;
-                            sites.get(sid, function(error, result) {
+                            sites.get(siteResult, function(error, result) {
                                 if (error) {
                                     console.log('Failed to retrive site ' + sid + ': ' + error);
                                     callback();
                                 }
                                 else {
-                                    modulesUpdated = modulesUpdated + 1;
                                     var siteDoc = result;
                                     var date = new Date().getTime() / 1000;
                                     date = Math.round(date);
                                     siteDoc.lastUpdated = date;
+                                    sitesUpdated = sitesUpdated + 1;
 
-                                    if (updatedProject.securityUpdate) {
-                                        if (!('modulesWithSecurityUpdates' in siteDoc.attributeDetails)) {
-                                            siteDoc.attributeDetails.modulesWithSecurityUpdates = [];
+                                    // Loop through all modules associated with project
+                                    for (module in siteDoc.details.projects[updatedProject.project].modules) {
+                                        if (updatedProject.securityUpdate) {
+                                            if (!('modulesWithSecurityUpdates' in siteDoc.attributeDetails)) {
+                                                siteDoc.attributeDetails.modulesWithSecurityUpdates = [];
+                                            }
+                                            if (siteDoc.attributeDetails.modulesWithSecurityUpdates.indexOf(module) == -1) {
+                                                siteDoc.attributeDetails.modulesWithSecurityUpdates.push(module);
+                                                siteDoc.attributes.modulesWithSecurityUpdates = siteDoc.attributes.modulesWithSecurityUpdates + 1;
+                                            }
                                         }
-                                        siteDoc.attributeDetails.modulesWithSecurityUpdates.push(module);
-                                        siteDoc.attributes.modulesWithSecurityUpdates = siteDoc.attributes.modulesWithSecurityUpdates + 1;
-                                    }
-                                    else {
                                         if (!('modulesWithUpdates' in siteDoc.attributeDetails)) {
                                             siteDoc.attributeDetails.modulesWithUpdates = [];
                                         }
-                                        siteDoc.attributeDetails.modulesWithUpdates.push(module);
-                                        siteDoc.attributes.modulesWithUpdates = siteDoc.attributes.modulesWithUpdates + 1;
+                                        if (siteDoc.attributeDetails.modulesWithUpdates.indexOf(module) == -1) {
+                                            siteDoc.attributeDetails.modulesWithUpdates.push(module);
+                                            siteDoc.attributes.modulesWithUpdates = siteDoc.attributes.modulesWithUpdates + 1;
+                                        }
                                     }
 
-                                    console.log('Updating module ' + module + ' on ' + siteDoc.sid);
+                                    console.log('Updating project ' + updatedProject.project + ' on ' + siteDoc.sid);
                                     sites.update(siteDoc, function(error, result) {
                                         if (error) {
                                             console.log('Failed to update site ' + siteDoc.sid + ': ' + error);
@@ -291,7 +294,7 @@ exports.getReleases = function(callback) {
                                 }
                             });
                         }, function(error) {
-                            console.log(modulesUpdated + ' modules of project ' + updatedProject.project + ' required updates and were updated');
+                            console.log(sitesUpdated + ' sites with project ' + updatedProject.project + ' required updates and were updated');
                             callback();
                         });
                     }
