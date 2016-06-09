@@ -249,8 +249,8 @@ exports.getReleases = function(callback) {
                         // Should cache previous site result
                         var modulesUpdated = 0;
                         async.eachSeries(result, function(siteResult, callback) {
-                            var sid = result[item].sid;
-                            var module = result[item].module;
+                            var sid = siteResult.sid;
+                            var module = siteResult.module;
                             sites.get(sid, function(error, result) {
                                 if (error) {
                                     console.log('Failed to retrive site ' + sid + ': ' + error);
