@@ -173,7 +173,7 @@ exports.getReleases = function(callback) {
                         exports.getProject(projectDoc.project, projectDoc.core, function(error, result) {
                             if (error) {
                                 // No project matches, so create project
-                                console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' does not exist, creating it')
+                                console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' does not exist, creating it');
                                 exports.createProject(projectDoc, function(error, result) {
                                     if (error) {
                                         console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' failed to be created: ' + error);
@@ -202,6 +202,7 @@ exports.getReleases = function(callback) {
                                         core: projectDoc.core,
                                         securityUpdate: securityUpdate
                                     });
+                                    console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' has new releases, updating');
                                     exports.createProject(projectDoc, function(error, result) {
                                         if (error) {
                                             console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' failed to be updated in the database: ' + error);
@@ -229,7 +230,7 @@ exports.getReleases = function(callback) {
                 }
             });
         }, function(error) {
-            async.forEach(updatedProjects, function(updatedProject, callback) {
+            async.eachSeries(updatedProjects, function(updatedProject, callback) {
                 console.log('Project ' + updatedProject.project + '-' + updatedProject.core + ' has new updates');
 
                 // Get affected sites and update them
@@ -244,34 +245,55 @@ exports.getReleases = function(callback) {
                         callback();
                     }
                     else {
-                        for (item in result) {
-                            var sid = result[item]
+                        // TODO: We may be getting the same site multiple times if it has multiple modules per project
+                        // Should cache previous site result
+                        var modulesUpdated = 0;
+                        async.eachSeries(result, function(siteResult, callback) {
+                            var sid = result[item].sid;
+                            var module = result[item].module;
                             sites.get(sid, function(error, result) {
                                 if (error) {
-                                    console.log('Failed to retrive site ' + siteDoc.sid + ': ' + error);
+                                    console.log('Failed to retrive site ' + sid + ': ' + error);
                                     callback();
                                 }
                                 else {
+                                    modulesUpdated = modulesUpdated + 1;
                                     var siteDoc = result;
                                     var date = new Date().getTime() / 1000;
                                     date = Math.round(date);
                                     siteDoc.lastUpdated = date;
-                                    siteDoc.attributes.moduleUpdateLevel = maxModuleUpdateLevel + 1;
+
+                                    if (updatedProject.securityUpdate) {
+                                        if (!('modulesWithSecurityUpdates' in siteDoc.attributeDetails)) {
+                                            siteDoc.attributeDetails.modulesWithSecurityUpdates = [];
+                                        }
+                                        siteDoc.attributeDetails.modulesWithSecurityUpdates.push(module);
+                                        siteDoc.attributes.modulesWithSecurityUpdates = siteDoc.attributes.modulesWithSecurityUpdates + 1;
+                                    }
+                                    else {
+                                        if (!('modulesWithUpdates' in siteDoc.attributeDetails)) {
+                                            siteDoc.attributeDetails.modulesWithUpdates = [];
+                                        }
+                                        siteDoc.attributeDetails.modulesWithUpdates.push(module);
+                                        siteDoc.attributes.modulesWithUpdates = siteDoc.attributes.modulesWithUpdates + 1;
+                                    }
+
+                                    console.log('Updating module ' + module + ' on ' + siteDoc.sid);
                                     sites.update(siteDoc, function(error, result) {
                                         if (error) {
                                             console.log('Failed to update site ' + siteDoc.sid + ': ' + error);
                                             callback();
                                         }
                                         else {
-                                            console.log('Updated site ' + siteDoc.sid);
                                             callback();
                                         }
                                     });
                                 }
                             });
-                        }
-                        console.log('No sites were affected by the update to ' + updatedProject.project);
-                        callback();
+                        }, function(error) {
+                            console.log(modulesUpdated + ' modules of project ' + updatedProject.project + ' required updates and were updated');
+                            callback();
+                        });
                     }
                 });
             }, function(error) {
