@@ -9,13 +9,23 @@ var config = require('../config');
 
 exports.create = function(userDoc, callback) {
     // Construct user document
+    var startDate = new Date().getTime() / 1000;
+    startDate = Math.round(startDate);
+    var endDate = startDate + (60*60*24*30);
+
     var userDoc = {
         uid: uuid.v4(),
         apikey: uuid.v4(),
         username: userDoc.username,
         email: userDoc.email,
         password: userDoc.password,
-        verify: uuid.v4()
+        verify: uuid.v4(),
+        created: startDate,
+        subscription: {
+            startDate: startDate,
+            endDate: endDate,
+            type: 'trial'
+        }
     };
     db.insert('user::' + userDoc.uid, userDoc, function(error, result) {
         if (error) {
