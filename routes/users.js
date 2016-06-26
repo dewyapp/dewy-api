@@ -249,7 +249,9 @@ router.put('/:uid', oauth.authorise(), function (req, res, next) {
             username: existingUserDoc.username,
             email: existingUserDoc.email,
             password: existingUserDoc.password,
-            verify: existingUserDoc.verify
+            verify: existingUserDoc.verify,
+            created: existingUserDoc.created,
+            subscription: existingUserDoc.subscription
         }
 
         // Allow for checking of validity of individual fields without completing an update to the user
