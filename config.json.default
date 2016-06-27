@@ -15,5 +15,8 @@
     "oauth": {
         "accessTokenLifetime": 3600,
         "refreshTokenLifetime": 604800
+    },
+    "stripe": {
+        "private_key": ""
     }
 }

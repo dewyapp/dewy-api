@@ -25,7 +25,8 @@ exports.create = function(userDoc, callback) {
             startDate: startDate,
             endDate: endDate,
             type: 'trial'
-        }
+        },
+        stripe: {}
     };
     db.insert('user::' + userDoc.uid, userDoc, function(error, result) {
         if (error) {

@@ -21,6 +21,7 @@
     "nodemon": "^1.8.1",
     "oauth2-server": "^2.4.1",
     "request": "^2.69.0",
+    "stripe": "^4.7.0",
     "underscore": "^1.8.3",
     "uuid": "^2.0.1",
     "validator": "^4.5.1",
