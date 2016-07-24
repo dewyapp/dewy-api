@@ -366,35 +366,49 @@ router.put('/:uid', oauth.authorise(), function (req, res, next) {
             }
         }
     });
+});
 
-    router.post('/:uid/_subscription', oauth.authorise(), function (req, res, next) {
-        users.get(req.user.id, function(error, result) {
+router.post('/:uid/_subscription', oauth.authorise(), function (req, res, next) {
+    users.get(req.user.id, function(error, result) {
+        if (error) {
+            return res.status(500).send(error.toString());
+        }
+        if (req.params.uid != req.user.id) {
+            return res.status(403).send('You do not have permission to access this resource.');
+        }
+
+        var existingUserDoc = result;
+
+        var stripe = require("stripe")(config.stripe.private_key);
+        var stripeToken = req.body.stripeToken;
+        stripe.customers.create({
+            source: stripeToken,
+            plan: 'basic', // This will be specified in the request when we have more than one plan
+            email: existingUserDoc.email
+        }, function(error, result) {
             if (error) {
                 return res.status(500).send(error.toString());
             }
-            if (req.params.uid != req.user.id) {
-                return res.status(403).send('You do not have permission to access this resource.');
+
+            var newUserDoc = {
+                uid: existingUserDoc.uid,
+                apikey: existingUserDoc.apikey,
+                username: existingUserDoc.username,
+                email: existingUserDoc.email,
+                password: existingUserDoc.password,
+                verify: existingUserDoc.verify,
+                created: existingUserDoc.created,
+                subscription: existingUserDoc.subscription,
+                stripe: result
             }
 
-            var stripe = require("stripe")(config.stripe.private_key);
-            var stripeToken = req.body.stripeToken;
-            stripe.customers.create({
-              source: stripeToken,
-              plan: 'basic', // This will be specified in the request when we have more than one plan
-              email: req.user.email
-            }, function(error, result) {
+            users.update(existingUserDoc, newUserDoc, function (error, result) {
                 if (error) {
-                    return res.status(500).send(error.toString());
+                    return res.status(500).send(error);
                 }
-                req.user.stripe = result;
-                users.update(eq.user, eq.user, function (error, result) {
-                    if (error) {
-                        return res.status(500).send(error);
-                    }
-                    else {
-                        res.send(result);
-                    }
-                });
+                else {
+                    res.send(result);
+                }
             });
         });
     });
