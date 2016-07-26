@@ -368,50 +368,58 @@ router.put('/:uid', oauth.authorise(), function (req, res, next) {
     });
 });
 
-router.post('/:uid/_subscription', oauth.authorise(), function (req, res, next) {
-    users.get(req.user.id, function(error, result) {
-        if (error) {
-            return res.status(500).send(error.toString());
-        }
-        if (req.params.uid != req.user.id) {
-            return res.status(403).send('You do not have permission to access this resource.');
-        }
+router.post('/:uid/_subscription/:plan', oauth.authorise(), function (req, res, next) {
 
-        var existingUserDoc = result;
+    var availablePlans = ['basic'];
 
-        var stripe = require("stripe")(config.stripe.private_key);
-        var stripeToken = req.body.stripeToken;
-        stripe.customers.create({
-            source: stripeToken,
-            plan: 'basic', // This will be specified in the request when we have more than one plan
-            email: existingUserDoc.email
-        }, function(error, result) {
+    if (req.params.plan in availablePlans) {
+        users.get(req.user.id, function(error, result) {
             if (error) {
                 return res.status(500).send(error.toString());
             }
-
-            var newUserDoc = {
-                uid: existingUserDoc.uid,
-                apikey: existingUserDoc.apikey,
-                username: existingUserDoc.username,
-                email: existingUserDoc.email,
-                password: existingUserDoc.password,
-                verify: existingUserDoc.verify,
-                created: existingUserDoc.created,
-                subscription: existingUserDoc.subscription,
-                stripe: result
+            if (req.params.uid != req.user.id) {
+                return res.status(403).send('You do not have permission to access this resource.');
             }
 
-            users.update(existingUserDoc, newUserDoc, function (error, result) {
+            var existingUserDoc = result;
+
+            var stripe = require("stripe")(config.stripe.private_key);
+            var stripeToken = req.body.stripeToken;
+            stripe.customers.create({
+                source: stripeToken,
+                plan: req.params.plan,
+                email: existingUserDoc.email
+            }, function(error, result) {
                 if (error) {
-                    return res.status(500).send(error);
+                    return res.status(500).send(error.toString());
                 }
-                else {
-                    res.send(result);
+
+                var newUserDoc = {
+                    uid: existingUserDoc.uid,
+                    apikey: existingUserDoc.apikey,
+                    username: existingUserDoc.username,
+                    email: existingUserDoc.email,
+                    password: existingUserDoc.password,
+                    verify: existingUserDoc.verify,
+                    created: existingUserDoc.created,
+                    subscription: existingUserDoc.subscription,
+                    stripe: result
                 }
+
+                users.update(existingUserDoc, newUserDoc, function (error, result) {
+                    if (error) {
+                        return res.status(500).send(error);
+                    }
+                    else {
+                        res.send(result);
+                    }
+                });
             });
         });
-    });
+    }
+    else {
+        res.status(400).send('The ' + req.params.plan + ' plan is not available.');
+    }
 });
 
 module.exports = router;
