@@ -5,7 +5,7 @@ var couchbase = require('couchbase');
 var db = require('../app.js').bucket;
 var md5 = require('md5');
 var email = require('../models/email');
-var config = require('../config');
+var config = new require('../config')();
 
 exports.create = function(userDoc, callback) {
     // Construct user document

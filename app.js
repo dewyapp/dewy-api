@@ -3,13 +3,12 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var oauthserver = require('oauth2-server');
 var couchbase = require('couchbase');
-var environment = require('./environment').retrieve();
-var config = require('./config')[environment];
+var config = new require('./config')();
 
 var app = express();
 
 // Feedback to user
-console.log(environment);
+console.log(config.environment);
 
 // Express configuration
 app.use(bodyParser.json());

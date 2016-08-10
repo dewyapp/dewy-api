@@ -2,7 +2,7 @@ var express = require('express');
 var app = express();
 var nodemailer = require('nodemailer');
 var mg = require('nodemailer-mailgun-transport');
-var config = require('../config');
+var config = new require('../config')();
 
 // Define email template render engine
 var mustacheExpress = require('mustache-express');

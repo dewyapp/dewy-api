@@ -3,7 +3,7 @@ var db = require('../app.js').bucket;
 var request = require('request');
 var xml2json = require('xml2json');
 var async = require('async');
-var config = require('../config');
+var config = new require('../config')();
 var sites = require('../models/sites');
 
 exports.createProject = function(projectDoc, callback) {

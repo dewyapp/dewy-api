@@ -1,7 +1,7 @@
 var couchbase = require('couchbase');
 var forge = require('node-forge');
 var db = require('../app.js').bucket;
-var config = require('../config');
+var config = new require('../config')();
 
 exports.getAccessToken = function (bearerToken, callback) {
     query = couchbase.ViewQuery.from('oauth', 'by_accesstoken')

@@ -1,6 +1,6 @@
 var couchbase = require('couchbase');
 var db = require('./app.js').bucket;
-var config = require('./config');
+var config = new require('./config')();
 var async = require('async');
 
 exports.setup = function (callback) {

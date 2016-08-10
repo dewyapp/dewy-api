@@ -8,7 +8,7 @@ var uuid = require('uuid');
 var users = require('../models/users');
 var email = require('../models/email');
 var oauthModel = require('../models/oauth');
-var config = require('../config');
+var config = new require('../config')();
 
 usernameValidate = function(username, callback) {
     if (!username) {
