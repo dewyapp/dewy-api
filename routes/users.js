@@ -372,7 +372,7 @@ router.post('/:uid/_subscription/:plan', oauth.authorise(), function (req, res, 
 
     var availablePlans = ['basic'];
 
-    if (req.params.plan in availablePlans) {
+    if (availablePlans.indexOf(req.params.plan) != -1) {
         users.get(req.user.id, function(error, result) {
             if (error) {
                 return res.status(500).send(error.toString());
