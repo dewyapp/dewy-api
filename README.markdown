@@ -11,7 +11,7 @@
 	
 			docker-machine start
 			
-	3. Share Docker machine environment variables with your terminal
+	3. Share Docker machine environment variables with the terminal
 	
 			eval $(docker-machine env default)
 			
@@ -31,8 +31,21 @@
 
 ## Usage
 
+### Development
+
 * Run node:
 
 		npm start
 
 * Make requests to the API at localhost:3001
+
+### Production
+
+* Run node, specifying that the environment is production:
+
+		NODE_ENV=production npm start
+
+* Alternatively, if it is preferred to specify the environment outside of the run command, run:
+
+		export NODE_ENV=production
+		npm start

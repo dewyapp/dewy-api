@@ -1,22 +1,46 @@
 {
-    "couchbase": {
-        "server": "",
-        "bucket": "",
-        "password": ""
+    "development": {
+        "couchbase": {
+            "server": "",
+            "bucket": "",
+            "password": ""
+        },
+        "client": {
+            "client_id": "",
+            "client_secret": ""
+        },
+        "mailgun": {
+            "api_key": "",
+            "domain": ""
+        },
+        "oauth": {
+            "accessTokenLifetime": 3600,
+            "refreshTokenLifetime": 604800
+        },
+        "stripe": {
+            "private_key": ""
+        }
     },
-    "client": {
-        "client_id": "",
-        "client_secret": ""
-    },
-    "mailgun": {
-        "api_key": "",
-        "domain": ""
-    },
-    "oauth": {
-        "accessTokenLifetime": 3600,
-        "refreshTokenLifetime": 604800
-    },
-    "stripe": {
-        "private_key": ""
+    "production": {
+        "couchbase": {
+            "server": "",
+            "bucket": "",
+            "password": ""
+        },
+        "client": {
+            "client_id": "",
+            "client_secret": ""
+        },
+        "mailgun": {
+            "api_key": "",
+            "domain": ""
+        },
+        "oauth": {
+            "accessTokenLifetime": 3600,
+            "refreshTokenLifetime": 604800
+        },
+        "stripe": {
+            "private_key": ""
+        }
     }
 }
