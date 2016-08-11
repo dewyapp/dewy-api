@@ -4,7 +4,7 @@
 
 ## Installation
 
-* Install Couchbase via Docker (OS X)
+* Install Couchbase via Docker (OS X):
 
 	1. [Download and install Docker toolbox](https://docs.docker.com/mac/step_one/)
 	2. Start Docker machine
