@@ -84,6 +84,10 @@ existingPasswordValidate = function(existingPassword, userPassword, callback) {
 
 
 router.post('/', function (req, res, next) {
+    // Only allow self sign-up in production
+    if (config.environment != 'production') {
+        return res.status(501).send('User self-registration only allowed on production API.');
+    }
     // Allow for checking of validity of individual fields without completing an update to the user
     if (req.body.check) {
         if ('username' in req.body) {
