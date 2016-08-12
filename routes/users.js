@@ -193,7 +193,10 @@ router.get('/_verify/:uid', oauth.authorise(), function (req, res, next) {
     });
 });
 
-router.post('/_verify/:uid/:verify', function (req, res, next) {
+router.post('/_verify/:uid', function (req, res, next) {
+    if (!req.body.verification_code) {
+        return res.status(400).send("A verification code is required.");
+    }
     users.get(req.params.uid, function(error, result) {
         if (error) {
             return res.status(500).send(error.toString());
@@ -202,7 +205,7 @@ router.post('/_verify/:uid/:verify', function (req, res, next) {
         if (!existingUserDoc.verify) {
             return res.status(400).send('The email address has already been verified.');
         }
-        if (req.params.verify != existingUserDoc.verify) {
+        if (req.body.verification_code != existingUserDoc.verify) {
             return res.status(400).send('The verification code is incorrect.');
         }
         var newUserDoc = {
