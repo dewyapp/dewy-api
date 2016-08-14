@@ -58,7 +58,12 @@ else if (argv[0] === '--releases') {
 else {
     // Allow API access from dewy.io
     app.use(function(req, res, next) {
-        res.header('Access-Control-Allow-Origin', 'http://dewy.io');
+        if (config.environment == 'production') {
+            res.header('Access-Control-Allow-Origin', 'http://dewy.io');
+        }
+        else {
+            res.header('Access-Control-Allow-Origin', 'http://dewy.local');
+        }
         res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
         res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
         next();
