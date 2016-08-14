@@ -100,7 +100,7 @@ exports.setup = function (callback) {
                     map: [
                         'function (doc, meta) {',
                             'if (meta.id.substring(0, 8) == "client::") {',
-                                'emit([doc.client_id], {client_id: doc.client_id, client_secret: doc.client_secret});',
+                                'emit([doc.client_id, doc.client_secret], {client_id: doc.client_id, client_secret: doc.client_secret});',
                             '}',
                         '}'
                         ].join('\n')

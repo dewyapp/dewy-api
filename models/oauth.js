@@ -24,7 +24,7 @@ exports.getAccessToken = function (bearerToken, callback) {
 
 exports.getClient = function (clientId, clientSecret, callback) {
     query = couchbase.ViewQuery.from('oauth', 'by_clientid')
-        .key([clientId])
+        .key([clientId, clientSecret])
         .stale(1);
     db.query(query, function(error, result) {
         if (error || !result.length) {
