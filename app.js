@@ -70,12 +70,16 @@ else {
     });
 
     // OAuth 2 configuration
+    var debug = true;
+    if (config.environment == 'production') {
+        debug: false
+    }
     app.oauth = oauthserver({
         model: require('./models/oauth'),
         grants: ['authorization_code', 'password', 'refresh_token'],
         accessTokenLifetime: config.oauth.accessTokenLifetime,
         refreshTokenLifetime: config.oauth.refreshTokenLifetime,
-        debug: false
+        debug: debug
     });
     module.exports.oauth = app.oauth;
     app.all('/oauth/token', app.oauth.grant());
