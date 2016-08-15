@@ -9,6 +9,7 @@
             "client_id": "",
             "client_secret": ""
         },
+        "debug": true,
         "mailgun": {
             "api_key": "",
             "domain": ""
@@ -31,6 +32,7 @@
             "client_id": "",
             "client_secret": ""
         },
+        "debug": false,
         "mailgun": {
             "api_key": "",
             "domain": ""

@@ -17,7 +17,7 @@
 			
 	4. Bring up Couchbase server through Docker
 	
-			docker-compose up
+			docker-compose up -d
 
 	5. Visit the Couchbase Console at http://<docker-machine-ip>/index.html, and set up the server with a username and password, then delete the default bucket and add a Dewy bucket with a password
 

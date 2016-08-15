@@ -56,6 +56,16 @@ else if (argv[0] === '--releases') {
 }
 // Run the API
 else {
+    // Log requests
+    if (config.debug) {
+        app.use(function(req, res, next) {
+            if (req.method != 'OPTIONS') {
+                console.log(req.ip + ': ' + req.method + ' ' + req.originalUrl);
+            }
+            next();
+        });
+    }
+
     // Allow API access from dewy.io
     app.use(function(req, res, next) {
         if (config.environment == 'production') {
@@ -70,16 +80,12 @@ else {
     });
 
     // OAuth 2 configuration
-    var debug = true;
-    if (config.environment == 'production') {
-        debug: false
-    }
     app.oauth = oauthserver({
         model: require('./models/oauth'),
         grants: ['authorization_code', 'password', 'refresh_token'],
         accessTokenLifetime: config.oauth.accessTokenLifetime,
         refreshTokenLifetime: config.oauth.refreshTokenLifetime,
-        debug: debug
+        debug: config.debug
     });
     module.exports.oauth = app.oauth;
     app.all('/oauth/token', app.oauth.grant());
