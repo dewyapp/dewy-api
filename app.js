@@ -69,7 +69,7 @@ else {
     // Allow API access from dewy.io
     app.use(function(req, res, next) {
         if (config.environment == 'production') {
-            res.header('Access-Control-Allow-Origin', 'http://dewy.io');
+            res.header('Access-Control-Allow-Origin', 'https://dewy.io');
         }
         else {
             res.header('Access-Control-Allow-Origin', 'http://dewy.local');
