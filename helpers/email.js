@@ -13,7 +13,8 @@ app.set('views', __dirname + '/../views');
 exports.send = function(params, callback) {
     app.render('email', {
         header: params.subject,
-        text: params.text
+        text: params.text,
+        website: config.website.url
     }, function(err, html) {
         var mail = {
             from: 'noreply@dewy.io',

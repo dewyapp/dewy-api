@@ -183,7 +183,7 @@ router.get('/_verify/:uid', oauth.authorise(), function (req, res, next) {
                 to: result.email,
                 cc: null,
                 subject: 'Your Dewy email address requires verification',
-                text: 'Hi ' + userDoc.username + '! Your email address requires verification, please verify your email address by visiting this link: http://dewy.io/verify/' + userDoc.uid + '/' + userDoc.verify,
+                text: 'Hi ' + userDoc.username + '! Your email address requires verification, please verify your email address by visiting this link: ' + config.website.url + '/verify/' + userDoc.uid + '/' + userDoc.verify,
             }, function(error, result) {
                 if (error) {
                     return res.status(500).send(error.toString());

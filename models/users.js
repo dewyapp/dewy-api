@@ -37,7 +37,7 @@ exports.create = function(userDoc, callback) {
         email.send({
             to: userDoc.email,
             subject: 'Welcome to Dewy',
-            text: 'Hi ' + userDoc.username + '! Welcome to Dewy. Please verify your email address by visiting this link: http://dewy.io/verify/' + userDoc.uid + '/' + userDoc.verify
+            text: 'Hi ' + userDoc.username + '! Welcome to Dewy. Please verify your email address by visiting this link: ' + config.website.url + '/verify/' + userDoc.uid + '/' + userDoc.verify
         }, function(error, result) {
 
         });
@@ -112,7 +112,7 @@ exports.update = function(existingUserDoc, newUserDoc, callback) {
                 to: newUserDoc.email,
                 cc: existingUserDoc.email,
                 subject: 'Your Dewy email address has changed',
-                text: 'Hi ' + newUserDoc.username + '! Your email address has changed, please verify your email address by visiting this link: http://dewy.io/verify/' + newUserDoc.uid + '/' + newUserDoc.verify
+                text: 'Hi ' + newUserDoc.username + '! Your email address has changed, please verify your email address by visiting this link: ' + config.website.url + '/verify/' + newUserDoc.uid + '/' + newUserDoc.verify
             }, function(error, result) {
 
             });

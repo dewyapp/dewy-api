@@ -15,11 +15,14 @@
             "domain": ""
         },
         "oauth": {
-            "accessTokenLifetime": 3600,
-            "refreshTokenLifetime": 604800
+            "accessTokenLifetime": 2592000,
+            "refreshTokenLifetime": 0
         },
         "stripe": {
             "private_key": ""
+        },
+        "website": {
+            "url": "http://dewy.local"
         }
     },
     "production": {
@@ -38,11 +41,14 @@
             "domain": ""
         },
         "oauth": {
-            "accessTokenLifetime": 3600,
-            "refreshTokenLifetime": 604800
+            "accessTokenLifetime": 2592000,
+            "refreshTokenLifetime": 0
         },
         "stripe": {
             "private_key": ""
+        },
+        "website": {
+            "url": "https://dewy.io"
         }
     }
 }
