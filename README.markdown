@@ -41,11 +41,38 @@
 
 ### Production
 
-* Run node, specifying that the environment is production:
+* Install a web server to provide SSL and proxy to our Node application, such as [Nginx](http://nginx.org)
 
-		NODE_ENV=production npm start
+		yum install nginx
 
-* Alternatively, if it is preferred to specify the environment outside of the run command, run:
+* Create a configuration file, /etc/nginx/conf.d/dewy.conf, and upload certificate files to /etc/nginx/ssl/:
+
+		server {
+		  listen       443 ssl;
+		  server_name  api.dewy.io;
+
+		  ssl_certificate  /etc/nginx/ssl/api_dewy_io.crt;
+		  ssl_certificate_key /etc/nginx/ssl/api_dewy_io.key;
+
+		  location /1.0/ {
+		    rewrite ^/1.0(/.*)$ $1 break;
+		    proxy_pass http://localhost:3001;
+		    proxy_http_version 1.1;
+		    proxy_set_header Upgrade $http_upgrade;
+		    proxy_set_header Connection 'upgrade';
+		    proxy_set_header Host $host;
+		    proxy_cache_bypass $http_upgrade;
+		  }
+		}
+
+* Install a [process manager for Node](http://expressjs.com/en/advanced/pm.html)
+
+		npm install forever -g
+
+* Set the environment to production:
 
 		export NODE_ENV=production
-		npm start
+
+* Run the Dewy API using that process manager
+
+		forever start -a -l ../logs/forever.log -o ../logs/out.log -e ../logs/err.log bin/www
