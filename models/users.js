@@ -4,7 +4,7 @@ var uuid = require('uuid');
 var couchbase = require('couchbase');
 var db = require('../app.js').bucket;
 var md5 = require('md5');
-var email = require('../models/email');
+var email = require('../helpers/email');
 var config = new require('../config')();
 
 exports.create = function(userDoc, callback) {

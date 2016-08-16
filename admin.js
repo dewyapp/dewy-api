@@ -1,48 +1,13 @@
-var modules = require('./models/modules');
-var sites = require('./models/sites');
+var users = require('./models/users');
+var email = require('./helpers/email');
 
-exports.audit = function(callback) {
-    sites.auditAll(function(error,result) {
-        if (error) {
-            callback(error, null);
-            return;
-        }
+exports.createUser = function(callback) {
+    email.send({
+        to: 'admin@dewy.io',
+        subject: 'Welcome to Dewy',
+        text: 'Hi Username! An account has been created for you.'
+    }, function(error, result) {
         callback(null, result);
         return;
     });
 }
-
-exports.releases = function(callback) {
-    modules.getReleases(function(error,result) {
-        if (error) {
-            callback(error, null);
-            return;
-        }
-        callback(null, result);
-        return;
-    });
-}
-
-// // For internal use to clear out junky data
-// exports.clearReleases = function(callback) {
-//     var couchbase = require('couchbase');
-//     var db = require('./app.js').bucket;
-//     query = couchbase.ViewQuery.from('modules', 'drupalorg_by_project')
-//         .stale(1);
-//     db.query(query, function(error, result) {
-//         if (error) {
-//             callback(error, null);
-//             return;
-//         }
-//         for (index in result) {
-//             console.log('removing ' + result[index].id);
-//             db.remove(result[index].id, function(error, result) {
-//                 if (error) {
-//                     console.log("ERROR: " + error);
-//                 } else {
-//                     console.log(result);
-//                 }
-//             });
-//         }
-//     });
-// }

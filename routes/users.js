@@ -6,7 +6,7 @@ var forge = require('node-forge');
 var validator = require('validator');
 var uuid = require('uuid');
 var users = require('../models/users');
-var email = require('../models/email');
+var email = require('../helpers/email');
 var oauthModel = require('../models/oauth');
 var config = new require('../config')();
 

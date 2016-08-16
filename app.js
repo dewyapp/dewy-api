@@ -17,11 +17,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Global declaration of Couchbase
 module.exports.bucket = (new couchbase.Cluster(config.couchbase.server)).openBucket(config.couchbase.bucket, config.couchbase.password);
 
-// Install Couchbase design documents
+// Allow command line input
+var admin = require('./admin.js');
+var setup = require('./setup.js');
+var processes = require('./processes.js');
+
 argv = process.argv.splice(2);
 if (argv[0] === '--setup') {
-    var design = require('./setup.js');
-    design.setup(function(error, result) {
+    setup.setup(function(error, result) {
         if (error) {
             console.log(error);
         } else {
@@ -32,8 +35,7 @@ if (argv[0] === '--setup') {
 }
 // Run a site audit
 else if (argv[0] === '--audit') {
-    var design = require('./admin.js');
-    design.audit(function(error, result) {
+    processes.audit(function(error, result) {
         if (error) {
             console.log(error);
         } else {
@@ -44,8 +46,18 @@ else if (argv[0] === '--audit') {
 }
 // Run a release retrieval
 else if (argv[0] === '--releases') {
-    var design = require('./admin.js');
-    design.releases(function(error, result) {
+    processes.releases(function(error, result) {
+        if (error) {
+            console.log(error);
+        } else {
+            console.log(result);
+        }
+        process.exit(0);
+    });
+}
+// Create a user
+else if (argv[0] === '--create-user') {
+    admin.createUser(function(error, result) {
         if (error) {
             console.log(error);
         } else {
