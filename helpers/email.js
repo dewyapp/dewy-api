@@ -11,9 +11,13 @@ app.set('view engine', 'mustache');
 app.set('views', __dirname + '/../views');
 
 exports.send = function(params, callback) {
+    var content = params.text;
+    if ('html' in params) {
+        content = params.html;
+    }
     app.render('email', {
         header: params.subject,
-        text: params.text,
+        content: content,
         website: config.website.url
     }, function(err, html) {
         var mail = {

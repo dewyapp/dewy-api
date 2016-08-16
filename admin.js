@@ -6,7 +6,8 @@ exports.createUser = function(callback) {
     email.send({
         to: 'admin@dewy.io',
         subject: 'Welcome to Dewy',
-        text: 'Hi Username! An account has been created for you on ' + config.website.url + '.'
+        text: 'Hi Username! An account has been created for you on ' + config.website.url + '.',
+        html: "Hi Username!<br/>An account has been created for you on " + config.website.url + '.'
     }, function(error, result) {
         callback(null, result);
         return;
