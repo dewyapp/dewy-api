@@ -7,7 +7,7 @@ var validator = require('validator');
 var uuid = require('uuid');
 var users = require('../models/users');
 var email = require('../helpers/email');
-var oauthModel = require('../models/oauth');
+var oauthModel = require('../helpers/oauth');
 var config = new require('../config')();
 
 usernameValidate = function(username, callback) {

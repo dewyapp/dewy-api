@@ -107,7 +107,7 @@ else {
 
     // OAuth 2 configuration
     app.oauth = oauthserver({
-        model: require('./models/oauth'),
+        model: require('./helpers/oauth'),
         grants: ['authorization_code', 'password', 'refresh_token'],
         accessTokenLifetime: config.oauth.accessTokenLifetime,
         refreshTokenLifetime: config.oauth.refreshTokenLifetime,
