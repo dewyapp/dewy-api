@@ -31,7 +31,7 @@
 
 ## Usage
 
-### Development
+### Running the API in development
 
 * Run node:
 
@@ -39,7 +39,7 @@
 
 * Make requests to the API at localhost:3001
 
-### Production
+### Running the API in production
 
 * Install a web server to provide SSL and proxy to our Node application, such as [Nginx](http://nginx.org)
 
@@ -76,3 +76,9 @@
 * Run the Dewy API using that process manager
 
 		forever start -a -l ../logs/forever.log -o ../logs/out.log -e ../logs/err.log app.js
+
+### Command line tools
+
+* Administrative functions can be run through the command line, access the help for more details:
+
+		./app.js -h

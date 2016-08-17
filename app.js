@@ -5,6 +5,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var oauthserver = require('oauth2-server');
 var couchbase = require('couchbase');
+var program = require('commander');
 var config = new require('./config')();
 
 var app = express();
@@ -17,55 +18,75 @@ app.use(bodyParser.urlencoded({ extended: true }));
 module.exports.bucket = (new couchbase.Cluster(config.couchbase.server)).openBucket(config.couchbase.bucket, config.couchbase.password);
 
 // Allow command line input
-var admin = require('./admin.js');
-var setup = require('./setup.js');
-var processes = require('./processes.js');
+if (process.argv[2]) {
+    console.log('API initialized in ' + config.environment + ' mode');
+    var admin = require('./admin.js');
+    var setup = require('./setup.js');
+    var processes = require('./processes.js');
+    var program = require('commander');
+    program
+        .command('setup')
+        .description('Initialize the database with current configuration')
+        .action(function () {
+            setup.setup(function(error, result) {
+                if (error) {
+                    console.log(error);
+                    process.exit(1);
+                } else {
+                    console.log(result);
+                    process.exit(0);
+                }
+            });
+        })
 
-argv = process.argv.splice(2);
-if (argv[0] === '--setup') {
-    setup.setup(function(error, result) {
-        if (error) {
-            console.log(error);
-        } else {
-            console.log(result);
-        }
-        process.exit(0);
-    });
+    program
+        .command('audit')
+        .description('Audits all sites in Dewy')
+        .action(function () {
+            processes.audit(function(error, result) {
+                if (error) {
+                    console.log(error);
+                    process.exit(1);
+                } else {
+                    console.log(result);
+                    process.exit(0);
+                }
+            });
+        })
+
+    program
+        .command('releases')
+        .description('Retrieves all release updates from Drupal.org')
+        .action(function () {
+            processes.releases(function(error, result) {
+                if (error) {
+                    console.log(error);
+                    process.exit(1);
+                } else {
+                    console.log(result);
+                    process.exit(0);
+                }
+            });
+        })
+
+    program
+        .command('create-user <email> <username>')
+        .description('Create a Dewy user, user will receive an email with instructions')
+        .action(function (email, username) {
+            admin.createUser(email, username, function(error, result) {
+                if (error) {
+                    console.log(error);
+                    process.exit(1);
+                } else {
+                    console.log(result);
+                    process.exit(0);
+                }
+            });
+        })
+
+    program.parse(process.argv);
 }
-// Run a site audit
-else if (argv[0] === '--audit') {
-    processes.audit(function(error, result) {
-        if (error) {
-            console.log(error);
-        } else {
-            console.log(result);
-        }
-        process.exit(0);
-    });
-}
-// Run a release retrieval
-else if (argv[0] === '--releases') {
-    processes.releases(function(error, result) {
-        if (error) {
-            console.log(error);
-        } else {
-            console.log(result);
-        }
-        process.exit(0);
-    });
-}
-// Create a user
-else if (argv[0] === '--create-user') {
-    admin.createUser(function(error, result) {
-        if (error) {
-            console.log(error);
-        } else {
-            console.log(result);
-        }
-        process.exit(0);
-    });
-}
-// Run the API
+// If no command line input, run the API
 else {
     // Log requests
     if (config.debug) {
@@ -114,7 +135,7 @@ else {
     });
 
     app.listen(3001, function () {
-        console.log('API in ' + config.environment + ' mode listening on port 3001');
+        console.log('API in ' + config.environment + ' mode listening on port 3001...');
     });
 }
 
