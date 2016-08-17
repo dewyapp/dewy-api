@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-var oauth = require('../app.js').oauth;
+var oauth = require('../api.js').oauth;
 var validator = require('validator');
 var fields = require('../models/fields');
 

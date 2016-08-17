@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "nodemon app.js",
-    "install": "node app.js --setup"
+    "start": "nodemon api.js",
+    "install": "node api.js --setup"
   },
   "dependencies": {
     "async": "^1.5.2",

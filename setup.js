@@ -1,5 +1,5 @@
 var couchbase = require('couchbase');
-var db = require('./app.js').bucket;
+var db = require('./api.js').bucket;
 var config = new require('./config')();
 var async = require('async');
 

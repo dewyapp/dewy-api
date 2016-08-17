@@ -1,6 +1,6 @@
 var couchbase = require('couchbase');
 var forge = require('node-forge');
-var db = require('../app.js').bucket;
+var db = require('../api.js').bucket;
 var config = new require('../config')();
 
 exports.getAccessToken = function (bearerToken, callback) {

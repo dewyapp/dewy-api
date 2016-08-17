@@ -75,10 +75,10 @@
 
 * Run the Dewy API using that process manager
 
-		forever start -a -l ../logs/forever.log -o ../logs/out.log -e ../logs/err.log app.js
+		forever start -a -l ../logs/forever.log -o ../logs/out.log -e ../logs/err.log api.js
 
 ### Command line tools
 
 * Administrative functions can be run through the command line, access the help for more details:
 
-		./app.js -h
+		./api.js -h

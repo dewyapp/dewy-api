@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-var oauth = require('../app.js').oauth;
+var oauth = require('../api.js').oauth;
 var filters = require('../models/filters');
 var modules = require('../models/modules');
 
