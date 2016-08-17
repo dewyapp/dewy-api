@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 // Dependencies
 var express = require('express');
 var bodyParser = require('body-parser');
@@ -6,9 +8,6 @@ var couchbase = require('couchbase');
 var config = new require('./config')();
 
 var app = express();
-
-// Feedback to user
-console.log(config.environment);
 
 // Express configuration
 app.use(bodyParser.json());
@@ -77,15 +76,9 @@ else {
             next();
         });
     }
-
     // Allow API access from dewy.io
     app.use(function(req, res, next) {
-        if (config.environment == 'production') {
-            res.header('Access-Control-Allow-Origin', 'https://dewy.io');
-        }
-        else {
-            res.header('Access-Control-Allow-Origin', 'http://dewy.local');
-        }
+        res.header('Access-Control-Allow-Origin', config.website.url);
         res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
         res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
         next();
@@ -117,7 +110,12 @@ else {
     // Error handling
     app.use(app.oauth.errorHandler());
     app.use(function(req, res) {
-      res.status(404).send("Not a valid API endpoint");
+        res.status(404).send("Not a valid API endpoint");
+    });
+
+    app.listen(3001, function () {
+        console.log('API in ' + config.environment + ' mode listening on port 3001');
     });
 }
+
 module.exports = app;

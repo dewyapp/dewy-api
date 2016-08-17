@@ -75,4 +75,4 @@
 
 * Run the Dewy API using that process manager
 
-		forever start -a -l ../logs/forever.log -o ../logs/out.log -e ../logs/err.log bin/www
+		forever start -a -l ../logs/forever.log -o ../logs/out.log -e ../logs/err.log app.js
