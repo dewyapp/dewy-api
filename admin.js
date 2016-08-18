@@ -5,7 +5,7 @@ var config = new require('./config')();
 exports.createUser = function(emailAddress, username, callback) {
     var user = new User(emailAddress, username);
     user.setPassword('RANDOMPASSWORDGOESHERE');
-    user.finishVerification();
+    user.removeVerification();
     user.create(function(error, result) {
         if (error) {
             callback(error);
