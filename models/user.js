@@ -210,10 +210,10 @@ User.prototype.check = function(type, existingPassword, callback) {
 
     async.parallel(checks, function(error, result) {
         if (error) {
-            callback(error);
+            return callback(error);
         }
         if (result.username || result.email || result.password || result.existingPassword) {
-            callback(null, result);
+            return callback(null, result);
         }
         callback();
     });
@@ -223,7 +223,7 @@ User.prototype.create = function(callback) {
     // Check if username in use, if email in use, if password is valid,
     this.check('create', null, function(error, result) {
         if (error) {
-            return callback(error);
+            return callback({ error: error });
         }
         else {
             if (result) {
@@ -263,7 +263,7 @@ User.prototype.create = function(callback) {
 User.prototype.update = function(existingPassword, callback) {
     this.check('update', existingPassword, function(error, result) {
         if (error) {
-            return callback(error);
+            return callback({ error: error });
         }
         else {
             if (result) {
