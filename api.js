@@ -135,7 +135,7 @@ else {
     });
 
     app.listen(3001, function () {
-        console.log('API in ' + config.environment + ' mode listening on port 3001...');
+        console.log('API in ' + config.environment + ' mode listening on port 3001 and allowed to serve requests to ' + config.website.url + '...');
     });
 }
 
