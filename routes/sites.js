@@ -4,7 +4,7 @@ var oauth = require('../api.js').oauth;
 var validator = require('validator');
 var filters = require('../models/filters');
 var sites = require('../models/sites');
-var users = require('../models/users');
+var User = require('../models/user');
 
 router.post('/', function (req, res, next) {
     console.log(req.body);
@@ -18,7 +18,7 @@ router.post('/', function (req, res, next) {
         return res.status(400).send("A baseurl is required.");
     }
     // Check uid from apikey
-    users.getByApiKey(req.body.apikey, function(error, result) {
+    User.getUidByApiKey(req.body.apikey, function(error, result) {
         if (error) {
             return res.status(500).send(error);
         }

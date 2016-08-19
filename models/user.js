@@ -9,7 +9,7 @@ var validator = require('validator');
 var swearjar = require('swearjar');
 var config = new require('../config')();
 
-function User(email, username, password) {
+function User(email, username, password, gravatar, apikey, uid, verify, created, subscription) {
     this.email = email || null;
     this.username = username || null;
     this.password = password || null;
@@ -19,37 +19,41 @@ function User(email, username, password) {
     else {
         this.gravatar = null;
     }
-    this.apikey = uuid.v4();
-    this.uid = uuid.v4();
-    this.verify = uuid.v4();
-    this.created = Math.round(new Date().getTime() / 1000);
-    this.subscription = {
+    this.apikey = apikey || uuid.v4();
+    this.uid = uid || uuid.v4();
+    this.verify = verify || uuid.v4();
+    this.created = created || Math.round(new Date().getTime() / 1000);
+    this.subscription = subscription || {
         startDate: this.created,
         endDate: this.created + (60*60*24*30),
         type: 'trial'
     }
+    this.stripe = {}
     this.changes = [];
 }
 
-User.prototype.get = function(uid, callback) {
+User.get = function(uid, callback) {
     db.get('user::' + uid, function(error, result) {
         if (error) {
             return callback(error, null);
         }
-        this.email = result.value.email;
-        this.username = result.value.username;
-        this.password = result.value.password;
-        this.gravatar = result.value.gravatar;
-        this.apikey = result.value.apikey;
-        this.uid = result.value.uid;
-        this.created = result.value.created;
-        this.subscription = result.value.subscription;
+        var user = new User(
+            result.value.email,
+            result.value.username,
+            result.value.password,
+            result.value.gravatar,
+            result.value.apikey,
+            result.value.uid,
+            result.value.created,
+            result.value.subscription,
+            result.value.stripe
+        );
 
-        callback(null, this.uid);
+        callback(null, user);
     });
 }
 
-User.prototype.getByApiKey = function(apikey, callback) {
+User.getUidByApiKey = function(apikey, callback) {
     query = couchbase.ViewQuery.from('users', 'by_apikey')
         .key([apikey])
         .stale(1);
@@ -61,7 +65,7 @@ User.prototype.getByApiKey = function(apikey, callback) {
     });
 }
 
-User.prototype.getByEmail = function(email, callback) {
+User.getUidByEmail = function(email, callback) {
     query = couchbase.ViewQuery.from('users', 'by_email')
         .key([email])
         .stale(1);
@@ -73,7 +77,7 @@ User.prototype.getByEmail = function(email, callback) {
     });
 }
 
-User.prototype.getByUsername = function(username, callback) {
+User.getUidByUsername = function(username, callback) {
     query = couchbase.ViewQuery.from('users', 'by_username')
         .key([username])
         .stale(1);
@@ -94,7 +98,8 @@ User.prototype.getUserDoc = function() {
         apikey: this.apikey,
         uid: this.uid,
         created: this.created,
-        subscription: this.subscription
+        subscription: this.subscription,
+        stripe: this.stripe
     }
 }
 
@@ -113,6 +118,11 @@ User.prototype.setUsername = function(username) {
 User.prototype.setPassword = function(password) {
     this.changes.push('password');
     this.password = password;
+}
+
+User.prototype.setStripe = function(stripe) {
+    this.changes.push('stripe');
+    this.stripe = stripe;
 }
 
 User.prototype.removeVerification = function() {
@@ -140,8 +150,7 @@ User.prototype.check = function(type, existingPassword, callback) {
             return callback(null, 'This username is invalid.');
         }
         else {
-            var user = new User();
-            user.getByUsername(username, function(error, result) {
+            User.getUidByUsername(username, function(error, result) {
                 if (error) {
                     return callback(error);
                 }
@@ -161,8 +170,7 @@ User.prototype.check = function(type, existingPassword, callback) {
             return callback(null, 'A valid email address is required.');
         }
         else {
-            var user = new User();
-            user.getByEmail(email, function(error, result) {
+            User.getUidByEmail(email, function(error, result) {
                 if (error) {
                     return callback(error);
                 }
@@ -205,14 +213,14 @@ User.prototype.check = function(type, existingPassword, callback) {
         checks['password'] = async.apply(passwordValidate, this.password);
     }
     else {
-        if (this.changes.indexOf('username') !== -1 || !this.changes.length) {
+        if (this.changes.indexOf('username') !== -1) {
             checks['username'] = async.apply(usernameValidate, this.username);
         }
-        if (this.changes.indexOf('email') !== -1 || !this.changes.length) {
+        if (this.changes.indexOf('email') !== -1) {
             checks['email'] = async.apply(emailValidate, this.email);
             checks['existingPassword'] = async.apply(existingPasswordValidate, existingPassword, this.password);
         }
-        if (this.changes.indexOf('password') !== -1 || !this.changes.length) {
+        if (this.changes.indexOf('password') !== -1) {
             checks['password'] = async.apply(passwordValidate, this.password);
             checks['existingPassword'] = async.apply(existingPasswordValidate, existingPassword, this.password);
         }
@@ -280,30 +288,40 @@ User.prototype.update = function(existingPassword, callback) {
                 return callback(result);
             }
             // Password validated, now encrypt
-            if (this.changes.indexOf('password')) {
+            if (this.user.changes.indexOf('password')) {
                 this.user.password = forge.md.sha1.create().update(this.user.password).digest().toHex();
             }
-            db.replace('user::' + this.uid, this.getUserDoc(), function(error, result) {
+            db.replace('user::' + this.user.uid, this.user.getUserDoc(), function(error, result) {
                 if (error) {
                     return callback(error, null);
                 }
 
-                if (this.changes.indexOf('verify') !== -1 && !this.verify) {
+                if (this.user.changes.indexOf('verify') !== -1 && !this.user.verify) {
                     email.send({
-                        to: this.email,
+                        to: this.user.email,
                         subject: 'Your Dewy email address has been verified',
-                        text: 'Hi ' + this.username + '. Your email address has been verified successfully and has now changed.',
-                        html: 'Hi ' + this.username + '.<br/>Your email address has been verified successfully and has now changed.'
+                        text: 'Hi ' + this.user.username + '. Your email address has been verified successfully and has now changed.',
+                        html: 'Hi ' + this.user.username + '.<br/>Your email address has been verified successfully and has now changed.'
                     }, function(error, result) {
 
                     });
                 }
-                else if (this.changes.indexOf('email') !== -1) {
+                else if (this.user.changes.indexOf('email') !== -1) {
                     email.send({
-                        to: this.email,
+                        to: this.user.email,
                         subject: 'Your Dewy email address has changed',
-                        text: 'Hi ' + this.username + '. Your email address has been changed, please verify your new email address by visiting this link: ' + config.website.url + '/verify/' + this.uid + '/' + this.verify,
-                        html: 'Hi ' + this.username + '.<br/>A request has been made to change your email address, please verify your new email address by visiting this link: ' + config.website.url + '/verify/' + this.uid + '/' + this.verify
+                        text: 'Hi ' + this.user.username + '. Your email address has been changed, please verify your new email address by visiting this link: ' + config.website.url + '/verify/' + this.user.uid + '/' + this.user.verify,
+                        html: 'Hi ' + this.user.username + '.<br/>A request has been made to change your email address, please verify your new email address by visiting this link: ' + config.website.url + '/verify/' + this.user.uid + '/' + this.user.verify
+                    }, function(error, result) {
+
+                    });
+                }
+                else if (this.user.changes.indexOf('username') !== -1) {
+                    email.send({
+                        to: this.user.email,
+                        subject: 'Your Dewy username has changed',
+                        text: 'Hi ' + this.user.username + '. Your username has been changed to ' + this.user.username + '. You will require this username to sign on in the future.',
+                        html: 'Hi ' + this.user.username + '.<br/>Your username has been changed to ' + this.user.username + '. You will require this username to sign on in the future.'
                     }, function(error, result) {
 
                     });

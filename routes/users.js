@@ -5,7 +5,6 @@ var async = require('async');
 var forge = require('node-forge');
 var validator = require('validator');
 var uuid = require('uuid');
-var users = require('../models/users');
 var User = require('../models/user');
 var email = require('../helpers/email');
 var oauthModel = require('../helpers/oauth');
@@ -43,7 +42,7 @@ router.post('/', function (req, res, next) {
                     return res.status(500).send(error.error);
                 }
                 else {
-                    return res.status(400).send(result);
+                    return res.status(400).send(error);
                 }
             }
             else {
@@ -68,34 +67,36 @@ router.post('/', function (req, res, next) {
 });
 
 router.get('/', oauth.authorise(), function (req, res, next) {
-    users.get(req.user.id, function(error, result) {
+    User.get(req.user.id, function(error, result) {
         if (error) {
-            return res.status(500).send(error.toString());
+            return res.status(500).send(error);
         }
-        res.send(result);
+        var user = result;
+        res.send(user);
     });
 });
 
 router.get('/_verify/:uid', oauth.authorise(), function (req, res, next) {
-    users.get(req.user.id, function(error, result) {
+    User.get(req.user.id, function(error, result) {
         if (error) {
-            return res.status(500).send(error.toString());
+            return res.status(500).send(error);
         }
-        if (!result.verify) {
+        var user = result;
+        if (!user.verify) {
             return res.status(400).send('The user has already been verified.');
         }
-        var userDoc = result;
         email.send({
-                to: result.email,
-                cc: null,
-                subject: 'Your Dewy email address requires verification',
-                text: 'Hi ' + userDoc.username + '! Your email address requires verification, please verify your email address by visiting this link: ' + config.website.url + '/verify/' + userDoc.uid + '/' + userDoc.verify,
-            }, function(error, result) {
-                if (error) {
-                    return res.status(500).send(error.toString());
-                }
-                res.send('Verification email sent.');
-            });
+            to: user.email,
+            cc: null,
+            subject: 'Your Dewy email address requires verification',
+            text: 'Hi ' + user.username + '. Your email address requires verification, please verify your email address by visiting this link: ' + config.website.url + '/verify/' + user.uid + '/' + user.verify,
+            html: 'Hi ' + user.username + '.<br/>Your email address requires verification, please verify your email address by visiting this link: ' + config.website.url + '/verify/' + user.uid + '/' + user.verify
+        }, function(error, result) {
+            if (error) {
+                return res.status(500).send(error);
+            }
+            res.send('Verification email sent.');
+        });
     });
 });
 
@@ -103,26 +104,19 @@ router.post('/_verify/:uid', function (req, res, next) {
     if (!req.body.verification_code) {
         return res.status(400).send("A verification code is required.");
     }
-    users.get(req.params.uid, function(error, result) {
+    User.get(req.params.uid, function(error, result) {
         if (error) {
-            return res.status(500).send(error.toString());
+            return res.status(500).send(error);
         }
-        var existingUserDoc = result;
-        if (!existingUserDoc.verify) {
+        var user = result;
+        if (!user.verify) {
             return res.status(400).send('The email address has already been verified.');
         }
-        if (req.body.verification_code != existingUserDoc.verify) {
+        if (req.body.verification_code != user.verify) {
             return res.status(400).send('The verification code is incorrect.');
         }
-        var newUserDoc = {
-            uid: existingUserDoc.uid,
-            apikey: existingUserDoc.apikey,
-            username: existingUserDoc.username,
-            email: existingUserDoc.email,
-            password: existingUserDoc.password,
-            verify: false
-        } 
-        users.update(existingUserDoc, newUserDoc, function (error, result) {
+        user.removeVerification();
+        user.update(null, function(error, result) {
             if (error) {
                 return res.status(500).send(error);
             }
@@ -134,7 +128,7 @@ router.post('/_verify/:uid', function (req, res, next) {
                     access_token: uuid.v4(),
                     client_id: config.client.client_id,
                     expires: expires,
-                    uid: newUserDoc.uid
+                    uid: user.uid
                 }
                 oauthModel.saveAccessToken(token.access_token, token.client_id, token.expires, token.uid, function(error, result) {
                     if (error) {
@@ -148,135 +142,60 @@ router.post('/_verify/:uid', function (req, res, next) {
 });
 
 router.put('/:uid', oauth.authorise(), function (req, res, next) {
-    users.get(req.user.id, function(error, result) {
+    User.get(req.user.id, function(error, result) {
         if (error) {
-            return res.status(500).send(error.toString());
+            return res.status(500).send(error);
         }
         if (req.params.uid != req.user.id) {
             return res.status(403).send('You do not have permission to access this resource.');
         }
 
-        var existingUserDoc = result;
-        var newUserDoc = {
-            uid: existingUserDoc.uid,
-            apikey: existingUserDoc.apikey,
-            username: existingUserDoc.username,
-            email: existingUserDoc.email,
-            password: existingUserDoc.password,
-            verify: existingUserDoc.verify,
-            created: existingUserDoc.created,
-            subscription: existingUserDoc.subscription,
-            stripe: existingUserDoc.stripe
+        var user = result;
+        if (req.body.key) {
+            user.resetAPIKey();
+        }
+        if (req.body.username) {
+            user.setUsername(req.body.username);
+        }
+        if (req.body.email) {
+            user.setEmail(req.body.password);
+        }
+        if (req.body.password) {
+            user.setPassword(req.body.password);
         }
 
-        // Allow for checking of validity of individual fields without completing an update to the user
+        // Check user values without creating the user
         if (req.body.check) {
-            if ('username' in req.body) {
-                usernameValidate(req.body.username, function(error, result) {
-                    if (result == null || req.body.username.length == 0) {
-                        result = false;
+            user.check('update', null, function(error, result) {
+                if (error) {
+                    return res.status(500).send(error);
+                }
+                else if (result) {
+                    if ('username' in req.body && 'username' in result) {
+                        return res.send({error: result.username});
                     }
-                    res.send({error: result});
-                });
-            }
-            else if ('email' in req.body) {
-                emailValidate(req.body.email, function(error, result) {
-                    if (result == null || req.body.email.length == 0) {
-                        result = false;
+                    if ('email' in req.body && 'email' in result) {
+                        return res.send({error: result.email});
                     }
-                    res.send({error: result});
-                });
-            }
-            else if ('password' in req.body) {
-                passwordValidate(req.body.password, function(error, result) {
-                    if (result == null || req.body.password.length == 0) {
-                        result = false;
+                    if ('password' in req.body && 'password' in result) {
+                        return res.send({error: result.password});
                     }
-                    res.send({error: result});
-                });
-            }
-            else {
-                res.status(400).send('No values to check.');
-            }
+                }
+                return res.send();
+            });
         }
         else {
-            // If the key is specified to be updated, reset the api key
-            if (req.body.key) {
-                newUserDoc.apikey = uuid.v4();
-                users.update(existingUserDoc, newUserDoc, function (error, result) {
-                    if (error) {
-                        return res.status(500).send(error);
+            user.update(req.body.existingPassword, function (error, result) {
+                if (error) {
+                    if (error.error) {
+                        return res.status(500).send(error.error);
                     }
                     else {
-                        res.send(newUserDoc.apikey);
+                        return res.status(400).send(error);
                     }
-                });
-            }
-            else if (req.body.username) {
-                usernameValidate(req.body.username, function(error, result) {
-                    if (error) {
-                        return res.status(500).send(error.toString());
-                    }
-                    else if (!result) {
-                        newUserDoc.username = req.body.username;
-                        users.update(existingUserDoc, newUserDoc, function (error, result) {
-                            if (error) {
-                                return res.status(500).send(error);
-                            }
-                            else {
-                                res.send(result);
-                            }
-                        });
-                    }
-                    else {
-                        res.status(400).send(result);
-                    }
-                });
-            }
-            else {
-                async.parallel({
-                    username: async.apply(usernameValidate, req.body.username),
-                    email: async.apply(emailValidate, req.body.email),
-                    password: async.apply(passwordValidate, req.body.password),
-                    existingPassword: async.apply(existingPasswordValidate, req.body.existingPassword, existingUserDoc.password),
-                }, function(error, results) {
-                    if (error) {
-                        return res.status(500).send(error);
-                    }
-
-                    // User validation passed, update various fields
-                    if (!results.existingPassword && ((req.body.email && !results.email) || (req.body.password && !results.password))) {
-                        if (req.body.email && !results.email) {
-                            newUserDoc.email = req.body.email;
-                        }
-                        if (req.body.password && !results.password) {
-                            req.body.password = forge.md.sha1.create().update(req.body.password).digest().toHex();
-                            newUserDoc.password = req.body.password;
-                        }
-                    }
-                    else {
-                        if (!req.body.email) {
-                            results.email = null;
-                        }
-                        if (!req.body.password) {
-                            results.password = null;
-                        }
-                        if (!req.body.email && !req.body.password) {
-                            results.error = 'A new email address or new password is required.';
-                        }
-                        return res.status(400).send(results);
-                    }
-
-                    users.update(existingUserDoc, newUserDoc, function (error, result) {
-                        if (error) {
-                            return res.status(500).send(error);
-                        }
-                        else {
-                            res.send(result);
-                        }
-                    });
-                });
-            }
+                }
+                return res.send(user);
+            });
         }
     });
 });
@@ -285,53 +204,43 @@ router.post('/:uid/_subscription/:plan', oauth.authorise(), function (req, res, 
 
     var availablePlans = ['basic'];
 
-    if (availablePlans.indexOf(req.params.plan) != -1) {
-        users.get(req.user.id, function(error, result) {
+    if (availablePlans.indexOf(req.params.plan) == -1) {
+        res.status(400).send('The ' + req.params.plan + ' plan is not available.');
+    }
+    else {
+        User.get(req.user.id, function(error, result) {
             if (error) {
-                return res.status(500).send(error.toString());
+                return res.status(500).send(error);
             }
             if (req.params.uid != req.user.id) {
                 return res.status(403).send('You do not have permission to access this resource.');
             }
-
-            var existingUserDoc = result;
-
+            var user = result;
             var stripe = require("stripe")(config.stripe.private_key);
             var stripeToken = req.body.stripeToken;
             stripe.customers.create({
                 source: stripeToken,
                 plan: req.params.plan,
-                email: existingUserDoc.email
+                email: user.email
             }, function(error, result) {
                 if (error) {
-                    return res.status(500).send(error.toString());
+                    return res.status(500).send(error);
                 }
 
-                var newUserDoc = {
-                    uid: existingUserDoc.uid,
-                    apikey: existingUserDoc.apikey,
-                    username: existingUserDoc.username,
-                    email: existingUserDoc.email,
-                    password: existingUserDoc.password,
-                    verify: existingUserDoc.verify,
-                    created: existingUserDoc.created,
-                    subscription: existingUserDoc.subscription,
-                    stripe: result
-                }
-
-                users.update(existingUserDoc, newUserDoc, function (error, result) {
+                user.setStripe(result);
+                user.update(null, function (error, result) {
                     if (error) {
-                        return res.status(500).send(error);
+                        if (error.error) {
+                            return res.status(500).send(error.error);
+                        }
+                        else {
+                            return res.status(400).send(error);
+                        }
                     }
-                    else {
-                        res.send(result);
-                    }
+                    return res.send(user);
                 });
             });
         });
-    }
-    else {
-        res.status(400).send('The ' + req.params.plan + ' plan is not available.');
     }
 });
 
