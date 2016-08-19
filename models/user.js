@@ -6,6 +6,7 @@ var forge = require('node-forge');
 var md5 = require('md5');
 var email = require('../helpers/email');
 var validator = require('validator');
+var swearjar = require('swearjar');
 var config = new require('../config')();
 
 function User(email, username, password) {
@@ -129,6 +130,15 @@ User.prototype.check = function(type, existingPassword, callback) {
         if (!username) {
             return callback(null, 'A username is required.');
         } 
+        else if (!/^[a-z0-9]+$/i.test(username)) {
+            return callback(null, 'Usernames can only be made of letters and numbers.');
+        }
+        else if (!validator.isLength(username, {min: 4})) {
+            return callback(null, 'Your username must be at least 4 characters.');
+        }
+        else if (swearjar.profane(username)) {
+            return callback(null, 'This username is invalid.');
+        }
         else {
             var user = new User();
             user.getByUsername(username, function(error, result) {
