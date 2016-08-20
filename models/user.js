@@ -9,7 +9,7 @@ var validator = require('validator');
 var swearjar = require('swearjar');
 var config = new require('../config')();
 
-function User(email, username, password, gravatar, apikey, uid, verify, created, subscription) {
+function User(email, username, password, gravatar, apikey, uid, verified, created, type, stripe) {
     this.email = email || null;
     this.username = username || null;
     this.password = password || null;
@@ -21,15 +21,16 @@ function User(email, username, password, gravatar, apikey, uid, verify, created,
     }
     this.apikey = apikey || uuid.v4();
     this.uid = uid || uuid.v4();
-    this.verify = verify || uuid.v4();
+    this.verified = verified || uuid.v4();
     this.created = created || Math.round(new Date().getTime() / 1000);
-    this.subscription = subscription || {
-        startDate: this.created,
-        endDate: this.created + (60*60*24*30),
-        type: 'trial'
+    this.subscription = {
+        startDate: created || Math.round(new Date().getTime() / 1000),
+        endDate: created + (60*60*24*30) || Math.round(new Date().getTime() / 1000) + (60*60*24*30),
+        type: type || 'trial'
     }
-    this.stripe = {}
+    this.stripe = stripe || {};
     this.changes = [];
+    this.unchangedValues = this.getUserDoc();
 }
 
 User.get = function(uid, callback) {
@@ -44,8 +45,9 @@ User.get = function(uid, callback) {
             result.value.gravatar,
             result.value.apikey,
             result.value.uid,
+            result.value.verified,
             result.value.created,
-            result.value.subscription,
+            result.value.type,
             result.value.stripe
         );
 
@@ -97,6 +99,7 @@ User.prototype.getUserDoc = function() {
         gravatar: this.gravatar,
         apikey: this.apikey,
         uid: this.uid,
+        verified: this.verified,
         created: this.created,
         subscription: this.subscription,
         stripe: this.stripe
@@ -104,9 +107,9 @@ User.prototype.getUserDoc = function() {
 }
 
 User.prototype.setEmail = function(email) {
-    this.changes.push('email', 'verify', 'gravatar');
+    this.changes.push('email', 'verified', 'gravatar');
     this.email = email;
-    this.verify = uuid.v4();
+    this.verified = uuid.v4();
     this.gravatar = md5(this.email);
 }
 
@@ -126,8 +129,8 @@ User.prototype.setStripe = function(stripe) {
 }
 
 User.prototype.removeVerification = function() {
-    this.changes.push('verify');
-    this.verify = false;
+    this.changes.push('verified');
+    this.verified = true;
 }
 
 User.prototype.resetAPIKey = function() {
@@ -218,11 +221,11 @@ User.prototype.check = function(type, existingPassword, callback) {
         }
         if (this.changes.indexOf('email') !== -1) {
             checks['email'] = async.apply(emailValidate, this.email);
-            checks['existingPassword'] = async.apply(existingPasswordValidate, existingPassword, this.password);
+            checks['existingPassword'] = async.apply(existingPasswordValidate, existingPassword, this.unchangedValues.password);
         }
         if (this.changes.indexOf('password') !== -1) {
             checks['password'] = async.apply(passwordValidate, this.password);
-            checks['existingPassword'] = async.apply(existingPasswordValidate, existingPassword, this.password);
+            checks['existingPassword'] = async.apply(existingPasswordValidate, existingPassword, this.unchangedValues.password);
         }
     }
 
@@ -256,8 +259,8 @@ User.prototype.create = function(callback) {
                 }
 
                 var message;
-                if (this.user.verify) {
-                    message = 'Welcome to Dewy. Please verify your email address by visiting this link: ' + config.website.url + '/verify/' + this.user.uid + '/' + this.user.verify;
+                if (this.user.verified === true) {
+                    message = 'Welcome to Dewy. Please verify your email address by visiting this link: ' + config.website.url + '/verify/' + this.user.uid + '/' + this.user.verified;
                 }
                 else {
                     message = 'An account has been created for you on ' + config.website.url + '. Use the username "' + this.user.username + '" and password "' + actualPassword + '" to sign on. Change your password after signing on.';
@@ -288,7 +291,7 @@ User.prototype.update = function(existingPassword, callback) {
                 return callback(result);
             }
             // Password validated, now encrypt
-            if (this.user.changes.indexOf('password')) {
+            if (this.user.changes.indexOf('password') !== -1) {
                 this.user.password = forge.md.sha1.create().update(this.user.password).digest().toHex();
             }
             db.replace('user::' + this.user.uid, this.user.getUserDoc(), function(error, result) {
@@ -296,35 +299,40 @@ User.prototype.update = function(existingPassword, callback) {
                     return callback(error, null);
                 }
 
-                if (this.user.changes.indexOf('verify') !== -1 && !this.user.verify) {
+                var userDoc = this.user.getUserDoc();
+
+                if (this.user.changes.indexOf('verified') !== -1 && this.user.verified === true) {
                     email.send({
                         to: this.user.email,
                         subject: 'Your Dewy email address has been verified',
                         text: 'Hi ' + this.user.username + '. Your email address has been verified successfully and has now changed.',
                         html: 'Hi ' + this.user.username + '.<br/>Your email address has been verified successfully and has now changed.'
                     }, function(error, result) {
-
+                        callback(null, userDoc);
                     });
                 }
                 else if (this.user.changes.indexOf('email') !== -1) {
                     email.send({
                         to: this.user.email,
                         subject: 'Your Dewy email address has changed',
-                        text: 'Hi ' + this.user.username + '. Your email address has been changed, please verify your new email address by visiting this link: ' + config.website.url + '/verify/' + this.user.uid + '/' + this.user.verify,
-                        html: 'Hi ' + this.user.username + '.<br/>A request has been made to change your email address, please verify your new email address by visiting this link: ' + config.website.url + '/verify/' + this.user.uid + '/' + this.user.verify
+                        text: 'Hi ' + this.user.username + '. Your email address has been changed, please verify your new email address by visiting this link: ' + config.website.url + '/verify/' + this.user.uid + '/' + this.user.verified,
+                        html: 'Hi ' + this.user.username + '.<br/>A request has been made to change your email address, please verify your new email address by visiting this link: ' + config.website.url + '/verify/' + this.user.uid + '/' + this.user.verified
                     }, function(error, result) {
-
+                        callback(null, userDoc);
                     });
                 }
                 else if (this.user.changes.indexOf('username') !== -1) {
                     email.send({
                         to: this.user.email,
                         subject: 'Your Dewy username has changed',
-                        text: 'Hi ' + this.user.username + '. Your username has been changed to ' + this.user.username + '. You will require this username to sign on in the future.',
-                        html: 'Hi ' + this.user.username + '.<br/>Your username has been changed to ' + this.user.username + '. You will require this username to sign on in the future.'
+                        text: 'Hi ' + this.user.unchangedValues.username + '. Your username has been changed to ' + this.user.username + '. You will require this username to sign on in the future.',
+                        html: 'Hi ' + this.user.unchangedValues.username + '.<br/>Your username has been changed to ' + this.user.username + '. You will require this username to sign on in the future.'
                     }, function(error, result) {
-
+                        callback(null, userDoc);
                     });
+                }
+                else {
+                    callback(null, userDoc);
                 }
             }.bind( {user: this.user} ));
         }

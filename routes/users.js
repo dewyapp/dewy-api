@@ -82,15 +82,15 @@ router.get('/_verify/:uid', oauth.authorise(), function (req, res, next) {
             return res.status(500).send(error);
         }
         var user = result;
-        if (!user.verify) {
+        if (user.verified === true) {
             return res.status(400).send('The user has already been verified.');
         }
         email.send({
             to: user.email,
             cc: null,
             subject: 'Your Dewy email address requires verification',
-            text: 'Hi ' + user.username + '. Your email address requires verification, please verify your email address by visiting this link: ' + config.website.url + '/verify/' + user.uid + '/' + user.verify,
-            html: 'Hi ' + user.username + '.<br/>Your email address requires verification, please verify your email address by visiting this link: ' + config.website.url + '/verify/' + user.uid + '/' + user.verify
+            text: 'Hi ' + user.username + '. Your email address requires verification, please verify your email address by visiting this link: ' + config.website.url + '/verify/' + user.uid + '/' + user.verified,
+            html: 'Hi ' + user.username + '.<br/>Your email address requires verification, please verify your email address by visiting this link: ' + config.website.url + '/verify/' + user.uid + '/' + user.verified
         }, function(error, result) {
             if (error) {
                 return res.status(500).send(error);
@@ -109,10 +109,10 @@ router.post('/_verify/:uid', function (req, res, next) {
             return res.status(500).send(error);
         }
         var user = result;
-        if (!user.verify) {
+        if (user.verified === true) {
             return res.status(400).send('The email address has already been verified.');
         }
-        if (req.body.verification_code != user.verify) {
+        if (req.body.verification_code != user.verified) {
             return res.status(400).send('The verification code is incorrect.');
         }
         user.removeVerification();
@@ -158,7 +158,7 @@ router.put('/:uid', oauth.authorise(), function (req, res, next) {
             user.setUsername(req.body.username);
         }
         if (req.body.email) {
-            user.setEmail(req.body.password);
+            user.setEmail(req.body.email);
         }
         if (req.body.password) {
             user.setPassword(req.body.password);
