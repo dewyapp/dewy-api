@@ -81,7 +81,7 @@ User.getUidByEmail = function(email, callback) {
 
 User.getUidByUsername = function(username, callback) {
     query = couchbase.ViewQuery.from('users', 'by_username')
-        .key([username])
+        .key([username.toLowerCase()])
         .stale(1);
     db.query(query, function(error, result) {
         if (error) {
