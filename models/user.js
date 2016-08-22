@@ -9,7 +9,7 @@ var validator = require('validator');
 var swearjar = require('swearjar');
 var config = new require('../config')();
 
-function User(email, username, password, gravatar, apikey, uid, verified, created, type, stripe) {
+function User(email, username, password, gravatar, apikey, uid, verified, passwordRequested, created, type, stripe) {
     this.email = email || null;
     this.username = username || null;
     this.password = password || null;
@@ -22,6 +22,10 @@ function User(email, username, password, gravatar, apikey, uid, verified, create
     this.apikey = apikey || uuid.v4();
     this.uid = uid || uuid.v4();
     this.verified = verified || uuid.v4();
+    this.passwordRequested = false;
+    if (passwordRequested !== false) {
+        this.passwordRequested = passwordRequested;
+    }
     this.created = created || Math.round(new Date().getTime() / 1000);
     this.subscription = {
         startDate: created || Math.round(new Date().getTime() / 1000),
@@ -46,6 +50,7 @@ User.get = function(uid, callback) {
             result.value.apikey,
             result.value.uid,
             result.value.verified,
+            result.value.passwordRequested,
             result.value.created,
             result.value.type,
             result.value.stripe
@@ -100,10 +105,17 @@ User.prototype.getUserDoc = function() {
         apikey: this.apikey,
         uid: this.uid,
         verified: this.verified,
+        passwordRequested: this.passwordRequested,
         created: this.created,
         subscription: this.subscription,
         stripe: this.stripe
     }
+}
+
+
+User.prototype.addPasswordRequest = function() {
+    this.changes.push('passwordRequested');
+    this.passwordRequested = uuid.v4();
 }
 
 User.prototype.setEmail = function(email) {
@@ -111,11 +123,6 @@ User.prototype.setEmail = function(email) {
     this.email = email;
     this.verified = uuid.v4();
     this.gravatar = md5(this.email);
-}
-
-User.prototype.setUsername = function(username) {
-    this.changes.push('username');
-    this.username = username;
 }
 
 User.prototype.setPassword = function(password) {
@@ -126,6 +133,16 @@ User.prototype.setPassword = function(password) {
 User.prototype.setStripe = function(stripe) {
     this.changes.push('stripe');
     this.stripe = stripe;
+}
+
+User.prototype.setUsername = function(username) {
+    this.changes.push('username');
+    this.username = username;
+}
+
+User.prototype.removePasswordRequest = function() {
+    this.changes.push('verified');
+    this.passwordRequested = false;
 }
 
 User.prototype.removeVerification = function() {
@@ -327,6 +344,16 @@ User.prototype.update = function(existingPassword, callback) {
                         subject: 'Your Dewy username has changed',
                         text: 'Hi ' + this.user.unchangedValues.username + '. Your username has been changed to ' + this.user.username + '. You will require this username to sign on in the future.',
                         html: 'Hi ' + this.user.unchangedValues.username + '.<br/>Your username has been changed to ' + this.user.username + '. You will require this username to sign on in the future.'
+                    }, function(error, result) {
+                        callback(null, userDoc);
+                    });
+                }
+                else if (this.user.changes.indexOf('passwordRequested') !== -1 && this.user.passwordRequested !== false) {
+                    email.send({
+                        to: this.user.email,
+                        subject: 'A password reset request for your Dewy account',
+                        text: 'Hi ' + this.user.username + '. A request to reset your password has been initiated. To reset your password and recieve a new one, visit this link: ' + config.website.url + '/reset/' + this.user.uid + '/' + this.user.passwordRequested,
+                        html: 'Hi ' + this.user.username + '.<br/>A request to reset your password has been initiated. To reset your password and recieve a new one, visit this link: ' + config.website.url + '/reset/' + this.user.uid + '/' + this.user.passwordRequested
                     }, function(error, result) {
                         callback(null, userDoc);
                     });

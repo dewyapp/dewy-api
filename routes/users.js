@@ -76,6 +76,33 @@ router.get('/', oauth.authorise(), function (req, res, next) {
     });
 });
 
+router.post('/_reset/:uid', function (req, res, next) {
+    if (!req.body.reset_code) {
+        return res.status(400).send("A password reset code is required.");
+    }
+    User.get(req.params.uid, function(error, result) {
+        if (error) {
+            return res.status(500).send(error);
+        }
+        var user = result;
+        if (user.passwordRequested === false) {
+            return res.status(400).send('The password has already been reset.');
+        }
+        if (req.body.reset_code != user.passwordRequested) {
+            return res.status(400).send('The password reset code is incorrect.');
+        }
+        user.removePasswordRequest();
+        user.update(null, function(error, result) {
+            if (error) {
+                return res.status(500).send(error);
+            }
+            else {
+                res.send();
+            }
+        });
+    });
+});
+
 router.get('/_verify/:uid', oauth.authorise(), function (req, res, next) {
     User.get(req.user.id, function(error, result) {
         if (error) {
@@ -153,6 +180,9 @@ router.put('/:uid', oauth.authorise(), function (req, res, next) {
         var user = result;
         if (req.body.key) {
             user.resetAPIKey();
+        }
+        if (req.body.requestPassword) {
+            user.addPasswordRequest();
         }
         if (req.body.username) {
             user.setUsername(req.body.username);
