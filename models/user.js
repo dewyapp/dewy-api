@@ -7,6 +7,7 @@ var md5 = require('md5');
 var email = require('../helpers/email');
 var validator = require('validator');
 var swearjar = require('swearjar');
+var randomstring = require('randomstring');
 var config = new require('../config')();
 
 function User(email, username, password, gravatar, apikey, uid, verified, passwordRequested, created, type, stripe) {
@@ -160,6 +161,7 @@ User.prototype.resetAPIKey = function() {
 
 User.prototype.resetPassword = function() {
     this.changes.push('password', 'passwordRequested');
+    this.password = randomstring.generate(8);
     this.passwordRequested = false;
 }
 
