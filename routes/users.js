@@ -121,7 +121,7 @@ router.post('/_reset/:uid', function (req, res, next) {
         if (req.body.reset_code != user.passwordRequested) {
             return res.status(400).send('The password reset code is incorrect.');
         }
-        user.removePasswordRequest();
+        user.resetPassword();
         user.update(null, function(error, result) {
             if (error) {
                 return res.status(500).send(error);
