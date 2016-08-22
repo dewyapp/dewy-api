@@ -68,7 +68,10 @@ User.getUidByApiKey = function(apikey, callback) {
         if (error) {
             return callback(error, null);
         }
-        callback(null, result);
+        if (result.length) {
+            return callback(null, result[0].value);
+        }
+        callback(null, false);
     });
 }
 
@@ -80,7 +83,10 @@ User.getUidByEmail = function(email, callback) {
         if (error) {
             return callback(error, null);
         }
-        callback(null, result);
+        if (result.length) {
+            return callback(null, result[0].value);
+        }
+        callback(null, false);
     });
 }
 
@@ -92,7 +98,10 @@ User.getUidByUsername = function(username, callback) {
         if (error) {
             return callback(error, null);
         }
-        callback(null, result);
+        if (result.length) {
+            return callback(null, result[0].value);
+        }
+        callback(null, false);
     });
 }
 
@@ -111,7 +120,6 @@ User.prototype.getUserDoc = function() {
         stripe: this.stripe
     }
 }
-
 
 User.prototype.addPasswordRequest = function() {
     this.changes.push('passwordRequested');
@@ -174,7 +182,7 @@ User.prototype.check = function(type, existingPassword, callback) {
                 if (error) {
                     return callback(error);
                 }
-                if (result.length) {
+                if (result !== false) {
                     return callback(null, 'This username is in use.');
                 }
                 callback();
@@ -194,7 +202,7 @@ User.prototype.check = function(type, existingPassword, callback) {
                 if (error) {
                     return callback(error);
                 }
-                if (result.length) {
+                if (result !== false) {
                     return callback(null, 'This email address is in use.');
                 }
                 callback();

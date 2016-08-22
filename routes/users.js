@@ -76,6 +76,36 @@ router.get('/', oauth.authorise(), function (req, res, next) {
     });
 });
 
+router.post('/_reset', function (req, res, next) {
+    if (!req.body.email) {
+        return res.status(400).send("An email address required.");
+    }
+    User.getUidByEmail(req.body.email, function(error, result) {
+        if (error) {
+            return res.status(500).send(error);
+        }
+        if (result === false) {
+            return res.status(400).send('This email address cannot be found.');
+        }
+        User.get(result, function(error, result) {
+            if (error) {
+                return res.status(500).send(error);
+            }
+
+            var user = result;
+            user.addPasswordRequest();
+            user.update(null, function(error, result) {
+                if (error) {
+                    return res.status(500).send(error);
+                }
+                else {
+                    res.send();
+                }
+            });
+        });
+    });
+});
+
 router.post('/_reset/:uid', function (req, res, next) {
     if (!req.body.reset_code) {
         return res.status(400).send("A password reset code is required.");
