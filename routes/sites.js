@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var oauth = require('../api.js').oauth;
+var subscription = require('../middleware/subscription.js');
 var validator = require('validator');
 var filters = require('../models/filters');
 var sites = require('../models/sites');
@@ -71,7 +72,7 @@ router.post('/', function (req, res, next) {
     });
 });
 
-router.get('/_filter/:fid?', oauth.authorise(), function (req, res, next) {
+router.get('/_filter/:fid?', oauth.authorise(), subscription.require('basic'), function (req, res, next) {
     filters.get(req.params.fid, function(error, result) {
         if (error) {
             return res.status(500).send(error);
@@ -170,7 +171,7 @@ router.delete('/:sid', oauth.authorise(), function (req, res, next) {
     });
 });
 
-router.get('/:sid/_detail', oauth.authorise(), function (req, res, next) {
+router.get('/:sid/_detail', oauth.authorise(), subscription.require('basic'), function (req, res, next) {
     sites.get(req.params.sid, function (error, result) {
         if (error) {
             return res.status(500).send(error);

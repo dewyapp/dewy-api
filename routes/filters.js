@@ -1,10 +1,12 @@
 var express = require('express');
 var router = express.Router();
 var oauth = require('../api.js').oauth;
+var subscription = require('../middleware/subscription.js');
 var util = require('util');
 var validator = require('validator');
 var filters = require('../models/filters');
 
+// TODO: what's this route used for?!
 router.get('/', oauth.authorise(), function (req, res, next) {
     filters.getAll(req.user.id, function(error, result) {
         if (error) {
@@ -14,7 +16,7 @@ router.get('/', oauth.authorise(), function (req, res, next) {
     });
 });
 
-router.post('/', oauth.authorise(), function (req, res, next) {
+router.post('/', oauth.authorise(), oauth.authorise(), subscription.require('basic'), function (req, res, next) {
     filters.create(req.user.id, req.body, function(error, result) {
         if (error) {
             return res.status(500).send(error.toString());
@@ -32,7 +34,7 @@ router.get('/_index', oauth.authorise(), function (req, res, next) {
     });
 });
 
-router.post('/_index', oauth.authorise(), function (req, res, next) {
+router.post('/_index', oauth.authorise(), subscription.require('basic'), function (req, res, next) {
     filters.updateIndex(req.user.id, req.body, function(error, result) {
         if (error) {
             return res.status(500).send(error.toString());
@@ -41,7 +43,7 @@ router.post('/_index', oauth.authorise(), function (req, res, next) {
     });
 });
 
-router.get('/:fid', oauth.authorise(), function (req, res, next) {
+router.get('/:fid', oauth.authorise(), oauth.authorise(), subscription.require('basic'), function (req, res, next) {
     filters.get(req.params.fid, function(error, result) {
         if (error) {
             return res.status(500).send(error.toString());
@@ -53,7 +55,7 @@ router.get('/:fid', oauth.authorise(), function (req, res, next) {
     });
 });
 
-router.delete('/:fid', oauth.authorise(), function (req, res, next) {
+router.delete('/:fid', oauth.authorise(), oauth.authorise(), subscription.require('basic'), function (req, res, next) {
     filters.get(req.params.fid, function(error, result) {
         if (error) {
             return res.status(500).send(error.toString());
@@ -70,7 +72,7 @@ router.delete('/:fid', oauth.authorise(), function (req, res, next) {
     });
 });
 
-router.put('/:fid', oauth.authorise(), function (req, res, next) {
+router.put('/:fid', oauth.authorise(), oauth.authorise(), subscription.require('basic'), function (req, res, next) {
     filters.get(req.params.fid, function(error, result) {
         if (error) {
             return res.status(500).send(error.toString());
