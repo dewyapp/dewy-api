@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "nodemon api.js",
-    "install": "node api.js --setup"
+    "install": "node api.js setup"
   },
   "dependencies": {
     "async": "^1.5.2",
