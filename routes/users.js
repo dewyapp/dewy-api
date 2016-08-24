@@ -276,30 +276,34 @@ router.post('/:uid/_subscription/:plan', oauth.authorise(), function (req, res, 
                 return res.status(403).send('You do not have permission to access this resource.');
             }
             var user = result;
-            var stripe = require("stripe")(config.stripe.private_key);
-            var stripeToken = req.body.stripeToken;
-            stripe.customers.create({
-                source: stripeToken,
-                plan: req.params.plan,
-                email: user.email
-            }, function(error, result) {
-                if (error) {
-                    return res.status(500).send(error);
-                }
 
-                user.setStripe(result);
-                user.update(null, function (error, result) {
+            // User isn't a Dewy Stripe customer yet, create them
+            if (user.subscription.stripeID === false) {
+                var stripe = require("stripe")(config.stripe.private_key);
+                var stripeToken = req.body.stripeToken;
+                stripe.customers.create({
+                    source: stripeToken,
+                    plan: req.params.plan,
+                    email: user.email
+                }, function(error, result) {
                     if (error) {
-                        if (error.error) {
-                            return res.status(500).send(error.error);
-                        }
-                        else {
-                            return res.status(400).send(error);
-                        }
+                        return res.status(500).send(error);
                     }
-                    return res.send(user);
+
+                    user.setSubscription(result.subscriptions.data[0].current_period_start, result.subscriptions.data[0].current_period_end, req.params.plan, result.id);
+                    user.update(null, function (error, result) {
+                        if (error) {
+                            if (error.error) {
+                                return res.status(500).send(error.error);
+                            }
+                            else {
+                                return res.status(400).send(error);
+                            }
+                        }
+                        return res.send(user);
+                    });
                 });
-            });
+            }
         });
     }
 });

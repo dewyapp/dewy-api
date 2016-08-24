@@ -10,7 +10,7 @@ var swearjar = require('swearjar');
 var randomstring = require('randomstring');
 var config = new require('../config')();
 
-function User(email, username, password, gravatar, apikey, uid, verified, passwordRequested, created, type, stripe) {
+function User(email, username, password, gravatar, apikey, uid, verified, passwordRequested, created, startDate, endDate, type, stripeID) {
     this.email = email || null;
     this.username = username || null;
     this.password = password || null;
@@ -29,11 +29,11 @@ function User(email, username, password, gravatar, apikey, uid, verified, passwo
     }
     this.created = created || Math.round(new Date().getTime() / 1000);
     this.subscription = {
-        startDate: created || Math.round(new Date().getTime() / 1000),
-        endDate: created + (60*60*24*30) || Math.round(new Date().getTime() / 1000) + (60*60*24*30),
-        type: type || 'trial'
+        startDate: startDate || this.created,
+        endDate: endDate|| this.created + (60*60*24*30),
+        type: type || 'trial',
+        stripeID: stripeID || false
     }
-    this.stripe = stripe || {};
     this.changes = [];
     this.unchangedValues = this.getUserDoc();
 }
@@ -53,8 +53,10 @@ User.get = function(uid, callback) {
             result.value.verified,
             result.value.passwordRequested,
             result.value.created,
-            result.value.type,
-            result.value.stripe
+            result.value.subscription.startDate,
+            result.value.subscription.endDate,
+            result.value.subscription.type,
+            result.value.subscription.stripeID
         );
 
         callback(null, user);
@@ -117,8 +119,7 @@ User.prototype.getUserDoc = function() {
         verified: this.verified,
         passwordRequested: this.passwordRequested,
         created: this.created,
-        subscription: this.subscription,
-        stripe: this.stripe
+        subscription: this.subscription
     }
 }
 
@@ -139,9 +140,14 @@ User.prototype.setPassword = function(password) {
     this.password = password;
 }
 
-User.prototype.setStripe = function(stripe) {
-    this.changes.push('stripe');
-    this.stripe = stripe;
+User.prototype.setSubscription = function(startDate, endDate, type, stripeID) {
+    this.changes.push('subscription');
+    this.subscription = {
+        startDate: startDate,
+        endDate: endDate,
+        type: type,
+        stripeID: stripeID
+    }
 }
 
 User.prototype.setUsername = function(username) {

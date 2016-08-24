@@ -9,25 +9,25 @@
 	1. [Download and install Docker toolbox](https://docs.docker.com/mac/step_one/)
 	2. Start Docker machine
 	
-			docker-machine start
+			$ docker-machine start default
 			
 	3. Share Docker machine environment variables with the terminal
 	
-			eval $(docker-machine env default)
+			$ eval $(docker-machine env default)
 			
 	4. Bring up Couchbase server through Docker
 	
-			docker-compose up -d
+			$ docker-compose up -d
 
 	5. Visit the Couchbase Console at http://<docker-machine-ip>/index.html, and set up the server with a username and password, then delete the default bucket and add a Dewy bucket with a password
 
 * Configure Couchbase, Mailgun and OAuth:
 
-        cp config.json.default config.json
+        $ cp config.json.default config.json
 
 * Install dependencies:
 
-		npm install
+		$ npm install
 
 ## Usage
 
@@ -35,7 +35,7 @@
 
 * Run node:
 
-		npm start
+		$ npm start
 
 * Make requests to the API at localhost:3001
 
@@ -43,7 +43,7 @@
 
 * Install a web server to provide SSL and proxy to our Node application, such as [Nginx](http://nginx.org)
 
-		yum install nginx
+		$ yum install nginx
 
 * Create a configuration file, /etc/nginx/conf.d/dewy.conf, and upload certificate files to /etc/nginx/ssl/:
 
@@ -67,18 +67,18 @@
 
 * Install a [process manager for Node](http://expressjs.com/en/advanced/pm.html)
 
-		npm install forever -g
+		$ npm install forever -g
 
 * Set the environment to production:
 
-		export NODE_ENV=production
+		$ export NODE_ENV=production
 
 * Run the Dewy API using that process manager
 
-		forever start -a -l ../logs/forever.log -o ../logs/out.log -e ../logs/err.log api.js
+		$ forever start -a -l ../logs/forever.log -o ../logs/out.log -e ../logs/err.log api.js
 
 ### Command line tools
 
 * Administrative functions can be run through the command line, access the help for more details:
 
-		./api.js -h
+		$ ./api.js -h
