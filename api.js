@@ -121,11 +121,13 @@ else {
     var filterRoutes = require('./routes/filters');
     var moduleRoutes = require('./routes/modules');
     var siteRoutes = require('./routes/sites');
+    var stripeRoutes = require('./routes/stripe');
     var userRoutes = require('./routes/users');
     app.use('/fields', fieldRoutes);
     app.use('/filters', filterRoutes);
     app.use('/modules', moduleRoutes);
     app.use('/sites', siteRoutes);
+    app.use('/stripe', stripeRoutes);
     app.use('/users', userRoutes);
 
     // Error handling
