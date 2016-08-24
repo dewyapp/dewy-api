@@ -51,6 +51,7 @@
 		  listen       443 ssl;
 		  server_name  api.dewy.io;
 
+		  ssl_protocols TLSv1.2 TLSv1.1 TLSv1;
 		  ssl_certificate  /etc/nginx/ssl/api_dewy_io.crt;
 		  ssl_certificate_key /etc/nginx/ssl/api_dewy_io.key;
 
