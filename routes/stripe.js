@@ -20,7 +20,7 @@ router.post('/', function (req, res, next) {
         }
 
         // Get customer of Stripe event
-        var stripeID = event.data.object.id;
+        var stripeID = event.data.object.customer;
         User.getUidByStripeID(stripeID, function(error, result) {
             if (error) {
                 console.error(error);
@@ -45,8 +45,8 @@ router.post('/', function (req, res, next) {
                         email.send({
                             to: this.user.email,
                             subject: 'Your Dewy subscription has begun',
-                            text: 'Hi ' + this.user.username + '. Thank you for starting a ' + event.plan.id + ' subscription to Dewy.',
-                            html: 'Hi ' + this.user.username + '.<br/>Thank you for starting a ' + event.plan.id + ' subscription to Dewy.'
+                            text: 'Hi ' + this.user.username + '. Thank you for starting a ' + event.data.object.plan.id + ' subscription to Dewy.',
+                            html: 'Hi ' + this.user.username + '.<br/>Thank you for starting a ' + event.data.object.plan.id + ' subscription to Dewy.'
                         }, function(error, result) {
                             res.send();
                         });
