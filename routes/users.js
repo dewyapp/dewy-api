@@ -277,7 +277,7 @@ router.post('/:uid/_subscription/:plan', oauth.authorise(), function (req, res, 
             }
             var user = result;
 
-            // User isn't a Dewy Stripe customer yet, create them
+            // User isn't a Dewy Stripe customer yet, create the customer and the subscription
             if (user.subscription.stripeID === false) {
                 var stripe = require("stripe")(config.stripe.private_key);
                 var stripeToken = req.body.stripeToken;
@@ -290,7 +290,7 @@ router.post('/:uid/_subscription/:plan', oauth.authorise(), function (req, res, 
                         return res.status(500).send(error);
                     }
 
-                    user.setSubscription(result.subscriptions.data[0].current_period_start, result.subscriptions.data[0].current_period_end, req.params.plan, result.id);
+                    user.setSubscription(result.subscriptions.data[0].current_period_start, result.subscriptions.data[0].current_period_end, req.params.plan, result.id, result.subscriptions.data[0].id);
                     user.update(null, function (error, result) {
                         if (error) {
                             if (error.error) {
@@ -304,6 +304,10 @@ router.post('/:uid/_subscription/:plan', oauth.authorise(), function (req, res, 
                     });
                 });
             }
+            // If the user is a Stripe customer but doesn't have a current subscription, create one
+            // else if (user.subscription.subscriptionID === false) {
+            // Otherwise, update the plan
+            // else
         });
     }
 });

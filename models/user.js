@@ -10,7 +10,7 @@ var swearjar = require('swearjar');
 var randomstring = require('randomstring');
 var config = new require('../config')();
 
-function User(email, username, password, gravatar, apikey, uid, verified, passwordRequested, created, startDate, endDate, type, stripeID) {
+function User(email, username, password, gravatar, apikey, uid, verified, passwordRequested, created, startDate, endDate, type, stripeID, subscriptionID) {
     this.email = email || null;
     this.username = username || null;
     this.password = password || null;
@@ -34,7 +34,8 @@ function User(email, username, password, gravatar, apikey, uid, verified, passwo
         startDate: startDate || this.created,
         endDate: endDate|| this.created + (60*60*24*30),
         type: type || 'trial',
-        stripeID: stripeID || false
+        stripeID: stripeID || false,
+        subscriptionID: subscriptionID || false
     }
     this.changes = [];
     this.unchangedValues = this.getUserDoc();
@@ -58,7 +59,8 @@ User.get = function(uid, callback) {
             result.value.subscription.startDate,
             result.value.subscription.endDate,
             result.value.subscription.type,
-            result.value.subscription.stripeID
+            result.value.subscription.stripeID,
+            result.value.subscription.subscriptionID
         );
 
         callback(null, user);
@@ -157,13 +159,14 @@ User.prototype.setPassword = function(password) {
     this.password = password;
 }
 
-User.prototype.setSubscription = function(startDate, endDate, type, stripeID) {
+User.prototype.setSubscription = function(startDate, endDate, type, stripeID, subscriptionID) {
     this.changes.push('subscription');
     this.subscription = {
-        startDate: startDate,
-        endDate: endDate,
-        type: type,
-        stripeID: stripeID
+        startDate: startDate || this.subscription.startDate,
+        endDate: endDate || this.subscription.endDate,
+        type: type || this.subscription.type,
+        stripeID: stripeID || this.subscription.stripeID,
+        subscriptionID: subscriptionID || this.subscription.subscriptionID
     }
 }
 

@@ -63,7 +63,6 @@ router.post('/', function (req, res, next) {
                         }, function(error, result) {
                             res.send();
                         });
-                        res.send();
                         break;
 
                     case 'customer.subscription.updated':
@@ -87,9 +86,27 @@ router.post('/', function (req, res, next) {
 
                     case 'customer.subscription.deleted':
                         // The user has failed to pay repeatedly
-                        // Remove the stripeID from the user subscription
+                        // Remove the subscriptionID from the user subscription
                         // Send a subscription cancellation message, but they can resubscribe at any time
-                        res.send();
+                        user.setSubscription(null, null, null, null, false);
+                        user.update(null, function (error, result) {
+                            if (error) {
+                                if (error.error) {
+                                    return res.status(500).send(error.error);
+                                }
+                                else {
+                                    return res.status(400).send(error);
+                                }
+                                email.send({
+                                    to: user.email,
+                                    subject: 'Your Dewy subscription has been cancelled',
+                                    text: 'Hi ' + user.username + '. Your Dewy subscription has been cancelled. You can still sign on to Dewy but most features will be disabled. You can resubscribe at any time.',
+                                    html: 'Hi ' + user.username + '.<br/>Your Dewy subscription has been cancelled. You can still sign on to Dewy but most features will be disabled. You can resubscribe at any time.'
+                                }, function(error, result) {
+                                    res.send();
+                                });
+                            }
+                        });
                         break;
 
                     case 'ping':
