@@ -317,7 +317,7 @@ User.prototype.create = function(callback) {
                     message = 'Welcome to Dewy. Please verify your email address by visiting this link: ' + config.website.url + '/verify/' + this.user.uid + '/' + this.user.verified;
                 }
                 else {
-                    message = 'An account has been created for you on ' + config.website.url + '. Use the username "' + this.user.username + '" and password "' + actualPassword + '" to sign on. Change your password after signing on.';
+                    message = 'An account has been created for you on ' + config.website.url + '. Use the username "' + this.user.username + '" and password "' + actualPassword + '" to sign on. Change your password after signing on at ' + config.website.url + '/signon.';
                 }
 
                 var userDoc = this.user.getUserDoc();
