@@ -52,6 +52,20 @@ router.post('/', function (req, res, next) {
                         });
                         break;
 
+                    case 'customer.source.updated':
+                        // The user has updated their card
+                        // Send the user a update message confirming the card change
+                        email.send({
+                            to: this.user.email,
+                            subject: 'Your credit card on file with Dewy has changed',
+                            text: 'Hi ' + this.user.username + '. You have successfully updated your credit card details with Dewy to a card ending with ' + event.data.object.last4 + '.',
+                            html: 'Hi ' + this.user.username + '.<br/>You have successfully updated your credit card details with Dewy to a card ending with <strong>' + event.data.object.last4 + '</strong>.'
+                        }, function(error, result) {
+                            res.send();
+                        });
+                        res.send();
+                        break;
+
                     case 'customer.subscription.updated':
                         // The user has changed their plan type
                         // Send the user a update message confirming their new plan type
