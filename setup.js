@@ -215,6 +215,15 @@ exports.setup = function (callback) {
                         '}'
                         ].join('\n')
                 },
+                by_stripeID: {
+                    map: [
+                        'function (doc, meta) {',
+                            'if (meta.id.substring(0, 6) == "user::" && doc.subscription.stripeID) {',
+                                'emit([doc.subscription.stripeID], doc.uid);',
+                            '}',
+                        '}'
+                        ].join('\n')
+                },
                 by_username: {
                     map: [
                         'function (doc, meta) {',

@@ -93,6 +93,21 @@ User.getUidByEmail = function(email, callback) {
     });
 }
 
+User.getUidByStripeID = function(stripeID, callback) {
+    query = couchbase.ViewQuery.from('users', 'by_stripeID')
+        .key([stripeID])
+        .stale(1);
+    db.query(query, function(error, result) {
+        if (error) {
+            return callback(error, null);
+        }
+        if (result.length) {
+            return callback(null, result[0].value);
+        }
+        callback(null, false);
+    });
+}
+
 User.getUidByUsername = function(username, callback) {
     query = couchbase.ViewQuery.from('users', 'by_username')
         .key([username.toLowerCase()])
