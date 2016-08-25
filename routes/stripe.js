@@ -43,10 +43,10 @@ router.post('/', function (req, res, next) {
                         // The subscription has been created
                         // Send the user a welcome to their Dewy paid plan message
                         email.send({
-                            to: this.user.email,
+                            to: user.email,
                             subject: 'Your Dewy subscription has begun',
-                            text: 'Hi ' + this.user.username + '. Thank you for starting a ' + event.data.object.plan.id + ' subscription to Dewy.',
-                            html: 'Hi ' + this.user.username + '.<br/>Thank you for starting a ' + event.data.object.plan.id + ' subscription to Dewy.'
+                            text: 'Hi ' + user.username + '. Thank you for starting a ' + event.data.object.plan.id + ' subscription to Dewy.',
+                            html: 'Hi ' + user.username + '.<br/>Thank you for starting a ' + event.data.object.plan.id + ' subscription to Dewy.'
                         }, function(error, result) {
                             res.send();
                         });
@@ -56,10 +56,10 @@ router.post('/', function (req, res, next) {
                         // The user has updated their card
                         // Send the user a update message confirming the card change
                         email.send({
-                            to: this.user.email,
+                            to: user.email,
                             subject: 'Your credit card on file with Dewy has changed',
-                            text: 'Hi ' + this.user.username + '. You have successfully updated your credit card details with Dewy to a card ending with ' + event.data.object.last4 + '.',
-                            html: 'Hi ' + this.user.username + '.<br/>You have successfully updated your credit card details with Dewy to a card ending with <strong>' + event.data.object.last4 + '</strong>.'
+                            text: 'Hi ' + user.username + '. You have successfully updated your credit card details with Dewy to a card ending with ' + event.data.object.last4 + '.',
+                            html: 'Hi ' + user.username + '.<br/>You have successfully updated your credit card details with Dewy to a card ending with <strong>' + event.data.object.last4 + '</strong>.'
                         }, function(error, result) {
                             res.send();
                         });

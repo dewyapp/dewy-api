@@ -23,9 +23,11 @@ function User(email, username, password, gravatar, apikey, uid, verified, passwo
     this.apikey = apikey || uuid.v4();
     this.uid = uid || uuid.v4();
     this.verified = verified || uuid.v4();
-    this.passwordRequested = false;
-    if (passwordRequested !== false) {
-        this.passwordRequested = passwordRequested;
+    if (typeof passwordRequested == 'undefined') {
+        this.passwordRequested = false;
+    }
+    else {
+        this.passwordRequested == passwordRequested;
     }
     this.created = created || Math.round(new Date().getTime() / 1000);
     this.subscription = {
@@ -311,7 +313,7 @@ User.prototype.create = function(callback) {
                 }
 
                 var message;
-                if (this.user.verified === true) {
+                if (this.user.verified !== true) {
                     message = 'Welcome to Dewy. Please verify your email address by visiting this link: ' + config.website.url + '/verify/' + this.user.uid + '/' + this.user.verified;
                 }
                 else {
@@ -368,8 +370,8 @@ User.prototype.update = function(existingPassword, callback) {
                     email.send({
                         to: this.user.email,
                         subject: 'Your Dewy account password has been reset',
-                        text: 'Hi ' + this.user.username + '. Your password has been reset. Use the username "' + this.user.username + '" and password "' + actualPassword + '" to sign on. Change your password after signing on.',
-                        html: 'Hi ' + this.user.username + '.<br/>Your password has been reset. Use the username "' + this.user.username + '" and password "' + actualPassword + '" to sign on. Change your password after signing on.'
+                        text: 'Hi ' + this.user.username + '. Your password has been reset. Use the username "' + this.user.username + '" and password "' + actualPassword + '" to sign on. Change your password after signing on at ' + config.website.url + '/signon.',
+                        html: 'Hi ' + this.user.username + '.<br/>Your password has been reset. Use the username "' + this.user.username + '" and password "' + actualPassword + '" to sign on. Change your password after signing on.' + config.website.url + '/signon.'
                     }, function(error, result) {
                         callback(null, userDoc);
                     });
