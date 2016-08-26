@@ -260,6 +260,41 @@ router.put('/:uid', oauth.authorise(), function (req, res, next) {
     });
 });
 
+router.get('/:uid/_subscription/', oauth.authorise(), function (req, res, next) {
+    User.get(req.user.id, function(error, result) {
+        if (error) {
+            return res.status(500).send(error);
+        }
+        if (req.params.uid != req.user.id) {
+            return res.status(403).send('You do not have permission to access this resource.');
+        }
+
+        var user = result;
+        if (user.subscription.stripeID === false) {
+            return res.status(400).send('There is no Stripe customer associated with this user.');
+        }
+
+        var stripe = require("stripe")(config.stripe.private_key);
+        stripe.customers.retrieve(user.subscription.stripeID, function(error, result) {
+            // User has customer ID, but customer missing or deleted from stripe
+            // Wipe customer ID from user
+            if (error.statusCode == 404 || result.deleted) {
+                user.setSubscription(null, null, null, false, null);
+                user.update(null, function(error, result) {
+                    console.log(result);
+                    return res.status(400).send('There is no longer a Stripe customer associated with this user.');
+                });
+            }
+            else if (error) {
+                return res.status(500).send(error);
+            }
+            else {
+                return res.send(result);
+            }
+        });
+    });
+});
+
 router.post('/:uid/_subscription/:plan', oauth.authorise(), function (req, res, next) {
 
     var availablePlans = ['basic'];

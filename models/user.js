@@ -168,6 +168,12 @@ User.prototype.setSubscription = function(startDate, endDate, type, stripeID, su
         stripeID: stripeID || this.subscription.stripeID,
         subscriptionID: subscriptionID || this.subscription.subscriptionID
     }
+    if (stripeID === false) {
+        this.subscription.stripeID = false;
+    }
+    if (subscriptionID === false) {
+        this.subscription.subscriptionID = false;
+    }
 }
 
 User.prototype.setUsername = function(username) {
