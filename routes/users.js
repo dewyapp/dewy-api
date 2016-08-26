@@ -275,13 +275,12 @@ router.get('/:uid/_subscription/', oauth.authorise(), function (req, res, next) 
         }
 
         var stripe = require("stripe")(config.stripe.private_key);
-        stripe.customers.retrieve(user.subscription.stripeID, function(error, result) {
+        stripe.customers.retrieve(user.subscription.stripeID, {expand: ['default_source']}, function(error, result) {
             // User has customer ID, but customer missing or deleted from stripe
             // Wipe customer ID from user
-            if (error.statusCode == 404 || result.deleted) {
+            if ((error && error.statusCode == 404) || result.deleted) {
                 user.setSubscription(null, null, null, false, null);
                 user.update(null, function(error, result) {
-                    console.log(result);
                     return res.status(400).send('There is no longer a Stripe customer associated with this user.');
                 });
             }
