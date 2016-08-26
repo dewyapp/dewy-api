@@ -37,7 +37,7 @@ if (process.argv[2]) {
                     process.exit(0);
                 }
             });
-        })
+        });
 
     program
         .command('audit')
@@ -52,7 +52,7 @@ if (process.argv[2]) {
                     process.exit(0);
                 }
             });
-        })
+        });
 
     program
         .command('releases')
@@ -67,7 +67,24 @@ if (process.argv[2]) {
                     process.exit(0);
                 }
             });
-        })
+        });
+
+    if (config.environment == 'development') {
+        program
+            .command('add-fake-sites <uid> <number-of-sites>')
+            .description('Add fake sites to a user account')
+            .action(function (uid, numberOfSites) {
+                admin.addFakeSites(uid, numberOfSites, function(error, result) {
+                    if (error) {
+                        console.log(error);
+                        process.exit(1);
+                    } else {
+                        console.log(result);
+                        process.exit(0);
+                    }
+                });
+            });
+    }
 
     program
         .command('create-user <email> <username>')
@@ -82,7 +99,7 @@ if (process.argv[2]) {
                     process.exit(0);
                 }
             });
-        })
+        });
 
     program.parse(process.argv);
 }
