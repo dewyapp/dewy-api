@@ -45,140 +45,14 @@ exports.audit = function(sid, errors, callback) {
             else {
                 // Store details
                 siteDoc.details = JSON.parse(body);
-                siteDoc.attributes = {};
-
-                // Process projects
-                var databaseUpdates = [];
-                var projectKeys = [];
-                var availableModules = [];
-                var enabledModules = [];
-                for (var i in siteDoc.details.projects) {
-                    if (siteDoc.details.projects[i].version) {
-                        var version = siteDoc.details.projects[i].version.split('-');
-                        var core = version[0];
-                        projectKeys.push('project::' + i + '-' + core);
-                    }
-                    for (var j in siteDoc.details.projects[i].modules) {
-                        if (siteDoc.details.projects[i].modules[j].schema != -1) {
-                            if (siteDoc.details.projects[i].modules[j].schema != siteDoc.details.projects[i].modules[j].latest_schema) {
-                                databaseUpdates.push(j);
-                            }
-                        }
-                        availableModules.push(j);
-                        if (siteDoc.details.projects[i].modules[j].schema != -1) {
-                            enabledModules.push(j);
-                        }
-                    }
-                }
-
-                // Process nodes
-                var lastModified = 0;
-                var avgLastModified = 0;
-                var words = 0;
-                var contentTypes = [];
-                for (var i in siteDoc.details.nodes) {
-                    avgLastModified = avgLastModified + Number(siteDoc.details.nodes[i].changed);
-                    if (siteDoc.details.nodes[i].changed > lastModified) {
-                        lastModified = siteDoc.details.nodes[i].changed;
-                    }
-                    if (contentTypes.indexOf(siteDoc.details.nodes[i].type) == '-1') {
-                        contentTypes.push(siteDoc.details.nodes[i].type)
-                    }
-                    for (var j in siteDoc.details.nodes[i].content) {
-                        words = words + siteDoc.details.nodes[i].content[j].split(' ').length;
-                    }
-                }
-                var nodes = _.keys(siteDoc.details.nodes).length;
-                avgLastModified = Math.round(avgLastModified / nodes);
-
-                // Process users
-                var lastAccess = 0;
-                var avgLastAccess = 0;
-                var users = [];
-                var roles = [];
-                for (var i in siteDoc.details.users) {
-                    avgLastAccess = avgLastAccess + Number(siteDoc.details.users[i].last_access);
-                    if (siteDoc.details.users[i].last_access > lastAccess) {
-                        lastAccess = siteDoc.details.users[i].last_access;
-                    }
-                    users.push(i);
-                    for (var j in siteDoc.details.users[i].roles) {
-                        if (roles.indexOf(siteDoc.details.users[i].roles[j]) == '-1') {
-                            roles.push(siteDoc.details.users[i].roles[j]);
-                        }
-                    }
-                }
-                avgLastAccess = Math.round(avgLastAccess / users.length);
-
-                var diskSpace = Number(siteDoc.details.files.public.size) + Number(siteDoc.details.files.private.size) + Number(siteDoc.details.db_size)
-                diskSpace = +diskSpace.toFixed(2);
-
-                // Process releases
-                var modulesWithUpdates = [];
-                var modulesWithSecurityUpdates = [];
-                modules.getReleasesFromProjects(projectKeys, function(error, result) {
+                // Process details
+                processDoc(siteDoc, function(error, result) {
                     if (error) {
                         callback(error, null);
                         return;
                     }
-                    for (var i in siteDoc.details.projects) {
-                        if (siteDoc.details.projects[i].version) {
-                            var version = siteDoc.details.projects[i].version.split('-');
-                            var core = version[0];
-                            if (result['project::' + i + '-' + core] && result['project::' + i + '-' + core].value) {
-                                var releases = result['project::' + i + '-' + core].value;
-                                updateResult = modules.checkVersionForUpdate(releases, siteDoc.details.projects[i].version);
-                                // If we were recording individual modules, we would use this code
-                                // for (var j in siteDoc.details.projects[i].modules) {
-                                //     if (updateResult.update) {
-                                //         modulesWithUpdates.push(j);
-                                //     }
-                                //     if (updateResult.securityUpdate) {
-                                //         modulesWithSecurityUpdates.push(j);
-                                //     }
-                                // }
-                                // But we're reporting projects instead
-                                if (updateResult.update) {
-                                    modulesWithUpdates.push(i);
-                                }
-                                if (updateResult.securityUpdate) {
-                                    modulesWithSecurityUpdates.push(i);
-                                }
-                            }
-                        }
-                    }
-
-                    siteDoc.attributes = {
-                        availableModules: availableModules.length,
-                        enabledModules: enabledModules.length,
-                        contentTypes: contentTypes.length,
-                        roles: roles.length,
-                        users: users.length,
-                        nodes: nodes,
-                        files: siteDoc.details.files.public.count + siteDoc.details.files.private.count,
-                        words: words,
-                        diskSpace: diskSpace,
-                        lastModified: lastModified,
-                        avgLastModified: avgLastModified,
-                        lastAccess: lastAccess,
-                        avgLastAccess: avgLastAccess,
-                        databaseUpdates: databaseUpdates.length,
-                        modulesWithUpdates: modulesWithUpdates.length,
-                        modulesWithSecurityUpdates: modulesWithSecurityUpdates.length
-                    }
-
-                    siteDoc.attributeDetails = {
-                        availableModules: availableModules,
-                        enabledModules: enabledModules,
-                        contentTypes: contentTypes,
-                        roles: roles,
-                        users: users,
-                        databaseUpdates: databaseUpdates,
-                        modulesWithUpdates: modulesWithUpdates,
-                        modulesWithSecurityUpdates: modulesWithSecurityUpdates
-                    }
-
-                    exports.update(siteDoc, function(error, result) {
+                    // Save site
+                    exports.update(result, function(error, result) {
                         if (error) {
                             callback(error, null);
                             return;
@@ -340,6 +214,142 @@ exports.getByProject = function(project, core, maxModuleUpdateLevel, callback) {
 
 exports.getDetail = function(siteDoc) {
     return siteDoc.attributeDetails;
+}
+
+exports.processDoc = function(siteDoc, callback) {
+    siteDoc.attributes = {};
+    var databaseUpdates = [];
+    var projectKeys = [];
+    var availableModules = [];
+    var enabledModules = [];
+    for (var i in siteDoc.details.projects) {
+        if (siteDoc.details.projects[i].version) {
+            var version = siteDoc.details.projects[i].version.split('-');
+            var core = version[0];
+            projectKeys.push('project::' + i + '-' + core);
+        }
+        for (var j in siteDoc.details.projects[i].modules) {
+            if (siteDoc.details.projects[i].modules[j].schema != -1) {
+                if (siteDoc.details.projects[i].modules[j].schema != siteDoc.details.projects[i].modules[j].latest_schema) {
+                    databaseUpdates.push(j);
+                }
+            }
+            availableModules.push(j);
+            if (siteDoc.details.projects[i].modules[j].schema != -1) {
+                enabledModules.push(j);
+            }
+        }
+    }
+
+    // Process nodes
+    var lastModified = 0;
+    var avgLastModified = 0;
+    var words = 0;
+    var contentTypes = [];
+    for (var i in siteDoc.details.nodes) {
+        avgLastModified = avgLastModified + Number(siteDoc.details.nodes[i].changed);
+        if (siteDoc.details.nodes[i].changed > lastModified) {
+            lastModified = siteDoc.details.nodes[i].changed;
+        }
+        if (contentTypes.indexOf(siteDoc.details.nodes[i].type) == '-1') {
+            contentTypes.push(siteDoc.details.nodes[i].type)
+        }
+        for (var j in siteDoc.details.nodes[i].content) {
+            words = words + siteDoc.details.nodes[i].content[j].split(' ').length;
+        }
+    }
+    var nodes = _.keys(siteDoc.details.nodes).length;
+    avgLastModified = Math.round(avgLastModified / nodes);
+
+    // Process users
+    var lastAccess = 0;
+    var avgLastAccess = 0;
+    var users = [];
+    var roles = [];
+    for (var i in siteDoc.details.users) {
+        avgLastAccess = avgLastAccess + Number(siteDoc.details.users[i].last_access);
+        if (siteDoc.details.users[i].last_access > lastAccess) {
+            lastAccess = siteDoc.details.users[i].last_access;
+        }
+        users.push(i);
+        for (var j in siteDoc.details.users[i].roles) {
+            if (roles.indexOf(siteDoc.details.users[i].roles[j]) == '-1') {
+                roles.push(siteDoc.details.users[i].roles[j]);
+            }
+        }
+    }
+    avgLastAccess = Math.round(avgLastAccess / users.length);
+
+    var diskSpace = Number(siteDoc.details.files.public.size) + Number(siteDoc.details.files.private.size) + Number(siteDoc.details.db_size)
+    diskSpace = +diskSpace.toFixed(2);
+
+    // Process releases
+    var modulesWithUpdates = [];
+    var modulesWithSecurityUpdates = [];
+    modules.getReleasesFromProjects(projectKeys, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+        for (var i in siteDoc.details.projects) {
+            if (siteDoc.details.projects[i].version) {
+                var version = siteDoc.details.projects[i].version.split('-');
+                var core = version[0];
+                if (result['project::' + i + '-' + core] && result['project::' + i + '-' + core].value) {
+                    var releases = result['project::' + i + '-' + core].value;
+                    updateResult = modules.checkVersionForUpdate(releases, siteDoc.details.projects[i].version);
+                    // If we were recording individual modules, we would use this code
+                    // for (var j in siteDoc.details.projects[i].modules) {
+                    //     if (updateResult.update) {
+                    //         modulesWithUpdates.push(j);
+                    //     }
+                    //     if (updateResult.securityUpdate) {
+                    //         modulesWithSecurityUpdates.push(j);
+                    //     }
+                    // }
+                    // But we're reporting projects instead
+                    if (updateResult.update) {
+                        modulesWithUpdates.push(i);
+                    }
+                    if (updateResult.securityUpdate) {
+                        modulesWithSecurityUpdates.push(i);
+                    }
+                }
+            }
+        }
+
+        siteDoc.attributes = {
+            availableModules: availableModules.length,
+            enabledModules: enabledModules.length,
+            contentTypes: contentTypes.length,
+            roles: roles.length,
+            users: users.length,
+            nodes: nodes,
+            files: siteDoc.details.files.public.count + siteDoc.details.files.private.count,
+            words: words,
+            diskSpace: diskSpace,
+            lastModified: lastModified,
+            avgLastModified: avgLastModified,
+            lastAccess: lastAccess,
+            avgLastAccess: avgLastAccess,
+            databaseUpdates: databaseUpdates.length,
+            modulesWithUpdates: modulesWithUpdates.length,
+            modulesWithSecurityUpdates: modulesWithSecurityUpdates.length
+        }
+
+        siteDoc.attributeDetails = {
+            availableModules: availableModules,
+            enabledModules: enabledModules,
+            contentTypes: contentTypes,
+            roles: roles,
+            users: users,
+            databaseUpdates: databaseUpdates,
+            modulesWithUpdates: modulesWithUpdates,
+            modulesWithSecurityUpdates: modulesWithSecurityUpdates
+        }
+
+        callback(null, siteDoc);
+    });
 }
 
 exports.update = function(siteDoc, callback) {

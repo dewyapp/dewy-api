@@ -2,6 +2,7 @@ var async = require('async');
 var randomstring = require('randomstring');
 var uuid = require('uuid');
 var User = require('./models/user');
+var sites = require('./models/sites');
 var email = require('./helpers/email');
 var config = new require('./config')();
 
@@ -116,18 +117,23 @@ exports.addFakeSites = function(uid, numberOfSites, callback) {
 
                     }
                 },
-                attributes: {
-
-                },
-                tags: tags,
-                attributeDetails: {
-
-                }
+                tags: tags
             };
-            console.log(siteDoc);
-            // db.insert('site::' + siteDoc.sid, siteDoc, function(error, result) {
-
-            // });
+            sites.processDoc(siteDoc, function(error, result) {
+                if (error) {
+                    callback(error, null);
+                    return;
+                }
+                console.log(siteDoc);
+                // // Save site
+                // db.insert('site::' + siteDoc.sid, siteDoc, function(error, result) {
+                //     if (error) {
+                //         callback(error, null);
+                //         return;
+                //     }
+                //     callback(null, result);
+                // });
+            });
         }
     }
 }
