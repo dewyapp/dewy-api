@@ -1,7 +1,6 @@
 var express = require('express');
 var router = express.Router();
 var oauth = require('../api.js').oauth;
-var async = require('async');
 var forge = require('node-forge');
 var validator = require('validator');
 var uuid = require('uuid');
