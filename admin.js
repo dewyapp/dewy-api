@@ -53,6 +53,8 @@ exports.addFakeSites = function(uid, numberOfSites, callback) {
 
     for (domainIndex in domains) {
         var domain = domains[domainIndex];
+
+        // Determine protocol
         var noHTTPS = Math.floor(Math.random()*3);
         var protocol = 'http://';
         if (!noHTTPS) {
@@ -60,54 +62,67 @@ exports.addFakeSites = function(uid, numberOfSites, callback) {
         }
 
         for (siteIndex in domain.sites) {
+
+            // Determine tags
+            var noTags = Math.floor(Math.random()*2);
+            var tags = [];
+            if (!noTags) {
+                var tagChoices = ['In development', 'Important client', 'Update scheduled', 'Has maintenance contract'];
+                var numberOfTags = Math.floor(Math.random()*tagChoices.length);
+                for (var i=0; i<numberOfTags; i++) {
+                    var tagIndex = Math.floor(Math.random()*tagChoices.length);
+                    tags.push(tagChoices[tagIndex]);
+                    tagChoices.splice(tagIndex, 1);
+                }
+                protocol = 'https://';
+            }
+
             var site = domain.sites[siteIndex];
             var siteDoc = {
-                // fake: true,
-                // sid: uuid.v4(),
-                // uid: uid,
-                baseurl: protocol + domain.prefix + domain.noun + '.' + domain.domain + '/' + site //,
-                // enabled: "1",
-                // users: "1",
-                // content: "1",
-                // dateAdded: 0,
-                // lastUpdated: 0,
-                // audited: {
-                //     date: 0
-                // },
-                // details: {
-                //     title: "",
-                //     base_url: "",
-                //     drupal_core: "",
-                //     php_version: "",
-                //     traffic: {},
-                //     files: {
-                //         public: {
-                //             count: 0,
-                //             size: 0
-                //         },
-                //         private: {
-                //             count: 0,
-                //             size: 0
-                //         }
-                //     },
-                //     db_size: 0,
-                //     users: {},
-                //     nodes: {},
-                //     projects: {},
-                //     themes: {},
-                //     variables: {
+                fake: true,
+                sid: uuid.v4(),
+                uid: uid,
+                baseurl: protocol + domain.prefix + domain.noun + '.' + domain.domain + '/' + site,
+                enabled: "1",
+                users: "1",
+                content: "1",
+                dateAdded: 0,
+                lastUpdated: 0,
+                audited: {
+                    date: 0
+                },
+                details: {
+                    title: domain.prefix.charAt(0).toUpperCase() + domain.prefix.slice(1) + ' ' + domain.noun.charAt(0).toUpperCase() + domain.noun.slice(1) + ' ' + site.charAt(0).toUpperCase() + site.slice(1),
+                    base_url: protocol + domain.prefix + domain.noun + '.' + domain.domain + '/' + site,
+                    drupal_core: '7.' + Math.floor(Math.random()*45),
+                    php_version: '5.3.' + Math.floor(Math.random()*30),
+                    traffic: {},
+                    files: {
+                        public: {
+                            count: 0,
+                            size: 0
+                        },
+                        private: {
+                            count: 0,
+                            size: 0
+                        }
+                    },
+                    db_size: 0,
+                    users: {},
+                    nodes: {},
+                    projects: {},
+                    themes: {},
+                    variables: {
 
-                //     }
-                // },
-                // attributes: {
+                    }
+                },
+                attributes: {
 
-                // },
-                // tags: {
+                },
+                tags: tags,
+                attributeDetails: {
 
-                // },
-                // attributeDetails: {
-
-                // }
+                }
             };
             console.log(siteDoc);
             // db.insert('site::' + siteDoc.sid, siteDoc, function(error, result) {
