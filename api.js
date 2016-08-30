@@ -74,6 +74,11 @@ if (process.argv[2]) {
             .command('add-fake-sites <uid> <number-of-sites>')
             .description('Add fake sites to a user account')
             .action(function (uid, numberOfSites) {
+                var numberOfSites = parseInt(numberOfSites);
+                if (!numberOfSites > 0) {
+                    console.log('A positive number of sites was not specified.');
+                    process.exit(1);
+                }
                 admin.addFakeSites(uid, numberOfSites, function(error, result) {
                     if (error) {
                         console.log(error);

@@ -4,6 +4,7 @@ var uuid = require('uuid');
 var User = require('./models/user');
 var sites = require('./models/sites');
 var email = require('./helpers/email');
+var db = require('./api.js').bucket;
 var config = new require('./config')();
 
 exports.addFakeSites = function(uid, numberOfSites, callback) {
@@ -52,6 +53,27 @@ exports.addFakeSites = function(uid, numberOfSites, callback) {
             callback(error);
         }
         else {
+            var q = async.queue(function(siteDoc, callback) {
+                sites.processDoc(siteDoc, function(error, result) {
+                    if (error) {
+                        callback(error, null);
+                        return;
+                    }
+                    // Save site
+                    db.insert('site::' + siteDoc.sid, siteDoc, function(error, result) {
+                        if (error) {
+                            callback(error, null);
+                            return;
+                        }
+                        callback(null, result);
+                    });
+                });
+            }, 2);
+
+            q.drain = function() {
+                callback(null, 'Adding sites complete');
+            };
+
             var domains = [];
             for (var i=0; i<numberOfSites; i++) {
                 while (createSiteName(domains) === false) {};
@@ -217,20 +239,13 @@ exports.addFakeSites = function(uid, numberOfSites, callback) {
                         tags: tags
                     };
 
-                    sites.processDoc(siteDoc, function(error, result) {
+                    q.push(siteDoc, function(error) {
                         if (error) {
-                            callback(error, null);
-                            return;
+                            console.log('Failed to add site ' + siteDoc.sid);
                         }
-                        console.log(siteDoc);
-                        // // Save site
-                        // db.insert('site::' + siteDoc.sid, siteDoc, function(error, result) {
-                        //     if (error) {
-                        //         callback(error, null);
-                        //         return;
-                        //     }
-                        //     callback(null, result);
-                        // });
+                        else {
+                            console.log('Added site ' + siteDoc.sid);
+                        }
                     });
                 }
             }
