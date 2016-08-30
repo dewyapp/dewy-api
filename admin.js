@@ -108,7 +108,7 @@ exports.addFakeSites = function(uid, numberOfSites, callback) {
                     // Determine users
                     var users = {};
                     var userChoices = ['horace', 'benedict', 'neva', 'chang', 'fran', 'normand', 'ena', 'jettie', 'marianna', 'neida', 'ryann', 'jacqui', 'delores', 'myrl', 'beatris', 'hazel', 'teisha', 'keenan', 'rudolf', 'rosamond', 'traci', 'florentina', 'janette', 'russel', 'erinn', 'avelina', 'donnette', 'bethel', 'dimple', 'minna', 'diann', 'hanh', 'alexa', 'bruce', 'mable', 'norbert', 'kenyatta', 'zella', 'ingeborg', 'magdalen', 'nilsa', 'faith', 'zachery', 'georgeann', 'marybeth', 'hoa', 'kamilah', 'jerrod', 'eun', 'collene'];
-                    var numberOfUsers = Math.floor(Math.random()*(userChoices.length - 1)+1);
+                    var numberOfUsers = Math.floor(Math.random()*(userChoices.length/2)+1);
                     for (var i=0; i<numberOfUsers; i++) {
                         // Get roles
                         var roleChoices = ['Content Author', 'Content Admin', 'Moderator', 'Site Admin', 'Developer'];
@@ -141,7 +141,7 @@ exports.addFakeSites = function(uid, numberOfSites, callback) {
                         contentTypeChoices.splice(contentTypeIndex, 1);
                     }
 
-                    var numberOfNodes = Math.floor(Math.random()*500);
+                    var numberOfNodes = Math.floor(Math.random()*(500-1)+1);
                     for (var i=0; i<numberOfNodes; i++) {
                         var timeAgoCreated = Math.floor(Math.random()*62208000);
                         var numberOfWords = Math.floor(Math.random()*500);
@@ -234,11 +234,11 @@ exports.addFakeSites = function(uid, numberOfSites, callback) {
                             files: {
                                 public: {
                                     count: Math.floor(Math.random()*2500),
-                                    size: Math.round((Math.random()*700)*10)/10,
+                                    size: Math.round((Math.random()*600)*10)/10,
                                 },
                                 private: {
                                     count: Math.floor(Math.random()*2500),
-                                    size: Math.round((Math.random()*700)*10)/10,
+                                    size: Math.round((Math.random()*600)*10)/10,
                                 }
                             },
                             db_size: Math.round((Math.random()*50)*10)/10,
