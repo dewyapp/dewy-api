@@ -8,12 +8,12 @@ var config = new require('./config')();
 
 exports.addFakeSites = function(uid, numberOfSites, callback) {
     var createSiteName = function(domains) {
-        var prefixChoices = ['local', 'super', 'awesome', 'great', 'red', 'blue', 'green', 'yellow', 'big', 'small', 'eco', 'square', 'circle', 'cosmic', 'classic', 'logical', 'happy', 'pleasant', 'paisley', 'proud'];
+        var prefixChoices = ['local', 'super', 'awesome', 'great', 'red', 'blue', 'green', 'yellow', 'big', 'small', 'eco', 'square', 'circle', 'cosmic', 'classic', 'logical', 'happy', 'pleasant', 'striped', 'paisley', 'proud', 'natural'];
         var nounChoices = ['puppies', 'kittens', 'eats', 'delicious', 'design', 'instruction', 'training', 'university', 'college', 'agency', 'garden', 'business', 'sports', 'recreation', 'creative', 'tourism', 'hotel', 'games', 'cable', 'bikes', 'cars', 'energy', 'bread', 'beer', 'wine', 'brewing', 'engineering', 'construction', 'labs', 'coffee', 'ramen', 'sushi', 'farm', 'couples', 'weddings', 'services', 'hiking'];
         var domainChoices = ['com', 'org', 'net'];
-        var suffixChoices = ['promotion', 'gateway', 'newsletter', 'blog', 'shop', 'brand', 'community', 'media', 'events', 'status', 'jobs', 'social'];
+        var suffixChoices = ['promotion', 'gateway', 'newsletter', 'blog', 'shop', 'brand', 'community', 'media', 'events', 'status', 'jobs', 'social', 'cloud', 'help', 'privacy', 'data', 'policy', 'donate', 'partners', 'french', 'spanish', 'global', 'technology', 'loyalty', 'resources'];
 
-        var noSuffix = Math.floor(Math.random()*4);
+        var noSuffix = Math.floor(Math.random()*3);
         if (domains.length && !noSuffix) {
             var domainIndex = Math.floor(Math.random()*domains.length);
             for (var j=0; j<domains[domainIndex].sites.length; j++) {
@@ -52,6 +52,11 @@ exports.addFakeSites = function(uid, numberOfSites, callback) {
         while (createSiteName(domains) === false) {};
     }
 
+    // Define possible users and roles
+    var users = ['horace', 'benedict', 'neva', 'chang', 'fran', 'normand', 'ena', 'jettie', 'marianna', 'neida', 'ryann', 'jacqui', 'delores', 'myrl', 'beatris', 'hazel', 'teisha', 'keenan', 'rudolf', 'rosamond', 'traci', 'florentina', 'janette', 'russel', 'erinn', 'avelina', 'donnette', 'bethel', 'dimple', 'minna', 'diann', 'hanh', 'alexa', 'bruce', 'mable', 'norbert', 'kenyatta', 'zella', 'ingeborg', 'magdalen', 'nilsa', 'faith', 'zachery', 'georgeann', 'marybeth', 'hoa', 'kamilah', 'jerrod', 'eun', 'collene'];
+    var roles = ['Content Author', 'Content Admin', 'Moderator', 'Site Admin', 'Developer'];
+    var content_types = ['page', 'article', 'blog', 'news', 'event', 'webform', 'private page'];
+
     for (domainIndex in domains) {
         var domain = domains[domainIndex];
 
@@ -63,6 +68,21 @@ exports.addFakeSites = function(uid, numberOfSites, callback) {
         }
 
         for (siteIndex in domain.sites) {
+
+            // Determine themes
+            var themes = {};
+            var themeChoices = ['bartik', 'garland', 'seven', 'stark', 'custom', 'contributed', 'bootstrap'];
+            var numberOfThemes = Math.floor(Math.random()*themeChoices.length);
+            for (var i=0; i<numberOfThemes+1; i++) {
+                var themeIndex = Math.floor(Math.random()*themeChoices.length);
+                themes[themeChoices[themeIndex]] = { version: core, status: 0 };
+                themeChoices.splice(tagIndex, 1);
+            }
+            var themesToEnable = Math.floor(Math.random()*numberOfThemes-1);
+            var themeKeys = Object.keys(themes);
+            for (var i=0; i<themesToEnable+1; i++) {
+                themes[themeKeys[i]].status = 1;
+            }
 
             // Determine tags
             var noTags = Math.floor(Math.random()*2);
@@ -78,7 +98,32 @@ exports.addFakeSites = function(uid, numberOfSites, callback) {
                 protocol = 'https://';
             }
 
+            // Determine projects
+            var projects = {};
+
+            // Determine variables
+            var variables = {
+                preprocess_css: Math.floor(Math.random()*2),
+                preprocess_js: Math.floor(Math.random()*2),
+                cache: Math.floor(Math.random()*2),
+                maintenance_mode: 0,
+                theme_default: themeKeys[0]
+            }
+            var noMaintenanceMode = Math.floor(Math.random()*20);
+            if (!noMaintenanceMode) {
+                variables.maintenance_mode = 1;
+            }
+            if (projects.google_analytics) {
+                var googleAnalyticsChoices = ['UA-123456789-1', 'UA-987654321-1', 'UA-999666333-1'];
+                variables['googleanalytics_account'] = googleAnalyticsChoices[Math.floor(Math.random()*googleAnalyticsChoices.length)];
+            }
+            if (themeKeys[0] == 'custom') {
+                variables['theme_settings'] = { level: 'abcdef'[Math.floor(Math.random()*6)] }
+            }
+
             var site = domain.sites[siteIndex];
+            var core = '7.' + Math.floor(Math.random()*45);
+
             var siteDoc = {
                 fake: true,
                 sid: uuid.v4(),
@@ -95,16 +140,16 @@ exports.addFakeSites = function(uid, numberOfSites, callback) {
                 details: {
                     title: domain.prefix.charAt(0).toUpperCase() + domain.prefix.slice(1) + ' ' + domain.noun.charAt(0).toUpperCase() + domain.noun.slice(1) + ' ' + site.charAt(0).toUpperCase() + site.slice(1),
                     base_url: protocol + domain.prefix + domain.noun + '.' + domain.domain + '/' + site,
-                    drupal_core: '7.' + Math.floor(Math.random()*45),
+                    drupal_core: core,
                     php_version: '5.3.' + Math.floor(Math.random()*30),
                     traffic: {},
                     files: {
                         public: {
-                            count: 0,
+                            count: Math.floor(Math.random()*2500),
                             size: 0
                         },
                         private: {
-                            count: 0,
+                            count: Math.floor(Math.random()*2500),
                             size: 0
                         }
                     },
@@ -112,13 +157,12 @@ exports.addFakeSites = function(uid, numberOfSites, callback) {
                     users: {},
                     nodes: {},
                     projects: {},
-                    themes: {},
-                    variables: {
-
-                    }
+                    themes: themes,
+                    variables: variables
                 },
                 tags: tags
             };
+
             sites.processDoc(siteDoc, function(error, result) {
                 if (error) {
                     callback(error, null);
