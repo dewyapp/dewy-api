@@ -68,7 +68,7 @@ exports.audit = function(sid, errors, callback) {
 exports.auditAll = function(callback) {
     // Loop through all sites regardless of uid
     query = couchbase.ViewQuery.from('sites', 'by_uid')
-        .range([null], [{}]);
+        .key([null, null], [{}, null]);
     db.query(query, function(error, result) {
         if (error) {
             callback(error, null);

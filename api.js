@@ -106,6 +106,23 @@ if (process.argv[2]) {
             });
         });
 
+    if (config.environment == 'development') {
+        program
+            .command('delete-fake-sites <uid>')
+            .description('Delete fake sites on a user account')
+            .action(function (uid) {
+                admin.deleteFakeSites(uid, function(error, result) {
+                    if (error) {
+                        console.log(error);
+                        process.exit(1);
+                    } else {
+                        console.log(result);
+                        process.exit(0);
+                    }
+                });
+            });
+    }
+
     program.parse(process.argv);
 }
 // If no command line input, run the API

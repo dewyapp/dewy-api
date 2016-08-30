@@ -4,6 +4,7 @@ var uuid = require('uuid');
 var User = require('./models/user');
 var sites = require('./models/sites');
 var email = require('./helpers/email');
+var couchbase = require('couchbase');
 var db = require('./api.js').bucket;
 var config = new require('./config')();
 
@@ -56,15 +57,18 @@ exports.addFakeSites = function(uid, numberOfSites, callback) {
             var q = async.queue(function(siteDoc, callback) {
                 sites.processDoc(siteDoc, function(error, result) {
                     if (error) {
+                        console.log('Failed to process site ' + siteDoc.sid);
                         callback(error, null);
                         return;
                     }
                     // Save site
                     db.insert('site::' + siteDoc.sid, siteDoc, function(error, result) {
                         if (error) {
+                            console.log('Failed to add site ' + siteDoc.sid);
                             callback(error, null);
                             return;
                         }
+                        console.log('Added site ' + siteDoc.sid);
                         callback(null, result);
                     });
                 });
@@ -239,14 +243,7 @@ exports.addFakeSites = function(uid, numberOfSites, callback) {
                         tags: tags
                     };
 
-                    q.push(siteDoc, function(error) {
-                        if (error) {
-                            console.log('Failed to add site ' + siteDoc.sid);
-                        }
-                        else {
-                            console.log('Added site ' + siteDoc.sid);
-                        }
-                    });
+                    q.push(siteDoc, function(error) {});
                 }
             }
         }
@@ -263,6 +260,40 @@ exports.createUser = function(emailAddress, username, callback) {
         }
         else {
             callback(result);
+        }
+    });
+}
+
+exports.deleteFakeSites = function(uid, callback) {
+    User.get(uid, function(error, result) {
+        if (error) {
+            callback(error);
+        }
+        else {
+            query = couchbase.ViewQuery.from('sites', 'by_uid')
+                .key([uid, true]);
+            db.query(query, function(error, result) {
+                if (error) {
+                    return callback(error, null);
+                }
+                async.each(result,
+                    function(row, callback) {
+                        var sid = row.value;
+                        sites.delete(sid, function(error, result) {
+                            if (error) {
+                                return callback(error, null);
+                            }
+                            callback();
+                        });
+                    },
+                    function(error) {
+                        if (error) {
+                            return callback(error);
+                        }
+                        callback(null, 'Site deletion finished');
+                    }
+                );
+            });
         }
     });
 }
