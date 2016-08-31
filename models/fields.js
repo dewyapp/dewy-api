@@ -48,6 +48,18 @@ fields = [
     value: 'string'
   },
   {
+    title: 'Average hits per day',
+    choices: [
+      {id: 'is', label: 'is'},
+      {id: 'is not', label: 'is not'},
+      {id: 'is greater than', label: 'is greater than'},
+      {id: 'is less than', label: 'is less than'},
+      {id: 'is greater than or equal to', label: 'is greater than or equal to'},
+      {id: 'is less than or equal to', label: 'is less than or equal to'}
+    ],
+    value: 'number'
+  },
+  {
     title: 'Base URL',
     choices: [
       {id: 'contains', label: 'contains'},
