@@ -61,7 +61,7 @@ exports.audit = function(sid, errors, callback) {
                 // Store details
                 siteDoc.details = JSON.parse(body);
                 // Process details
-                processDoc(siteDoc, function(error, result) {
+                exports.processDoc(siteDoc, function(error, result) {
                     if (error) {
                         callback(error, null);
                         return;
