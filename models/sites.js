@@ -13,6 +13,10 @@ exports.audit = function(sid, errors, callback) {
             return;
         }
         var siteDoc = result.value;
+        if (siteDoc.fake) {
+            console.log(siteDoc.sid + ' is a fake site for demo purposes, it will not be audited');
+            return callback();
+        }
         console.log('Auditing ' + result.value.sid + ' at ' + siteDoc.baseurl + '/admin/reports/dewy');
         request({
             uri: siteDoc.baseurl + '/admin/reports/dewy',
@@ -31,7 +35,18 @@ exports.audit = function(sid, errors, callback) {
                 date: date
             }
 
-            if (response.statusCode != 200) {
+            if (error) {
+                errors.push({ sid: siteDoc.sid, error: error });
+                siteDoc.audited.error = error;
+                exports.update(siteDoc, function(error, result) {
+                    if (error) {
+                        callback(error, null);
+                        return;
+                    }
+                    callback(null, result);
+                });
+            } 
+            else if (response.statusCode != 200) {
                 errors.push({ sid: siteDoc.sid, statusCode: response.statusCode, error: error });
                 siteDoc.audited.error = response.statusCode;
                 exports.update(siteDoc, function(error, result) {
@@ -68,7 +83,7 @@ exports.audit = function(sid, errors, callback) {
 exports.auditAll = function(callback) {
     // Loop through all sites regardless of uid
     query = couchbase.ViewQuery.from('sites', 'by_uid')
-        .key([null, null], [{}, null]);
+        .range([null], [{}]);
     db.query(query, function(error, result) {
         if (error) {
             callback(error, null);
