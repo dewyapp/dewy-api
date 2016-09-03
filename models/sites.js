@@ -77,7 +77,6 @@ exports.audit = function(sid, results, callback) {
                             results.push({ sid: siteDoc.sid, error: error });
                             return callback();
                         }
-                        results.push({ sid: siteDoc.sid });
                         return callback();
                     });
                 });
