@@ -120,15 +120,20 @@ router.put('/:sid', oauth.authorise(), function (req, res, next) {
         }
 
         if (req.body.audit) {
-            var errors = [];
-            sites.audit(result.sid, errors, function(error,result) {
+            var results = [];
+            sites.audit(result.sid, results, function(error, result) {
+                console.log(results);
                 if (error) {
                     return res.status(500).send(error);
                 }
-                else if (errors.length) {
-                    return res.status(errors[0].statusCode).send(errors[0]);
+                else {
+                    if (results[0].error) {
+                        res.status(500).send(results[0].error + "");
+                    }
+                    else {
+                        res.send(results[0].result);
+                    }
                 }
-                res.send(result);
             });
         }
         else {

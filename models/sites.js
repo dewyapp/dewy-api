@@ -6,15 +6,15 @@ var async = require('async');
 var request = require('request');
 var modules = require('../models/modules');
 
-exports.audit = function(sid, errors, callback) {
+exports.audit = function(sid, results, callback) {
     db.get('site::' + sid, function(error, result) {
         if (error) {
-            callback(error, null);
-            return;
+            results.push({ sid: sid, error: error });
+            return callback();
         }
         var siteDoc = result.value;
         if (siteDoc.fake) {
-            console.log(siteDoc.sid + ' is a fake site for demo purposes, it will not be audited');
+            results.push({ sid: siteDoc.sid, error: 'This is a fake site for demo purposes, it will not be audited' });
             return callback();
         }
         console.log('Auditing ' + result.value.sid + ' at ' + siteDoc.baseurl + '/admin/reports/dewy');
@@ -24,6 +24,7 @@ exports.audit = function(sid, errors, callback) {
             body: 'token=' + siteDoc.token,
             rejectUnauthorized: false,
             charset: 'utf-8',
+            timeout: 30000,
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
@@ -36,25 +37,29 @@ exports.audit = function(sid, errors, callback) {
             }
 
             if (error) {
-                errors.push({ sid: siteDoc.sid, error: error });
-                siteDoc.audited.error = error;
+                siteDoc.audited.error = error.code;
                 exports.update(siteDoc, function(error, result) {
                     if (error) {
-                        callback(error, null);
-                        return;
+                        results.push({ sid: siteDoc.sid, error: error });
+                        return callback();
                     }
-                    callback(null, result);
+                    else {
+                        results.push({ sid: siteDoc.sid, error: siteDoc.audited.error });
+                        return callback();
+                    }
                 });
             } 
             else if (response.statusCode != 200) {
-                errors.push({ sid: siteDoc.sid, statusCode: response.statusCode, error: error });
                 siteDoc.audited.error = response.statusCode;
                 exports.update(siteDoc, function(error, result) {
                     if (error) {
-                        callback(error, null);
-                        return;
+                        results.push({ sid: siteDoc.sid, error: error });
+                        return callback();
                     }
-                    callback(null, result);
+                    else {
+                        results.push({ sid: siteDoc.sid, error: siteDoc.audited.error });
+                        return callback();
+                    }
                 });
             } 
             else {
@@ -63,16 +68,17 @@ exports.audit = function(sid, errors, callback) {
                 // Process details
                 exports.processDoc(siteDoc, function(error, result) {
                     if (error) {
-                        callback(error, null);
-                        return;
+                        results.push({ sid: siteDoc.sid, error: error });
+                        return callback();
                     }
                     // Save site
                     exports.update(result, function(error, result) {
                         if (error) {
-                            callback(error, null);
-                            return;
+                            results.push({ sid: siteDoc.sid, error: error });
+                            return callback();
                         }
-                        callback(null, result);
+                        results.push({ sid: siteDoc.sid });
+                        return callback();
                     });
                 });
             }
@@ -89,13 +95,18 @@ exports.auditAll = function(callback) {
             callback(error, null);
             return;
         }
-        var errors = [];
-        async.each(result,
+        var results = [];
+        // We will limit auditing to one site at a time per user
+        // It would be nice in the future to limit to one site per domain per user
+        // but do multiple domains at once - little chance of DoS
+        async.eachLimit(result, 1,
             function(row, callback) {
-                exports.audit(row.value, errors, callback);
+                exports.audit(row.value, results, function(error, result) {
+                    callback();
+                });
             },
             function(error) {
-                callback(null, errors);
+                callback(null, results);
             }
         );
     });
