@@ -13,11 +13,11 @@ exports.audit = function(sid, results, callback) {
             return callback();
         }
         var siteDoc = result.value;
+        console.log('Auditing ' + result.value.sid + ' at ' + siteDoc.baseurl + '/admin/reports/dewy');
         if (siteDoc.fake) {
             results.push({ sid: siteDoc.sid, error: 'This is a fake site for demo purposes, it will not be audited' });
             return callback();
         }
-        console.log('Auditing ' + result.value.sid + ' at ' + siteDoc.baseurl + '/admin/reports/dewy');
         request({
             uri: siteDoc.baseurl + '/admin/reports/dewy',
             method: 'POST',
@@ -87,28 +87,58 @@ exports.audit = function(sid, results, callback) {
 }
 
 exports.auditAll = function(callback) {
-    // Loop through all sites regardless of uid
-    query = couchbase.ViewQuery.from('sites', 'by_uid')
-        .range([null], [{}]);
+    // Get all users
+    query = couchbase.ViewQuery.from('users', 'by_username')
+        .stale(1);
     db.query(query, function(error, result) {
         if (error) {
-            callback(error, null);
-            return;
+            return callback(error);
         }
-        var results = [];
-        // We will limit auditing to one site at a time per user
-        // It would be nice in the future to limit to one site per domain per user
-        // but do multiple domains at once - little chance of DoS
-        async.eachLimit(result, 1,
-            function(row, callback) {
-                exports.audit(row.value, results, function(error, result) {
-                    callback();
-                });
-            },
-            function(error) {
-                callback(null, results);
-            }
-        );
+        if (result.length) {
+            // Run site audits per-user account, in parallel
+            async.each(result,
+                function(row, callback) {
+                    var uid = row.value;
+
+                    query = couchbase.ViewQuery.from('sites', 'by_uid')
+                        .key([uid, null]);
+                    db.query(query, function(error, result) {
+                        if (error) {
+                            return callback();
+                        }
+
+                        console.log('Auditing the ' + result.length + ' real sites owned by ' + uid);
+
+                        var results = [];
+                        // Site at a time per user = little chance of DoS
+                        // Should really do site at a time per domain per user to speed things up more
+                        async.eachLimit(result, 1,
+                            function(row, callback) {
+                                exports.audit(row.value, results, function(error, result) {
+                                    callback();
+                                });
+                            },
+                            function(error) {
+                                if (results.length) {
+                                    console.log('Site audit for ' + uid + ' complete, ' + results.length + ' non-successful results occurred:');
+                                    console.log(results);
+                                }
+                                else {
+                                    console.log('Site audit for ' + uid + ' complete, no non-successful results occurred');
+                                }
+                                callback();
+                            }
+                        );
+                    });
+                },
+                function(error){
+                    return callback('Audit successful');
+                }
+            );  
+        }
+        else {
+            return callback('There are no users to audit');
+        }
     });
 }
 
