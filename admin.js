@@ -284,6 +284,16 @@ exports.addFakeSites = function(uid, numberOfSites, callback) {
     });
 }
 
+exports.audit = function(sid, callback) {
+    var results = [];
+    sites.audit(sid, results, function(error, result) {
+        if (error) {
+            return callback(error, null);
+        }
+        return callback(null, results);
+    });
+}
+
 exports.createUser = function(emailAddress, username, callback) {
     var user = new User(emailAddress, username);
     user.setPassword(randomstring.generate(8));

@@ -24,11 +24,12 @@ if (process.argv[2]) {
     var setup = require('./setup.js');
     var processes = require('./processes.js');
     var program = require('commander');
+
     program
-        .command('setup')
-        .description('Initialize the database with current configuration')
-        .action(function () {
-            setup.setup(function(error, result) {
+        .command('audit <sid>')
+        .description('Audit an individual site in Dewy')
+        .action(function (sid) {
+            admin.audit(sid, function(error, result) {
                 if (error) {
                     console.log(error);
                     process.exit(1);
@@ -40,10 +41,25 @@ if (process.argv[2]) {
         });
 
     program
-        .command('audit')
+        .command('audit-all')
         .description('Audits all sites in Dewy')
         .action(function () {
-            processes.audit(function(error, result) {
+            processes.auditAll(function(error, result) {
+                if (error) {
+                    console.log(error);
+                    process.exit(1);
+                } else {
+                    console.log(result);
+                    process.exit(0);
+                }
+            });
+        });
+
+    program
+        .command('create-user <email> <username>')
+        .description('Create a Dewy user, user will receive an email with instructions')
+        .action(function (email, username) {
+            admin.createUser(email, username, function(error, result) {
                 if (error) {
                     console.log(error);
                     process.exit(1);
@@ -59,6 +75,21 @@ if (process.argv[2]) {
         .description('Retrieves all release updates from Drupal.org')
         .action(function () {
             processes.releases(function(error, result) {
+                if (error) {
+                    console.log(error);
+                    process.exit(1);
+                } else {
+                    console.log(result);
+                    process.exit(0);
+                }
+            });
+        });
+
+    program
+        .command('setup')
+        .description('Initialize the database with current configuration')
+        .action(function () {
+            setup.setup(function(error, result) {
                 if (error) {
                     console.log(error);
                     process.exit(1);
@@ -89,24 +120,6 @@ if (process.argv[2]) {
                     }
                 });
             });
-    }
-
-    program
-        .command('create-user <email> <username>')
-        .description('Create a Dewy user, user will receive an email with instructions')
-        .action(function (email, username) {
-            admin.createUser(email, username, function(error, result) {
-                if (error) {
-                    console.log(error);
-                    process.exit(1);
-                } else {
-                    console.log(result);
-                    process.exit(0);
-                }
-            });
-        });
-
-    if (config.environment == 'development') {
         program
             .command('delete-fake-sites <uid>')
             .description('Delete fake sites on a user account')

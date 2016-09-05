@@ -1,7 +1,7 @@
 var modules = require('./models/modules');
 var sites = require('./models/sites');
 
-exports.audit = function(callback) {
+exports.auditAll = function(callback) {
     sites.auditAll(function(error, result) {
         if (error) {
             return callback(error, null);
