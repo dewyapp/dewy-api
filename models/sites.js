@@ -277,6 +277,11 @@ exports.processDoc = function(siteDoc, callback) {
     var projectKeys = [];
     var availableModules = [];
     var enabledModules = [];
+
+    // Process time offset
+    siteDoc.audited.timeOffset = siteDoc.audited.date - siteDoc.details.date;
+
+    // Process projects
     for (var i in siteDoc.details.projects) {
         if (siteDoc.details.projects[i].version) {
             var version = siteDoc.details.projects[i].version.split('-');
@@ -303,7 +308,7 @@ exports.processDoc = function(siteDoc, callback) {
         hits = hits + siteDoc.details.traffic.paths[i].hits;
     }
     if (hits) {
-        var days = (Date.now()/1000 - siteDoc.details.traffic.recorded_since) / 86400;
+        var days = (siteDoc.audited.date - siteDoc.details.traffic.recorded_since + siteDoc.audited.timeOffset) / 86400;
         hitsPerDay = hits / days;
     }
 
@@ -394,10 +399,10 @@ exports.processDoc = function(siteDoc, callback) {
             files: siteDoc.details.files.public.count + siteDoc.details.files.private.count,
             words: words,
             diskSpace: diskSpace,
-            lastModified: lastModified,
-            avgLastModified: avgLastModified,
-            lastAccess: lastAccess,
-            avgLastAccess: avgLastAccess,
+            lastModified: lastModified + siteDoc.audited.timeOffset,
+            avgLastModified: avgLastModified + siteDoc.audited.timeOffset,
+            lastAccess: lastAccess + siteDoc.audited.timeOffset,
+            avgLastAccess: avgLastAccess + siteDoc.audited.timeOffset,
             hitsPerDay: hitsPerDay,
             databaseUpdates: databaseUpdates.length,
             modulesWithUpdates: modulesWithUpdates.length,
