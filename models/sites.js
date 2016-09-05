@@ -296,6 +296,17 @@ exports.processDoc = function(siteDoc, callback) {
         }
     }
 
+    // Process traffic
+    var hitsPerDay = 0;
+    var hits = 0;
+    for (var i in siteDoc.details.traffic.paths) {
+        hits = hits + siteDoc.details.traffic.paths[i].hits;
+    }
+    if (hits) {
+        var days = (Date.now()/1000 - siteDoc.details.traffic.recorded_since) / 86400;
+        hitsPerDay = hits / days;
+    }
+
     // Process nodes
     var lastModified = 0;
     var avgLastModified = 0;
@@ -387,6 +398,7 @@ exports.processDoc = function(siteDoc, callback) {
             avgLastModified: avgLastModified,
             lastAccess: lastAccess,
             avgLastAccess: avgLastAccess,
+            hitsPerDay: hitsPerDay,
             databaseUpdates: databaseUpdates.length,
             modulesWithUpdates: modulesWithUpdates.length,
             modulesWithSecurityUpdates: modulesWithSecurityUpdates.length
