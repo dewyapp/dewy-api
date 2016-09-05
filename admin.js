@@ -127,6 +127,7 @@ exports.addFakeSites = function(uid, numberOfSites, callback) {
                             status: 1,
                             roles: roles
                         };
+                        users[userChoices[userIndex]].created = users[userChoices[userIndex]].last_access;
                         userChoices.splice(userIndex, 1);
                     }
 
@@ -237,6 +238,8 @@ exports.addFakeSites = function(uid, numberOfSites, callback) {
                     }
 
                     // Assemble siteDoc
+                    var lastUpdated = Math.floor(Date.now() / 1000) - Math.floor(Math.random()*timeAgoAdded);
+
                     var siteDoc = {
                         fake: true,
                         sid: uuid.v4(),
@@ -246,16 +249,25 @@ exports.addFakeSites = function(uid, numberOfSites, callback) {
                         users: "1",
                         content: "1",
                         dateAdded: Math.floor(Date.now() / 1000) - timeAgoAdded,
-                        lastUpdated: Math.floor(Date.now() / 1000) - Math.floor(Math.random()*timeAgoAdded),
+                        lastUpdated: lastUpdated,
                         audited: {
-                            date: Math.floor(Date.now() / 1000) - Math.floor(Math.random()*timeAgoAdded)
+                            date: lastUpdated
                         },
                         details: {
+                            date: lastUpdated,
                             title: domain.prefix.charAt(0).toUpperCase() + domain.prefix.slice(1) + ' ' + domain.noun.charAt(0).toUpperCase() + domain.noun.slice(1) + ' ' + site.charAt(0).toUpperCase() + site.slice(1),
                             base_url: protocol + domain.prefix + domain.noun + '.' + domain.domain + '/' + site,
                             drupal_core: core,
                             php_version: '5.3.' + Math.floor(Math.random()*30),
-                            traffic: {},
+                            traffic: {
+                                recorded_since: Math.floor(Date.now() / 1000) - timeAgoAdded,
+                                paths: {
+                                    onlypathfornow: {
+                                        hits: Math.floor(Math.random()*500),
+                                        last_access: Math.floor(Date.now() / 1000)
+                                    }
+                                }
+                            },
                             files: {
                                 public: {
                                     count: Math.floor(Math.random()*2500),
