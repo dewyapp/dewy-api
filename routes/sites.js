@@ -123,16 +123,15 @@ router.put('/:sid', oauth.authorise(), function (req, res, next) {
         if (req.body.audit) {
             var results = [];
             sites.audit(result.sid, results, function(error, result) {
-                console.log(results);
                 if (error) {
                     return res.status(500).send(error);
                 }
                 else {
-                    if (results[0].error) {
+                    if (results.length) {
                         res.status(500).send(results[0].error + "");
                     }
                     else {
-                        res.send(results[0].result);
+                        res.send();
                     }
                 }
             });
