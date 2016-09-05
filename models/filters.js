@@ -181,10 +181,11 @@ exports.createDesignDoc = function(filterDoc, callback) {
         }
         var dates = {
             'date added to dewy': 'dateAdded',
-            'date last accessed': 'doc.attributes.lastAccess',
-            'date last edited': 'doc.attributes.lastModified',
+            'date of last log in': 'doc.attributes.lastAccess',
+            'date of last site edit': 'doc.attributes.lastModified',
         }
         var numbers = {
+            'average hits per day': 'doc.attributes.hitsPerDay',
             'database file size': 'doc.details.db_size',
             'file size (private)': 'doc.details.files.private.size',
             'file size (public)': 'doc.details.files.public.size',
@@ -194,9 +195,6 @@ exports.createDesignDoc = function(filterDoc, callback) {
             'number of files (private)': 'doc.details.files.private.count',
             'number of files (public)': 'doc.details.files.public.count',
             'number of files (total)': 'doc.details.files.private.count + doc.details.files.public.count',
-            // 'number of hits in past week': '',
-            // 'number of hits in past month': '',
-            // 'number of hits in past year': '',
             'number of modules with a security update': 'doc.attributes.modulesWithSecurityUpdates',
             'number of modules with an update': 'doc.attributes.modulesWithUpdates',
             'number of nodes': 'doc.attributes.nodes',
