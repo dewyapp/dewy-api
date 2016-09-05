@@ -339,6 +339,10 @@ exports.processDoc = function(siteDoc, callback) {
     var users = [];
     var roles = [];
     for (var i in siteDoc.details.users) {
+        // If last access is 0, set it to the user's created date
+        if (!siteDoc.details.users[i].last_access) {
+            siteDoc.details.users[i].last_access = siteDoc.details.users[i].created;
+        }
         avgLastAccess = avgLastAccess + Number(siteDoc.details.users[i].last_access);
         if (siteDoc.details.users[i].last_access > lastAccess) {
             lastAccess = siteDoc.details.users[i].last_access;
