@@ -310,6 +310,7 @@ exports.processDoc = function(siteDoc, callback) {
     if (hits) {
         var days = (siteDoc.audited.date - siteDoc.details.traffic.recorded_since + siteDoc.audited.timeOffset) / 86400;
         hitsPerDay = hits / days;
+        hitsPerDay = +hitsPerDay.toFixed(1);
     }
 
     // Process nodes
