@@ -285,6 +285,11 @@ exports.processDoc = function(siteDoc, callback) {
     for (var i in siteDoc.details.projects) {
         if (siteDoc.details.projects[i].version) {
             var version = siteDoc.details.projects[i].version.split('-');
+            // Drupal versions go 7.50 not 7.x-5.0, so we have to alter the core number just for the Drupal project
+            if (i == 'drupal') {
+                version = siteDoc.details.projects[i].version.split('.');
+                version[0] = version[0] + '.x';
+            }
             var core = version[0];
             projectKeys.push('project::' + i + '-' + core);
         }
@@ -370,6 +375,11 @@ exports.processDoc = function(siteDoc, callback) {
         for (var i in siteDoc.details.projects) {
             if (siteDoc.details.projects[i].version) {
                 var version = siteDoc.details.projects[i].version.split('-');
+                // Drupal versions go 7.50 not 7.x-5.0, so we have to alter the core number just for the Drupal project
+                if (i == 'drupal') {
+                    version = siteDoc.details.projects[i].version.split('.');
+                    version[0] = version[0] + '.x';
+                }
                 var core = version[0];
                 if (result['project::' + i + '-' + core] && result['project::' + i + '-' + core].value) {
                     var releases = result['project::' + i + '-' + core].value;
