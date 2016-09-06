@@ -157,6 +157,11 @@ else {
         next();
     });
 
+    // Respond to CORS preflight requests
+    app.options('*', function (req, res, next) {
+        res.send();
+    });
+
     // OAuth 2 configuration
     app.oauth = oauthserver({
         model: require('./helpers/oauth'),
@@ -166,7 +171,7 @@ else {
         debug: config.debug
     });
     module.exports.oauth = app.oauth;
-    app.all('/oauth/token', app.oauth.grant());
+    app.post('/oauth/token', app.oauth.grant());
 
     // API endpoints
     var fieldRoutes = require('./routes/fields');
