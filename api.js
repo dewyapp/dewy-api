@@ -71,6 +71,21 @@ if (process.argv[2]) {
         });
 
     program
+        .command('flush-tokens')
+        .description('Removes all access and refresh tokens, logs out all users')
+        .action(function () {
+            admin.flushTokens(function(error, result) {
+                if (error) {
+                    console.log(error);
+                    process.exit(1);
+                } else {
+                    console.log(result);
+                    process.exit(0);
+                }
+            });
+        });
+
+    program
         .command('releases')
         .description('Retrieves all release updates from Drupal.org')
         .action(function () {

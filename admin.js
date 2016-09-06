@@ -355,3 +355,47 @@ exports.deleteFakeSites = function(uid, callback) {
         }
     });
 }
+
+exports.flushTokens = function(callback) {
+    var tokens = ['refresh', 'access'];
+    async.each(tokens,
+        function(token, callback) {
+            query = couchbase.ViewQuery.from('oauth', 'by_' + token + 'token')
+                .range([null],[{}]);
+            db.query(query, function(error, result) {
+                if (error) {
+                    return callback(error, null);
+                }
+                var results = [];
+                async.each(result,
+                    function(row, callback) {
+                        db.remove(row.id, function(error, result) {
+                            if (error) {
+                                results.push('Failed to remove ' + row.id);
+                                return callback();
+                            }
+                            console.log('Deleted ' + row.id);
+                            callback();
+                        });
+                    },
+                    function(error) {
+                        if (results.length) {
+                            console.log(token.charAt(0).toUpperCase() + token.slice(1) + ' token deletion finished, ' + results.length + ' non-successful results occurred:');
+                            console.log(results);
+                        }
+                        else {
+                            console.log(token.charAt(0).toUpperCase() + token.slice(1) + ' token deletion finished');
+                        }
+                        callback();
+                    }
+                );
+            });
+        }, 
+        function(error) {
+            if (error) {
+                return callback(error);
+            }
+            callback(null, 'Success');
+        }
+    );
+}
