@@ -4,22 +4,15 @@
 
 ## Installation
 
-* Install Couchbase via Docker (OS X):
+* Install Couchbase via Docker for Mac:
 
-	1. [Download and install Docker toolbox](https://docs.docker.com/mac/step_one/)
-	2. Start Docker machine
-	
-			$ docker-machine start default
-			
-	3. Share Docker machine environment variables with the terminal
-	
-			$ eval $(docker-machine env default)
-			
-	4. Bring up Couchbase server through Docker
+	1. [Download and install Docker](https://docs.docker.com/docker-for-mac/)
+	2. Start Docker by running Docker.app
+	3. Bring up Couchbase server through Docker
 	
 			$ docker-compose up -d
 
-	5. Visit the Couchbase Console at http://<docker-machine-ip>/index.html, and set up the server with a username and password, then delete the default bucket and add a Dewy bucket with a password
+	4. Visit the Couchbase Console at http://<docker-machine-ip>/index.html, and set up the server with a username and password, then delete the default bucket and add a Dewy bucket with a password
 
 * Configure Couchbase, Mailgun and OAuth:
 
