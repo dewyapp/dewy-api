@@ -117,7 +117,7 @@ router.post('/_reset/:uid', function (req, res, next) {
         if (user.passwordRequested === false) {
             return res.status(400).send('The password has already been reset.');
         }
-        if (req.body.reset_code != user.passwordRequested) {
+        else if (req.body.reset_code != user.passwordRequested) {
             return res.status(400).send('The password reset code is incorrect.');
         }
         user.resetPassword();

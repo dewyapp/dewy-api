@@ -27,7 +27,7 @@ function User(email, username, password, gravatar, apikey, uid, verified, passwo
         this.passwordRequested = false;
     }
     else {
-        this.passwordRequested == passwordRequested;
+        this.passwordRequested = passwordRequested;
     }
     this.created = created || Math.round(new Date().getTime() / 1000);
     this.subscription = {
