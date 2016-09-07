@@ -67,6 +67,8 @@ router.post('/', function (req, res, next) {
                         return res.status(500).send(error);
                     }
                     res.send(result);
+                    // Try to audit the site after sending a successful response
+                    sites.audit(result, [], function(error, result) {});
                 });
             }
         });

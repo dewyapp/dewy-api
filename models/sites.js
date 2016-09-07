@@ -160,7 +160,7 @@ exports.create = function(uid, token, baseurl, enabled, users, content, dateAdde
             callback(error, null);
             return;
         }
-        callback(null, result);
+        callback(null, siteDoc.sid);
     });
 }
 
