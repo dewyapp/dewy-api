@@ -180,13 +180,18 @@ else {
     // OAuth 2 configuration
     app.oauth = oauthserver({
         model: require('./helpers/oauth'),
-        grants: ['authorization_code', 'password', 'refresh_token'],
-        accessTokenLifetime: config.oauth.accessTokenLifetime,
-        refreshTokenLifetime: config.oauth.refreshTokenLifetime,
+        grants: ['authorization_code', 'password'],
+        accessTokenLifetime: config.oauth.sessionLifetime,
         debug: config.debug
     });
     module.exports.oauth = app.oauth;
-    app.post('/oauth/token', app.oauth.grant());
+    app.post('/oauth/token', function (req, res, next) {
+        // If the user wants their session remembered, the token will persist for a longer amount of time
+        if (req.body.remember) {
+            app.oauth.accessTokenLifetime = config.oauth.rememberedSessionLifetime;
+        }
+        next();
+    }, app.oauth.grant());
 
     // API endpoints
     var fieldRoutes = require('./routes/fields');

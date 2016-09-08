@@ -15,8 +15,8 @@
             "domain": ""
         },
         "oauth": {
-            "accessTokenLifetime": 2592000,
-            "refreshTokenLifetime": 0
+            "sessionLifetime": 43200,
+            "rememberedSessionLifetime": 604800
         },
         "stripe": {
             "private_key": ""
@@ -41,8 +41,8 @@
             "domain": ""
         },
         "oauth": {
-            "accessTokenLifetime": 2592000,
-            "refreshTokenLifetime": 0
+            "sessionLifetime": 43200,
+            "rememberedSessionLifetime": 604800
         },
         "stripe": {
             "private_key": ""
