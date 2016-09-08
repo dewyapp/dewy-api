@@ -108,9 +108,9 @@ exports.getProject = function(project, core, callback) {
     });
 }
 
-exports.getReleases = function(callback) {
+exports.getRelease = function(projectName, core, callback) {
 
-    getRelease = function(release) {
+    parseDrupalRelease = function(release) {
         var securityUpdate = false;
         
         if ('terms' in release) {
@@ -131,7 +131,94 @@ exports.getReleases = function(callback) {
             securityUpdate: securityUpdate
         }
     }
+    console.log('Getting releases for ' + projectName + '-' + core);
+    request('https://updates.drupal.org/release-history/' + projectName + '/' + core, 
+    function(error, response, body) {
+        if (!error && response.statusCode == 200) {
+            var project = xml2json.toJson(body, {object: true});
+            if ('project' in project) {
+                var projectDoc = {
+                    project: projectName,
+                    core: core,
+                    recommendedMajor: project.project.recommended_major,
+                    supportedMajors: project.project.supported_majors.split(','),
+                    defaultMajor: project.project.default_major,
+                    releases: []
+                }
 
+                // If array, loop through
+                if (Object.prototype.toString.call(project.project.releases.release) === '[object Array]' ) {
+                    for (var i=0, releaseTotal=project.project.releases.release.length; i < releaseTotal; i++) {
+                        projectDoc.releases.push(parseDrupalRelease(project.project.releases.release[i]));
+                    }
+                }
+                else {
+                    projectDoc.releases.push(parseDrupalRelease(project.project.releases.release));
+                }
+
+                // With projectDoc compiled, lets compare to the existing one
+                exports.getProject(projectDoc.project, projectDoc.core, function(error, result) {
+                    if (error) {
+                        // No project matches, so create project
+                        console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' does not exist, creating it');
+                        exports.createProject(projectDoc, function(error, result) {
+                            if (error) {
+                                console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' failed to be created: ' + error);
+                                callback();
+                            }
+                            else {
+                                callback();
+                            }
+                        });
+                    } else {
+                        // Otherwise compare projects
+                        var index = 0;
+                        var update = false;
+                        var securityUpdate = false;
+                        while (projectDoc.releases[index].version != result.releases[0].version) {
+                            update = true;
+                            if (projectDoc.releases[index].securityUpdate) {
+                                securityUpdate = true;
+                            }
+                            index = index+1;
+                        }
+                        // Updates have been found for this project, add to list
+                        if (update) {
+                            updatedProjects.push({
+                                project: projectDoc.project,
+                                core: projectDoc.core,
+                                securityUpdate: securityUpdate
+                            });
+                            console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' has new releases, updating');
+                            exports.createProject(projectDoc, function(error, result) {
+                                if (error) {
+                                    console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' failed to be updated in the database: ' + error);
+                                    callback();
+                                }
+                                else {
+                                    callback();
+                                }
+                            });
+                        }
+                        else {
+                            callback();
+                        }
+                    }
+                });
+            }
+            else {
+                console.log('Project ' + projectName + '-' + core + ' is invalid');
+                callback();
+            }
+        }
+        else {
+            console.log('Failed to retrieve version history for ' + projectName + '-' + core + ': ' + error);
+            callback();
+        }
+    });
+}
+
+exports.getReleases = function(callback) {
     query = couchbase.ViewQuery.from('modules', 'by_project')
         .group(true)
         .stale(1);
@@ -141,95 +228,13 @@ exports.getReleases = function(callback) {
             return;
         }
         var updatedProjects = [];
-        async.forEach(result, function(resultProject, callback) {
-            var projectTitle = resultProject.key[0];
-            var core = resultProject.key[1];
-            console.log('Getting releases for ' + projectTitle + '-' + core);
-            request('https://updates.drupal.org/release-history/' + projectTitle + '/' + core, 
-            function(error, response, body) {
-                if (!error && response.statusCode == 200) {
-                    var project = xml2json.toJson(body, {object: true});
-                    if ('project' in project) {
-                        var projectDoc = {
-                            project: projectTitle,
-                            core: core,
-                            recommendedMajor: project.project.recommended_major,
-                            supportedMajors: project.project.supported_majors.split(','),
-                            defaultMajor: project.project.default_major,
-                            releases: []
-                        }
-
-                        // If array, loop through
-                        if (Object.prototype.toString.call(project.project.releases.release) === '[object Array]' ) {
-                            for (var i=0, releaseTotal=project.project.releases.release.length; i < releaseTotal; i++) {
-                                projectDoc.releases.push(getRelease(project.project.releases.release[i]));
-                            }
-                        }
-                        else {
-                            projectDoc.releases.push(getRelease(project.project.releases.release));
-                        }
-
-                        // With projectDoc compiled, lets compare to the existing one
-                        exports.getProject(projectDoc.project, projectDoc.core, function(error, result) {
-                            if (error) {
-                                // No project matches, so create project
-                                console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' does not exist, creating it');
-                                exports.createProject(projectDoc, function(error, result) {
-                                    if (error) {
-                                        console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' failed to be created: ' + error);
-                                        callback();
-                                    }
-                                    else {
-                                        callback();
-                                    }
-                                });
-                            } else {
-                                // Otherwise compare projects
-                                var index = 0;
-                                var update = false;
-                                var securityUpdate = false;
-                                while (projectDoc.releases[index].version != result.releases[0].version) {
-                                    update = true;
-                                    if (projectDoc.releases[index].securityUpdate) {
-                                        securityUpdate = true;
-                                    }
-                                    index = index+1;
-                                }
-                                // Updates have been found for this project, add to list
-                                if (update) {
-                                    updatedProjects.push({
-                                        project: projectDoc.project,
-                                        core: projectDoc.core,
-                                        securityUpdate: securityUpdate
-                                    });
-                                    console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' has new releases, updating');
-                                    exports.createProject(projectDoc, function(error, result) {
-                                        if (error) {
-                                            console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' failed to be updated in the database: ' + error);
-                                            callback();
-                                        }
-                                        else {
-                                            callback();
-                                        }
-                                    });
-                                }
-                                else {
-                                    callback();
-                                }
-                            }
-                        });
-                    }
-                    else {
-                        console.log('Project ' + projectTitle + '-' + core + ' is invalid');
-                        callback();
-                    }
-                }
-                else {
-                    console.log('Failed to retrieve version history for ' + projectTitle + '-' + core + ': ' + error);
+        async.each(result, 
+            function(row, callback) {
+                exports.getRelease(row.key[0], row.key[1], function(error, result) {
                     callback();
-                }
-            });
-        }, function(error) {
+                });
+            }, 
+            function(error) {
             async.eachSeries(updatedProjects, function(updatedProject, callback) {
                 console.log('Project ' + updatedProject.project + '-' + updatedProject.core + ' has new updates');
 
