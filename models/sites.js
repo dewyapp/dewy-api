@@ -372,6 +372,7 @@ exports.processDoc = function(siteDoc, callback) {
             callback(error, null);
             return;
         }
+        var undocumentedProjects = [];
         for (var i in siteDoc.details.projects) {
             if (siteDoc.details.projects[i].version) {
                 var version = siteDoc.details.projects[i].version.split('-');
@@ -382,8 +383,8 @@ exports.processDoc = function(siteDoc, callback) {
                 }
                 var core = version[0];
                 if (result['project::' + i + '-' + core] && result['project::' + i + '-' + core].value) {
-                    var releases = result['project::' + i + '-' + core].value;
-                    updateResult = modules.checkVersionForUpdate(releases, siteDoc.details.projects[i].version);
+                    var projectDoc = result['project::' + i + '-' + core].value;
+                    var updateResult = modules.checkVersionForUpdate(projectDoc, siteDoc.details.projects[i].version);
                     // If we were recording individual modules, we would use this code
                     // for (var j in siteDoc.details.projects[i].modules) {
                     //     if (updateResult.update) {
@@ -401,8 +402,41 @@ exports.processDoc = function(siteDoc, callback) {
                         modulesWithSecurityUpdates.push(i);
                     }
                 }
+                else {
+                    // The Drupal.org release information was not found in Dewy for this particular project
+                    // Perhaps because it's a project without release information, or maybe because Dewy hasn't seen it before
+                    // Lets attempt to grab it right now
+                    undocumentedProjects.push({ projectName: i, core: core, version: siteDoc.details.projects[i].version });
+                }
             }
         }
+
+        // Loop through any projects that weren't found in Dewy
+        var undocumentedProjectsNowDocumented = [];
+        async.each(undocumentedProjects, 
+            function(row, callback) {
+                // Ping Drupal.org to see if we can get project information
+                modules.getRelease(row.projectName, row.core, [], function(error, result) {
+                    if (result) {
+                        // If a projectDoc was returned, there was Drupal.org release information and it has been added to Dewy
+                        undocumentedProjectsNowDocumented.push({ projectDoc: result, version: row.version });
+                    }
+                    callback();
+                });
+            },
+            function(error) {
+                // Process any new projects and determine if they have updates and record to siteDoc
+                for (var i in undocumentedProjectsNowDocumented) {
+                    var updateResult = modules.checkVersionForUpdate(undocumentedProjectsNowDocumented[i].projectDoc, undocumentedProjectsNowDocumented[i].version);
+                    if (updateResult.update) {
+                        modulesWithUpdates.push(i);
+                    }
+                    if (updateResult.securityUpdate) {
+                        modulesWithSecurityUpdates.push(i);
+                    }
+                }
+            }
+        );
 
         siteDoc.attributes = {
             availableModules: availableModules.length,
