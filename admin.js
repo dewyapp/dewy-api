@@ -320,6 +320,16 @@ exports.createUser = function(emailAddress, username, callback) {
     });
 }
 
+exports.deleteSite = function(sid, callback) {
+    var results = [];
+    sites.delete(sid, function(error, result) {
+        if (error) {
+            return callback(error, null);
+        }
+        return callback(null, results);
+    });
+}
+
 exports.deleteFakeSites = function(uid, callback) {
     User.get(uid, function(error, result) {
         if (error) {
