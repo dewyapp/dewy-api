@@ -1,0 +1,4 @@
+MAIL="admin@dewy.io"
+*/30 * * * * node dewy-api/api.js releases
+0 23 * * * node dewy-api/api.js audit-all
+
