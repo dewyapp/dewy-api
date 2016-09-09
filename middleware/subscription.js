@@ -8,13 +8,7 @@ exports.require = function(type) {
             }
 
             // Get subscription type
-            var subscriptionType = result.subscription.type;
-            if (result.subscription.endDate < Date.now()/1000) {
-                subscriptionType = 'expired';
-            }
-            else if (subscriptionType == 'trial') {
-                subscriptionType = 'basic';
-            }
+            subscriptionType = result.getSubscriptionType();
 
             // Determine if it's valid
             if (subscriptionType == 'expired' ||

@@ -127,6 +127,17 @@ User.getUidByUsername = function(username, callback) {
     });
 }
 
+User.prototype.getSubscriptionType = function () {
+    var subscriptionType = this.subscription.type;
+    if (this.subscription.endDate < Date.now()/1000) {
+        subscriptionType = 'expired';
+    }
+    else if (subscriptionType == 'trial') {
+        subscriptionType = 'basic';
+    }
+    return subscriptionType;    
+}
+
 User.prototype.getUserDoc = function() {
     return {
         email: this.email,
@@ -138,7 +149,13 @@ User.prototype.getUserDoc = function() {
         verified: this.verified,
         passwordRequested: this.passwordRequested,
         created: this.created,
-        subscription: this.subscription
+        subscription: {
+            startDate: this.subscription.startDate,
+            endDate: this.subscription.endDate,
+            type: this.subscription.type,
+            stripeID: this.subscription.stripeID,
+            subscriptionID: this.subscription.subscriptionID
+        }
     }
 }
 

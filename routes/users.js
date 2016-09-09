@@ -70,7 +70,29 @@ router.get('/', oauth.authorise(), function (req, res, next) {
         if (error) {
             return res.status(500).send(error);
         }
-        var user = result;
+
+        if (result.verified !== true) {
+            result.verified = false;
+        }
+        var expired = false;
+        if (result.getSubscriptionType() == 'expired') {
+            expired = true;
+        }
+        // Return stripped down version of userDoc
+        var user = {
+            email: result.email,
+            username: result.username,
+            gravatar: result.gravatar,
+            apikey: result.apikey,
+            uid: result.uid,
+            verified: result.verified,
+            created: result.created,
+            subscription: {
+                endDate: result.subscription.endDate,
+                type: result.subscription.type,
+                expired: expired
+            }
+        };
         res.send(user);
     });
 });

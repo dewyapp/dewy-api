@@ -75,12 +75,12 @@ router.post('/', function (req, res, next) {
     });
 });
 
-router.get('/_filter/:fid?', oauth.authorise(), subscription.require('basic'), function (req, res, next) {
+router.get('/_filter/:fid', oauth.authorise(), subscription.require('basic'), function (req, res, next) {
     filters.get(req.params.fid, function(error, result) {
         if (error) {
             return res.status(500).send(error);
         }
-        if (result.uid != req.user.id && (typeof req.params.fid == 'undefined')) {
+        if (result.uid != req.user.id) {
             return res.status(403).send("You do not have permission to access this resource.");
         }
         sites.getAll(req.user.id, result.fid, function (error, result) {
@@ -89,6 +89,15 @@ router.get('/_filter/:fid?', oauth.authorise(), subscription.require('basic'), f
             }
             res.send(result);
         });
+    });
+});
+
+router.get('/_filter', oauth.authorise(), function (req, res, next) {
+    sites.getAll(req.user.id, null, function (error, result) {
+        if (error) {
+            return res.status(400).send(error);
+        }
+        res.send(result);
     });
 });
 
