@@ -86,15 +86,26 @@ if (process.argv[2]) {
         });
 
     program
+        .command('flush-releases')
+        .description('Removes all Drupal.org release data')
+        .action(function () {
+            admin.flushReleases(function(error, result) {
+                if (error) {
+                    process.exit(1);
+                } else {
+                    process.exit(0);
+                }
+            });
+        });
+
+    program
         .command('flush-tokens')
         .description('Removes all access and refresh tokens, logs out all users')
         .action(function () {
             admin.flushTokens(function(error, result) {
                 if (error) {
-                    console.log(error);
                     process.exit(1);
                 } else {
-                    console.log(result);
                     process.exit(0);
                 }
             });

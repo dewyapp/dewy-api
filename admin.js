@@ -366,6 +366,41 @@ exports.deleteFakeSites = function(uid, callback) {
     });
 }
 
+exports.flushReleases = function(callback) {
+    var couchbase = require('couchbase');
+    query = couchbase.ViewQuery.from('modules', 'drupalorg_by_project')
+        .stale(1);
+    db.query(query, function(error, result) {
+        if (error) {
+            return callback(error, null);
+        }
+        var results = [];
+        async.each(result,
+            function(row, callback) {
+                db.remove(row.id, function(error, result) {
+                    if (error) {
+                        results.push('Failed to remove ' + row.id);
+                        return callback();
+                    } else {
+                        console.log('Deleted ' + row.id);
+                        callback();
+                    }
+                });
+            },
+            function(error) {
+                if (results.length) {
+                    console.log('Drupal.org release deletion finished, ' + results.length + ' non-successful results occurred:');
+                    console.log(results);
+                }
+                else {
+                    console.log('Drupal.org release deletion finished');
+                }
+                callback();
+            }
+        );
+    });
+}
+
 exports.flushTokens = function(callback) {
     var tokens = ['refresh', 'access'];
     async.each(tokens,
