@@ -112,10 +112,23 @@ if (process.argv[2]) {
         });
 
     program
+        .command('notify-users')
+        .description('Notifies applicable users about key dates in their subscriptions')
+        .action(function () {
+            processes.notifyUsers(function(error, result) {
+                if (error) {
+                    process.exit(1);
+                } else {
+                    process.exit(0);
+                }
+            });
+        });
+
+    program
         .command('releases')
         .description('Retrieves all release updates from Drupal.org')
         .action(function () {
-            processes.releases(function(error, result) {
+            processes.getReleases(function(error, result) {
                 if (error) {
                     console.log(error);
                     process.exit(1);

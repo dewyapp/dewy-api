@@ -440,7 +440,7 @@ exports.flushTokens = function(callback) {
             if (error) {
                 return callback(error);
             }
-            callback(null, 'Success');
+            callback();
         }
     );
 }

@@ -10,7 +10,7 @@ var swearjar = require('swearjar');
 var randomstring = require('randomstring');
 var config = new require('../config')();
 
-function User(email, username, password, gravatar, apikey, uid, verified, passwordRequested, created, startDate, endDate, type, stripeID, subscriptionID) {
+function User(email, username, password, gravatar, apikey, uid, verified, passwordRequested, lastNotified, created, startDate, endDate, type, stripeID, subscriptionID) {
     this.email = email || null;
     this.username = username || null;
     this.password = password || null;
@@ -29,6 +29,7 @@ function User(email, username, password, gravatar, apikey, uid, verified, passwo
     else {
         this.passwordRequested = passwordRequested;
     }
+    this.lastNotified = lastNotified || null;
     this.created = created || Math.round(new Date().getTime() / 1000);
     this.subscription = {
         startDate: startDate || this.created,
@@ -55,6 +56,7 @@ User.get = function(uid, callback) {
             result.value.uid,
             result.value.verified,
             result.value.passwordRequested,
+            result.value.lastNotified,
             result.value.created,
             result.value.subscription.startDate,
             result.value.subscription.endDate,
@@ -148,6 +150,7 @@ User.prototype.getUserDoc = function() {
         uid: this.uid,
         verified: this.verified,
         passwordRequested: this.passwordRequested,
+        lastNotified: this.lastNotified,
         created: this.created,
         subscription: {
             startDate: this.subscription.startDate,
@@ -169,6 +172,11 @@ User.prototype.setEmail = function(email) {
     this.email = email;
     this.verified = uuid.v4();
     this.gravatar = md5(this.email);
+}
+
+User.prototype.setLastNotified = function() {
+    this.changes.push('lastNotified');
+    this.lastNotified = Math.round(new Date().getTime() / 1000);
 }
 
 User.prototype.setPassword = function(password) {
