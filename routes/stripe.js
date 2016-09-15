@@ -45,8 +45,8 @@ router.post('/', function (req, res, next) {
                         email.send({
                             to: user.email,
                             subject: 'Your Dewy subscription has begun',
-                            text: 'Hi ' + user.username + '. Thank you for starting a ' + event.data.object.plan.id + ' subscription to Dewy.',
-                            html: 'Hi ' + user.username + '.<br/>Thank you for starting a ' + event.data.object.plan.id + ' subscription to Dewy.'
+                            text: 'Hi ' + user.username + '. Thank you for starting your ' + event.data.object.plan.id + ' subscription to Dewy.',
+                            html: 'Hi ' + user.username + '.<br/>Thank you for starting your ' + event.data.object.plan.id + ' subscription to Dewy.'
                         }, function(error, result) {
                             res.send();
                         });
@@ -100,8 +100,8 @@ router.post('/', function (req, res, next) {
                                 email.send({
                                     to: user.email,
                                     subject: 'Your Dewy subscription has been cancelled',
-                                    text: 'Hi ' + user.username + '. Your Dewy subscription has been cancelled. You can still sign on to Dewy but most features will be disabled. You can resubscribe at any time.',
-                                    html: 'Hi ' + user.username + '.<br/>Your Dewy subscription has been cancelled. You can still sign on to Dewy but most features will be disabled. You can resubscribe at any time.'
+                                    text: 'Hi ' + user.username + '. Your Dewy subscription has been cancelled. You can still sign on to Dewy but features will be disabled. You can resubscribe at any time at ' + config.website.url,
+                                    html: 'Hi ' + user.username + '.<br/>Your Dewy subscription has been cancelled. You can still sign on to Dewy but features will be disabled. You can resubscribe at any time at ' + config.website.url
                                 }, function(error, result) {
                                     res.send();
                                 });
