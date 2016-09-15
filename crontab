@@ -1,4 +1,0 @@
-MAIL="admin@dewy.io"
-*/30 * * * * /usr/bin/node dewy-api/api.js releases >> logs/cron.log 2>&1
-0 23 * * * /usr/bin/node dewy-api/api.js audit-all >> logs/cron.log 2>&1
-

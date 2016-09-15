@@ -76,3 +76,25 @@
 * Administrative functions can be run through the command line, access the help for more details:
 
 		$ ./api.js -h
+
+### Processes
+
+* There are three processes that must be run for Dewy to function properly as a service:
+
+	1. Pulling site data from sites registered with Dewy
+	
+		This should be run daily
+		
+			./api.js audit-all
+	
+	2. Pulling Drupal.org release data
+	
+		This should be run every 30 minutes:
+		
+			./api.js releases
+	
+	3. Sending notifications around users expiring/expired subscriptions
+	
+		This should be run daily:
+		
+			./api.js notify-users
