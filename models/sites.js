@@ -24,7 +24,7 @@ exports.audit = function(sid, results, callback) {
             body: 'token=' + siteDoc.token,
             rejectUnauthorized: false,
             charset: 'utf-8',
-            timeout: 30000,
+            timeout: 300000,
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
