@@ -352,7 +352,7 @@ exports.createDesignDoc = function(filterDoc, callback) {
                                             'enabled = true',
                                         '}',
                                         'var databaseUpdate = false;',
-                                        'if (doc.details.projects[project].modules[module].schema != doc.details.projects[project].modules[module].latest_schema) {',
+                                        'if (enabled && doc.details.projects[project].modules[module].schema != doc.details.projects[project].modules[module].latest_schema) {',
                                             'databaseUpdate = true',
                                         '}',
                                         'var update = false;',
