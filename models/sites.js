@@ -459,7 +459,8 @@ exports.processDoc = function(siteDoc, callback) {
             hitsPerDay: hitsPerDay,
             databaseUpdates: databaseUpdates.length,
             projectsWithUpdates: projectsWithUpdates.length,
-            projectsWithSecurityUpdates: projectsWithSecurityUpdates.length
+            projectsWithSecurityUpdates: projectsWithSecurityUpdates.length,
+            enabledProjects: enabledProjects
         }
 
         siteDoc.attributeDetails = {
