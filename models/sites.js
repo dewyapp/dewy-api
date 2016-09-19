@@ -282,6 +282,7 @@ exports.processDoc = function(siteDoc, callback) {
     siteDoc.audited.timeOffset = siteDoc.audited.date - siteDoc.details.date;
 
     // Process projects
+    var enabledProjects = 0;
     for (var i in siteDoc.details.projects) {
         if (siteDoc.details.projects[i].version) {
             var version = siteDoc.details.projects[i].version.split('-');
@@ -293,16 +294,19 @@ exports.processDoc = function(siteDoc, callback) {
             var core = version[0];
             projectKeys.push('project::' + i + '-' + core);
         }
+        var moduleEnabled = false;
         for (var j in siteDoc.details.projects[i].modules) {
             if (siteDoc.details.projects[i].modules[j].schema != -1) {
                 if (siteDoc.details.projects[i].modules[j].schema != siteDoc.details.projects[i].modules[j].latest_schema) {
                     databaseUpdates.push(j);
                 }
-            }
-            availableModules.push(j);
-            if (siteDoc.details.projects[i].modules[j].schema != -1) {
+                moduleEnabled = true;
                 enabledModules.push(j);
             }
+            availableModules.push(j);
+        }
+        if (moduleEnabled) {
+            enabledProjects = enabledProjects+1;
         }
     }
 
@@ -365,8 +369,8 @@ exports.processDoc = function(siteDoc, callback) {
     diskSpace = +diskSpace.toFixed(2);
 
     // Process releases
-    var modulesWithUpdates = [];
-    var modulesWithSecurityUpdates = [];
+    var projectsWithUpdates = [];
+    var projectsWithSecurityUpdates = [];
     modules.getReleasesFromProjects(projectKeys, function(error, result) {
         if (error) {
             callback(error, null);
@@ -388,18 +392,18 @@ exports.processDoc = function(siteDoc, callback) {
                     // If we were recording individual modules, we would use this code
                     // for (var j in siteDoc.details.projects[i].modules) {
                     //     if (updateResult.update) {
-                    //         modulesWithUpdates.push(j);
+                    //         projectsWithUpdates.push(j);
                     //     }
                     //     if (updateResult.securityUpdate) {
-                    //         modulesWithSecurityUpdates.push(j);
+                    //         projectsWithSecurityUpdates.push(j);
                     //     }
                     // }
                     // But we're reporting projects instead
                     if (updateResult.update) {
-                        modulesWithUpdates.push(i);
+                        projectsWithUpdates.push(i);
                     }
                     if (updateResult.securityUpdate) {
-                        modulesWithSecurityUpdates.push(i);
+                        projectsWithSecurityUpdates.push(i);
                     }
                 }
                 else {
@@ -429,10 +433,10 @@ exports.processDoc = function(siteDoc, callback) {
                 for (var i in undocumentedProjectsNowDocumented) {
                     var updateResult = modules.checkVersionForUpdate(undocumentedProjectsNowDocumented[i].projectDoc, undocumentedProjectsNowDocumented[i].version);
                     if (updateResult.update) {
-                        modulesWithUpdates.push(i);
+                        projectsWithUpdates.push(i);
                     }
                     if (updateResult.securityUpdate) {
-                        modulesWithSecurityUpdates.push(i);
+                        projectsWithSecurityUpdates.push(i);
                     }
                 }
             }
@@ -454,8 +458,8 @@ exports.processDoc = function(siteDoc, callback) {
             avgLastAccess: avgLastAccess + siteDoc.audited.timeOffset,
             hitsPerDay: hitsPerDay,
             databaseUpdates: databaseUpdates.length,
-            modulesWithUpdates: modulesWithUpdates.length,
-            modulesWithSecurityUpdates: modulesWithSecurityUpdates.length
+            projectsWithUpdates: projectsWithUpdates.length,
+            projectsWithSecurityUpdates: projectsWithSecurityUpdates.length
         }
 
         siteDoc.attributeDetails = {
@@ -465,8 +469,8 @@ exports.processDoc = function(siteDoc, callback) {
             roles: roles,
             users: users,
             databaseUpdates: databaseUpdates,
-            modulesWithUpdates: modulesWithUpdates,
-            modulesWithSecurityUpdates: modulesWithSecurityUpdates
+            projectsWithUpdates: projectsWithUpdates,
+            projectsWithSecurityUpdates: projectsWithSecurityUpdates
         }
 
         callback(null, siteDoc);

@@ -275,20 +275,20 @@ exports.getReleases = function(callback) {
                                     // Loop through all modules associated with project
                                     for (module in siteDoc.details.projects[updatedProject.project].modules) {
                                         if (updatedProject.securityUpdate) {
-                                            if (!('modulesWithSecurityUpdates' in siteDoc.attributeDetails)) {
-                                                siteDoc.attributeDetails.modulesWithSecurityUpdates = [];
+                                            if (!('projectsWithSecurityUpdates' in siteDoc.attributeDetails)) {
+                                                siteDoc.attributeDetails.projectsWithSecurityUpdates = [];
                                             }
-                                            if (siteDoc.attributeDetails.modulesWithSecurityUpdates.indexOf(module) == -1) {
-                                                siteDoc.attributeDetails.modulesWithSecurityUpdates.push(module);
-                                                siteDoc.attributes.modulesWithSecurityUpdates = siteDoc.attributes.modulesWithSecurityUpdates + 1;
+                                            if (siteDoc.attributeDetails.projectsWithSecurityUpdates.indexOf(module) == -1) {
+                                                siteDoc.attributeDetails.projectsWithSecurityUpdates.push(module);
+                                                siteDoc.attributes.projectsWithSecurityUpdates = siteDoc.attributes.projectsWithSecurityUpdates + 1;
                                             }
                                         }
-                                        if (!('modulesWithUpdates' in siteDoc.attributeDetails)) {
-                                            siteDoc.attributeDetails.modulesWithUpdates = [];
+                                        if (!('projectsWithUpdates' in siteDoc.attributeDetails)) {
+                                            siteDoc.attributeDetails.projectsWithUpdates = [];
                                         }
-                                        if (siteDoc.attributeDetails.modulesWithUpdates.indexOf(module) == -1) {
-                                            siteDoc.attributeDetails.modulesWithUpdates.push(module);
-                                            siteDoc.attributes.modulesWithUpdates = siteDoc.attributes.modulesWithUpdates + 1;
+                                        if (siteDoc.attributeDetails.projectsWithUpdates.indexOf(module) == -1) {
+                                            siteDoc.attributeDetails.projectsWithUpdates.push(module);
+                                            siteDoc.attributes.projectsWithUpdates = siteDoc.attributes.projectsWithUpdates + 1;
                                         }
                                     }
 
