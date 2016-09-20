@@ -172,7 +172,7 @@ exports.getRelease = function(projectName, core, updatedProjects, callback) {
                                     callback();
                                 }
                                 else {
-                                    callback(projectDoc);
+                                    callback(null, projectDoc);
                                 }
                             });
                         } else {
@@ -201,7 +201,7 @@ exports.getRelease = function(projectName, core, updatedProjects, callback) {
                                         callback();
                                     }
                                     else {
-                                        callback(projectDoc);
+                                        callback(null, projectDoc);
                                     }
                                 });
                             }

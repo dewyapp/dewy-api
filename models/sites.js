@@ -417,7 +417,7 @@ exports.processDoc = function(siteDoc, callback) {
 
         // Loop through any projects that weren't found in Dewy
         var undocumentedProjectsNowDocumented = [];
-        async.each(undocumentedProjects, 
+        async.each(undocumentedProjects,
             function(row, callback) {
                 // Ping Drupal.org to see if we can get project information
                 modules.getRelease(row.projectName, row.core, [], function(error, result) {
@@ -432,49 +432,50 @@ exports.processDoc = function(siteDoc, callback) {
                 // Process any new projects and determine if they have updates and record to siteDoc
                 for (var i in undocumentedProjectsNowDocumented) {
                     var updateResult = modules.checkVersionForUpdate(undocumentedProjectsNowDocumented[i].projectDoc, undocumentedProjectsNowDocumented[i].version);
+                    // console.log(updateResult);
                     if (updateResult.update) {
-                        projectsWithUpdates.push(i);
+                        projectsWithUpdates.push(undocumentedProjectsNowDocumented[i].projectDoc.project);
                     }
                     if (updateResult.securityUpdate) {
-                        projectsWithSecurityUpdates.push(i);
+                        projectsWithSecurityUpdates.push(undocumentedProjectsNowDocumented[i].projectDoc.project);
                     }
                 }
+
+                siteDoc.attributes = {
+                    availableModules: availableModules.length,
+                    enabledModules: enabledModules.length,
+                    contentTypes: contentTypes.length,
+                    roles: roles.length,
+                    users: users.length,
+                    nodes: nodes,
+                    files: siteDoc.details.files.public.count + siteDoc.details.files.private.count,
+                    words: words,
+                    diskSpace: diskSpace,
+                    lastModified: lastModified + siteDoc.audited.timeOffset,
+                    avgLastModified: avgLastModified + siteDoc.audited.timeOffset,
+                    lastAccess: lastAccess + siteDoc.audited.timeOffset,
+                    avgLastAccess: avgLastAccess + siteDoc.audited.timeOffset,
+                    hitsPerDay: hitsPerDay,
+                    databaseUpdates: databaseUpdates.length,
+                    projectsWithUpdates: projectsWithUpdates.length,
+                    projectsWithSecurityUpdates: projectsWithSecurityUpdates.length,
+                    enabledProjects: enabledProjects
+                }
+
+                siteDoc.attributeDetails = {
+                    availableModules: availableModules,
+                    enabledModules: enabledModules,
+                    contentTypes: contentTypes,
+                    roles: roles,
+                    users: users,
+                    databaseUpdates: databaseUpdates,
+                    projectsWithUpdates: projectsWithUpdates,
+                    projectsWithSecurityUpdates: projectsWithSecurityUpdates
+                }
+
+                callback(null, siteDoc);
             }
         );
-
-        siteDoc.attributes = {
-            availableModules: availableModules.length,
-            enabledModules: enabledModules.length,
-            contentTypes: contentTypes.length,
-            roles: roles.length,
-            users: users.length,
-            nodes: nodes,
-            files: siteDoc.details.files.public.count + siteDoc.details.files.private.count,
-            words: words,
-            diskSpace: diskSpace,
-            lastModified: lastModified + siteDoc.audited.timeOffset,
-            avgLastModified: avgLastModified + siteDoc.audited.timeOffset,
-            lastAccess: lastAccess + siteDoc.audited.timeOffset,
-            avgLastAccess: avgLastAccess + siteDoc.audited.timeOffset,
-            hitsPerDay: hitsPerDay,
-            databaseUpdates: databaseUpdates.length,
-            projectsWithUpdates: projectsWithUpdates.length,
-            projectsWithSecurityUpdates: projectsWithSecurityUpdates.length,
-            enabledProjects: enabledProjects
-        }
-
-        siteDoc.attributeDetails = {
-            availableModules: availableModules,
-            enabledModules: enabledModules,
-            contentTypes: contentTypes,
-            roles: roles,
-            users: users,
-            databaseUpdates: databaseUpdates,
-            projectsWithUpdates: projectsWithUpdates,
-            projectsWithSecurityUpdates: projectsWithSecurityUpdates
-        }
-
-        callback(null, siteDoc);
     });
 }
 
