@@ -63,23 +63,32 @@ exports.audit = function(sid, results, callback) {
                 });
             } 
             else {
-                // Store details
-                siteDoc.details = JSON.parse(body);
-                // Process details
-                exports.processDoc(siteDoc, function(error, result) {
-                    if (error) {
-                        results.push({ sid: siteDoc.sid, error: error });
-                        return callback();
-                    }
-                    // Save site
-                    exports.update(result, function(error, result) {
+                try {
+                    // Store details
+                    siteDoc.details = JSON.parse(body);
+                    // Process details
+                    exports.processDoc(siteDoc, function(error, result) {
                         if (error) {
                             results.push({ sid: siteDoc.sid, error: error });
                             return callback();
                         }
+                        // Save site
+                        exports.update(result, function(error, result) {
+                            if (error) {
+                                results.push({ sid: siteDoc.sid, error: error });
+                                return callback();
+                            }
+                            return callback();
+                        });
+                    });
+                }
+                catch (e) {
+                    siteDoc.audited.error = 'Failed to parse: ' + e.message;
+                    exports.update(siteDoc, function(error, result) {
+                        results.push({ sid: siteDoc.sid, error: siteDoc.audited.error });
                         return callback();
                     });
-                });
+                }
             }
         });
     });
