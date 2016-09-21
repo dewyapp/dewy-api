@@ -422,7 +422,7 @@ exports.processDoc = function(siteDoc, callback) {
                 // Ping Drupal.org to see if we can get project information
                 modules.getRelease(row.projectName, row.core, [], function(error, result) {
                     if (result) {
-                        // If a projectDoc was returned, there was Drupal.org release information and it has been added to Dewy
+                        // If a projectDoc was created, there may be Drupal.org release information added to Dewy
                         undocumentedProjectsNowDocumented.push({ projectDoc: result, version: row.version });
                     }
                     callback();
@@ -432,7 +432,6 @@ exports.processDoc = function(siteDoc, callback) {
                 // Process any new projects and determine if they have updates and record to siteDoc
                 for (var i in undocumentedProjectsNowDocumented) {
                     var updateResult = modules.checkVersionForUpdate(undocumentedProjectsNowDocumented[i].projectDoc, undocumentedProjectsNowDocumented[i].version);
-                    // console.log(updateResult);
                     if (updateResult.update) {
                         projectsWithUpdates.push(undocumentedProjectsNowDocumented[i].projectDoc.project);
                     }

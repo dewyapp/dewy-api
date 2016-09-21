@@ -212,8 +212,20 @@ exports.getRelease = function(projectName, core, updatedProjects, callback) {
                     });
                 }
                 else {
-                    console.log('Project ' + projectName + '-' + core + ' is invalid');
-                    callback();
+                    console.log('Project ' + projectName + '-' + core + ' is invalid, saving a record anyway');
+                    var projectDoc = {
+                        project: projectName,
+                        core: core
+                    }
+                    exports.createProject(projectDoc, function(error, result) {
+                        if (error) {
+                            console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' failed to be created: ' + error);
+                            callback();
+                        }
+                        else {
+                            callback(null, projectDoc);
+                        }
+                    });
                 }
             }
             else {
