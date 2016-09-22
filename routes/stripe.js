@@ -71,7 +71,7 @@ router.post('/', function (req, res, next) {
                         // If the plan type has changed, send the user an update message
                         var newPlan = event.data.object.plan.id;
                         var oldPlan = user.subscription.type;
-                        user.setSubscription(null, event.data.current_period_end, newPlan, null);
+                        user.setSubscription(null, event.data.current_period_end, newPlan);
                         user.update(null, function (error, result) {
                             if (error) {
                                 if (error.error) {
@@ -100,8 +100,9 @@ router.post('/', function (req, res, next) {
                     case 'customer.subscription.deleted':
                         // The user has failed to pay repeatedly
                         // Remove the subscriptionID from the user subscription
+                        // Change the subscription end date to right now
                         // Send a subscription cancellation message, but they can resubscribe at any time
-                        user.setSubscription(null, null, null, null, false);
+                        user.setSubscription(null, Math.round(new Date().getTime() / 1000), null, null, false);
                         user.update(null, function (error, result) {
                             if (error) {
                                 if (error.error) {
@@ -125,12 +126,20 @@ router.post('/', function (req, res, next) {
                     case 'invoice.created':
                         // The user is being rebilled for the next month
                         // Send an email with the payment details
-                        res.send();
+                        event.data.current_period_end
+                        email.send({
+                            to: user.email,
+                            subject: 'Your Dewy invoice for ' + event.data.period_start*1000,
+                            text: 'Hi ' + user.username + '. For the period starting ' + event.data.period_start*1000 + ', you will be charged $' + event.data.amount_due + ' ' + event.data.currency.toUpperCase() + ' for the Dewy ' + event.data.object.plan.id + ' plan. Thank you for using Dewy.',
+                            html: 'Hi ' + user.username + '.<br/>For the period starting ' + event.data.period_start*1000 + ', you will be charged <strong>$' + event.data.amount_due + ' ' + event.data.currency.toUpperCase() + '</strong> for the Dewy ' + event.data.object.plan.id + ' plan.<br/><br/>Thank you for using Dewy.'
+                        }, function(error, result) {
+                            res.send();
+                        });
                         break;
 
                     case 'invoice.payment_succeeded':
                         // The user paid for the month
-                        // Update the user subscription with the new end date
+                        // Maybe record this for my own safe keeping at some point? Or is the Stripe dashboard enough? Probably.
                         res.send();
                         break;
 
@@ -140,8 +149,8 @@ router.post('/', function (req, res, next) {
                         // Send a warning message
 
                         var subject = 'Your Dewy invoice payment failed for a final time';
-                        var text = 'Hi ' + user.username + '. The charge to your credit card ending with ' + event.data.object.last4 + ' has failed for a final time and your subscription will be closed. You can resubscribe at any time at ' + config.website.url;
-                        var html = 'Hi ' + user.username + '.<br/>The charge to your credit card ending with ' + event.data.object.last4 + ' has failed for a final time and your subscription will be closed. You can resubscribe at any time at ' + config.website.url;
+                        var text = 'Hi ' + user.username + '. The charge to your credit card ending with ' + event.data.object.last4 + ' has failed for a final time and your subscription will be cancelled. You can resubscribe at any time at ' + config.website.url;
+                        var html = 'Hi ' + user.username + '.<br/>The charge to your credit card ending with ' + event.data.object.last4 + ' has failed for a final time and your subscription will be cancelled. You can resubscribe at any time at ' + config.website.url;
                         
                         if (event.data.next_payment_attempt) {
                             var subject = 'Your Dewy invoice payment failed';
