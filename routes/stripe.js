@@ -111,15 +111,15 @@ router.post('/', function (req, res, next) {
                                 else {
                                     return res.status(400).send(error);
                                 }
-                                email.send({
-                                    to: user.email,
-                                    subject: 'Your Dewy subscription has been cancelled',
-                                    text: 'Hi ' + user.username + '. Your Dewy subscription has been cancelled. You can still sign on to Dewy but features will be disabled. You can resubscribe at any time at ' + config.website.url,
-                                    html: 'Hi ' + user.username + '.<br/>Your Dewy subscription has been cancelled. You can still sign on to Dewy but features will be disabled. You can resubscribe at any time at ' + config.website.url
-                                }, function(error, result) {
-                                    res.send();
-                                });
                             }
+                            email.send({
+                                to: user.email,
+                                subject: 'Your Dewy subscription has been cancelled',
+                                text: 'Hi ' + user.username + '. Your Dewy subscription has been cancelled. You can still sign on to Dewy but features will be disabled. You can resubscribe at any time at ' + config.website.url,
+                                html: 'Hi ' + user.username + '.<br/>Your Dewy subscription has been cancelled. You can still sign on to Dewy but features will be disabled. You can resubscribe at any time at ' + config.website.url
+                            }, function(error, result) {
+                                res.send();
+                            });
                         });
                         break;
 
