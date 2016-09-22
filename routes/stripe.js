@@ -39,19 +39,6 @@ router.post('/', function (req, res, next) {
                 // We have the customer, now respond to the hook
                 var user = result;
                 switch (event.type) {
-                    case 'customer.subscription.created':
-                        // The subscription has been created
-                        // Send the user a welcome to their Dewy paid plan message
-                        email.send({
-                            to: user.email,
-                            subject: 'Your Dewy subscription has begun',
-                            text: 'Hi ' + user.username + '. Thank you for starting your ' + event.data.object.plan.id + ' subscription to Dewy.',
-                            html: 'Hi ' + user.username + '.<br/>Thank you for starting your ' + event.data.object.plan.id + ' subscription to Dewy.'
-                        }, function(error, result) {
-                            res.send();
-                        });
-                        break;
-
                     case 'customer.source.updated':
                         // The user has updated their card
                         // Send the user a update message confirming the card change
@@ -65,29 +52,48 @@ router.post('/', function (req, res, next) {
                         });
                         break;
 
-                    case 'customer.subscription.updated':
-                        // The user has changed their plan type
-                        // Send the user a update message confirming their new plan type
-                        res.send();
-                        break;
-
-                    case 'invoice.payment_succeeded':
-                        // The user paid for the month
-                        // Update the user subscription with the new end date
-                        res.send();
-                        break;
-
-                    case 'invoice.payment_failed':
-                        // The user failed to pay for the month
-                        // Dewy's Stripe settings dictate the amount of failures before subscription deletion
-                        // Send a warning message
+                    case 'customer.subscription.created':
+                        // The subscription has been created
+                        // Send the user a welcome to their Dewy paid plan message
                         email.send({
                             to: user.email,
-                            subject: 'Your invoice payment failed',
-                            text: 'Hi ' + user.username + '. The charge to your credit card ending with ' + event.data.object.last4 + ' has failed. Please update your credit card information at ' + config.website.url,
-                            html: 'Hi ' + user.username + '.<br/>The charge to your credit card ending with <strong>' + event.data.object.last4 + '</strong> has failed. Please update your credit card information at ' + config.website.url,
+                            subject: 'Your Dewy subscription has begun',
+                            text: 'Hi ' + user.username + '. Thank you for starting your ' + event.data.object.plan.id + ' subscription to Dewy.',
+                            html: 'Hi ' + user.username + '.<br/>Thank you for starting your ' + event.data.object.plan.id + ' subscription to Dewy.'
                         }, function(error, result) {
                             res.send();
+                        });
+                        break;
+
+                    case 'customer.subscription.updated':
+                        // The user's subscription has been updated
+                        // Reflect the changes in Dewy
+                        // If the plan type has changed, send the user an update message
+                        var newPlan = event.data.object.plan.id;
+                        var oldPlan = user.subscription.type;
+                        user.setSubscription(null, event.data.current_period_end, newPlan, null);
+                        user.update(null, function (error, result) {
+                            if (error) {
+                                if (error.error) {
+                                    return res.status(500).send(error.error);
+                                }
+                                else {
+                                    return res.status(400).send(error);
+                                }
+                                if (oldPlan != newPlan) {
+                                    email.send({
+                                        to: user.email,
+                                        subject: 'Your Dewy subscription has changed',
+                                        text: 'Hi ' + user.username + '. Your Dewy subscription has been changed from ' + oldPlan + ' to ' + newPlan + '.',
+                                        html: 'Hi ' + user.username + '.<br/>Your Dewy subscription has been changed from ' + oldPlan + ' to ' + newPlan + '.'
+                                    }, function(error, result) {
+                                        res.send();
+                                    });
+                                }
+                                else {
+                                    res.send();
+                                }
+                            }
                         });
                         break;
 
@@ -113,6 +119,43 @@ router.post('/', function (req, res, next) {
                                     res.send();
                                 });
                             }
+                        });
+                        break;
+
+                    case 'invoice.created':
+                        // The user is being rebilled for the next month
+                        // Send an email with the payment details
+                        res.send();
+                        break;
+
+                    case 'invoice.payment_succeeded':
+                        // The user paid for the month
+                        // Update the user subscription with the new end date
+                        res.send();
+                        break;
+
+                    case 'invoice.payment_failed':
+                        // The user failed to pay for the month
+                        // Dewy's Stripe settings dictate the amount of failures before subscription deletion
+                        // Send a warning message
+
+                        var subject = 'Your Dewy invoice payment failed for a final time';
+                        var text = 'Hi ' + user.username + '. The charge to your credit card ending with ' + event.data.object.last4 + ' has failed for a final time and your subscription will be closed. You can resubscribe at any time at ' + config.website.url;
+                        var html = 'Hi ' + user.username + '.<br/>The charge to your credit card ending with ' + event.data.object.last4 + ' has failed for a final time and your subscription will be closed. You can resubscribe at any time at ' + config.website.url;
+                        
+                        if (event.data.next_payment_attempt) {
+                            var subject = 'Your Dewy invoice payment failed';
+                            var text = 'Hi ' + user.username + '. The charge to your credit card ending with ' + event.data.object.last4 + ' has failed. Please update your credit card information at ' + config.website.url;
+                            var html = 'Hi ' + user.username + '.<br/>The charge to your credit card ending with <strong>' + event.data.object.last4 + '</strong> has failed. Please update your credit card information at ' + config.website.url;
+                        }
+
+                        email.send({
+                            to: user.email,
+                            subject: subject,
+                            text: text,
+                            html: html
+                        }, function(error, result) {
+                            res.send();
                         });
                         break;
 
