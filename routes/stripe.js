@@ -6,12 +6,14 @@ var config = new require('../config')();
 var stripe = require("stripe")(config.stripe.private_key);
 
 router.post('/', function (req, res, next) {
-    console.log('Stripe event ' + req.body.id + ' received.');
+    console.log('Stripe event ' + req.body.id + ' of type ' + req.body.type + ' received');
+    console.log(req.body);
+    
     // Verify the event by fetching it from Stripe
     stripe.events.retrieve(req.body.id, function(error, result) {
         if (error && config.environment == 'production') {
-            console.error('An event was received but not confirmed by Stripe.');
-            return res.status(400).send('An event was received but not confirmed by Stripe.');
+            console.error('The event was received but not confirmed by Stripe');
+            return res.status(400).send('The event was received but not confirmed by Stripe');
         }
 
         var event = req.body;
@@ -27,8 +29,8 @@ router.post('/', function (req, res, next) {
                 return res.status(500).send(error);
             }
             if (result === false) {
-                console.error('The customer ' + stripeID + ' cannot be found.');
-                return res.status(400).send('The customer ' + stripeID + ' cannot be found.');
+                console.error('The customer ' + stripeID + ' cannot be found');
+                return res.status(400).send('The customer ' + stripeID + ' cannot be found');
             }
             User.get(result, function(error, result) {
                 if (error) {
@@ -173,8 +175,8 @@ router.post('/', function (req, res, next) {
                         break;
 
                     default:
-                        console.error('A supported webhook type is required.');
-                        res.status(400).send('A supported webhook type is required.');
+                        console.error('A supported webhook type is required');
+                        res.status(400).send('A supported webhook type is required');
                 }
             });
         });
