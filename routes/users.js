@@ -331,10 +331,10 @@ router.post('/:uid/_subscription/:plan', oauth.authorise(), function (req, res, 
                 return res.status(403).send('You do not have permission to access this resource.');
             }
             var user = result;
+            var stripe = require("stripe")(config.stripe.private_key);
 
             // User isn't a Dewy Stripe customer yet, create the customer and the subscription
             if (user.subscription.stripeID === false) {
-                var stripe = require("stripe")(config.stripe.private_key);
                 var stripeToken = req.body.stripeToken;
                 stripe.customers.create({
                     source: stripeToken,
@@ -344,7 +344,6 @@ router.post('/:uid/_subscription/:plan', oauth.authorise(), function (req, res, 
                     if (error) {
                         return res.status(500).send(error);
                     }
-
                     user.setSubscription(result.subscriptions.data[0].current_period_start, result.subscriptions.data[0].current_period_end, req.params.plan, result.id, result.subscriptions.data[0].id);
                     user.update(null, function (error, result) {
                         if (error) {
@@ -360,9 +359,32 @@ router.post('/:uid/_subscription/:plan', oauth.authorise(), function (req, res, 
                 });
             }
             // If the user is a Stripe customer but doesn't have a current subscription, create one
-            // else if (user.subscription.subscriptionID === false) {
-            // Otherwise, update the plan
+            else if (user.subscription.subscriptionID === false) {
+                stripe.subscriptions.create({
+                    customer: user.subscription.stripeID,
+                    plan: req.params.plan
+                }, function(error, result) {
+                    if (error) {
+                        return res.status(500).send(error);
+                    }
+                    user.setSubscription(result.current_period_start, result.current_period_end, req.params.plan, null, result.id);
+                    user.update(null, function (error, result) {
+                        if (error) {
+                            if (error.error) {
+                                return res.status(500).send(error.error);
+                            }
+                            else {
+                                return res.status(400).send(error);
+                            }
+                        }
+                        return res.send(user);
+                    });
+                });
+            }
+            // Otherwise, they are changing their plan
             // else
+            // {
+            // }
         });
     }
 });
