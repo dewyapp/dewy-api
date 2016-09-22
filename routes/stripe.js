@@ -81,7 +81,14 @@ router.post('/', function (req, res, next) {
                         // The user failed to pay for the month
                         // Dewy's Stripe settings dictate the amount of failures before subscription deletion
                         // Send a warning message
-                        res.send();
+                        email.send({
+                            to: user.email,
+                            subject: 'Your invoice payment failed',
+                            text: 'Hi ' + user.username + '. The charge to your credit card ending with ' + event.data.object.last4 + ' has failed. Please update your credit card information at ' + config.website.url,
+                            html: 'Hi ' + user.username + '.<br/>The charge to your credit card ending with <strong>' + event.data.object.last4 + '</strong> has failed. Please update your credit card information at ' + config.website.url,
+                        }, function(error, result) {
+                            res.send();
+                        });
                         break;
 
                     case 'customer.subscription.deleted':
