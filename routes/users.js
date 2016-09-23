@@ -305,9 +305,6 @@ router.get('/:uid/_subscription/', oauth.authorise(), function (req, res, next) 
                     return res.status(400).send('There is no longer a Stripe customer associated with this user.');
                 });
             }
-            else if (!result.default_source) {
-                return res.status(400).send('There is no longer a Stripe customer associated with this user.');
-            }
             else if (error) {
                 return res.status(500).send(error);
             }
