@@ -309,7 +309,6 @@ router.get('/:uid/_subscription/', oauth.authorise(), function (req, res, next) 
                 return res.status(500).send(error);
             }
             else {
-                console.log(result);
                 return res.send(result);
             }
         });
@@ -362,6 +361,7 @@ router.post('/:uid/_subscription/:plan', oauth.authorise(), function (req, res, 
             // If the user is a Stripe customer but doesn't have a current subscription, create one
             else if (user.subscription.subscriptionID === false) {
                 stripe.subscriptions.create({
+                    source: stripeToken,
                     customer: user.subscription.stripeID,
                     plan: req.params.plan
                 }, function(error, result) {
