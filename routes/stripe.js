@@ -7,7 +7,6 @@ var stripe = require("stripe")(config.stripe.private_key);
 
 router.post('/', function (req, res, next) {
     console.log('Stripe event ' + req.body.id + ' of type ' + req.body.type + ' received');
-    console.log(req.body);
     
     // Verify the event by fetching it from Stripe
     stripe.events.retrieve(req.body.id, function(error, result) {
@@ -128,12 +127,19 @@ router.post('/', function (req, res, next) {
                     case 'invoice.created':
                         // The user is being rebilled for the next month
                         // Send an email with the payment details
-                        event.data.current_period_end
+                        var detailsText = '';
+                        var detailsHTML = '<table><tr>';
+                        for (line in event.data.object.lines) {
+                            detailsText = detailsText + "\n" + event.data.object.lines[line].data.plan.id.charAt(0).toUpperCase() + event.data.object.lines[line].data.plan.id.slice(1) + ' ' + event.data.object.lines[line].data.plan.object + ', ' + event.data.object.lines[line].data.period.start + '-' + event.data.object.lines[line].data.period.end + ', $' + event.data.object.lines[line].data.amount/1000 + ' ' + event.data.object.lines[line].data.currency.toUpperCase();
+                            detailsHTML = detailsHTML + '<td><strong>' + event.data.object.lines[line].data.plan.id.charAt(0).toUpperCase() + event.data.object.lines[line].data.plan.id.slice(1) + ' ' + event.data.object.lines[line].data.plan.object + '</strong></td><td><strong>' + event.data.object.lines[line].data.period.start + '-' + event.data.object.lines[line].data.period.end + '</strong></td><td><strong>$' + event.data.object.lines[line].data.amount/1000 + ' ' + event.data.object.lines[line].data.currency.toUpperCase() + '</strong></td>'; 
+                        }
+                        detailsHTML = detailsHTML + '</tr></table>';
+                        
                         email.send({
                             to: user.email,
-                            subject: 'Your Dewy invoice for ' + event.data.period_start*1000,
-                            text: 'Hi ' + user.username + '. For the period starting ' + event.data.period_start*1000 + ', you will be charged $' + event.data.amount_due + ' ' + event.data.currency.toUpperCase() + ' for the Dewy ' + event.data.object.plan.id + ' plan. Thank you for using Dewy.',
-                            html: 'Hi ' + user.username + '.<br/>For the period starting ' + event.data.period_start*1000 + ', you will be charged <strong>$' + event.data.amount_due + ' ' + event.data.currency.toUpperCase() + '</strong> for the Dewy ' + event.data.object.plan.id + ' plan.<br/><br/>Thank you for using Dewy.'
+                            subject: 'Your Dewy invoice for ' + event.data.object.period_start*1000,
+                            text: 'Hi ' + user.username + '. For the period starting ' + event.data.object.period_start*1000 + ', you will be charged a total of $' + event.data.object.amount_due/1000 + ' ' + event.data.object.currency.toUpperCase() + '. Details: ' + detailsText + ' Thank you for using Dewy.',
+                            html: 'Hi ' + user.username + '.<br/>For the period starting ' + event.data.object.period_start*1000 + ', you will be charged a total of <strong>$' + event.data.object.amount_due/1000 + ' ' + event.data.object.currency.toUpperCase() + '. Details:<br/><br/>' + detailsHTML + '<br/><br/>Thank you for using Dewy.'
                         }, function(error, result) {
                             res.send();
                         });
