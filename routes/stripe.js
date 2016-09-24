@@ -128,18 +128,21 @@ router.post('/', function (req, res, next) {
                         // The user is being rebilled for the next month
                         // Send an email with the payment details
                         var detailsText = '';
-                        var detailsHTML = '<table><tr>';
-                        for (line in event.data.object.lines) {
-                            detailsText = detailsText + "\n" + event.data.object.lines[line].data.plan.id.charAt(0).toUpperCase() + event.data.object.lines[line].data.plan.id.slice(1) + ' ' + event.data.object.lines[line].data.plan.object + ', ' + event.data.object.lines[line].data.period.start + '-' + event.data.object.lines[line].data.period.end + ', $' + event.data.object.lines[line].data.amount/1000 + ' ' + event.data.object.lines[line].data.currency.toUpperCase();
-                            detailsHTML = detailsHTML + '<td><strong>' + event.data.object.lines[line].data.plan.id.charAt(0).toUpperCase() + event.data.object.lines[line].data.plan.id.slice(1) + ' ' + event.data.object.lines[line].data.plan.object + '</strong></td><td><strong>' + event.data.object.lines[line].data.period.start + '-' + event.data.object.lines[line].data.period.end + '</strong></td><td><strong>$' + event.data.object.lines[line].data.amount/1000 + ' ' + event.data.object.lines[line].data.currency.toUpperCase() + '</strong></td>'; 
+                        var detailsHTML = '<table width="100%"><tr>';
+                        for (line in event.data.object.lines.data) {
+                            var periodStart = event.data.object.lines.data[line].period.start;
+                            var periodEnd = event.data.object.lines.data[line].period.end;
+                            detailsText = detailsText + "\n" + event.data.object.lines.data[line].plan.id.charAt(0).toUpperCase() + event.data.object.lines.data[line].plan.id.slice(1) + ' ' + event.data.object.lines.data[line].plan.object + ', ' + periodStart + ' to ' + periodEnd + ', $' + event.data.object.lines.data[line].amount/100 + ' ' + event.data.object.lines.data[line].currency.toUpperCase();
+                            detailsHTML = detailsHTML + '<td><strong>' + event.data.object.lines.data[line].plan.id.charAt(0).toUpperCase() + event.data.object.lines.data[line].plan.id.slice(1) + ' ' + event.data.object.lines.data[line].plan.object + '</strong></td><td><strong>' + periodStart + ' to ' + periodEnd + '</strong></td><td><strong>$' + event.data.object.lines.data[line].amount/100 + ' ' + event.data.object.lines.data[line].currency.toUpperCase() + '</strong></td>'; 
                         }
                         detailsHTML = detailsHTML + '</tr></table>';
                         
+                        var periodStart = event.data.object.period_start*1000;
                         email.send({
                             to: user.email,
-                            subject: 'Your Dewy invoice for ' + event.data.object.period_start*1000,
-                            text: 'Hi ' + user.username + '. For the period starting ' + event.data.object.period_start*1000 + ', you will be charged a total of $' + event.data.object.amount_due/1000 + ' ' + event.data.object.currency.toUpperCase() + '. Details: ' + detailsText + ' Thank you for using Dewy.',
-                            html: 'Hi ' + user.username + '.<br/>For the period starting ' + event.data.object.period_start*1000 + ', you will be charged a total of <strong>$' + event.data.object.amount_due/1000 + ' ' + event.data.object.currency.toUpperCase() + '. Details:<br/><br/>' + detailsHTML + '<br/><br/>Thank you for using Dewy.'
+                            subject: 'Your Dewy invoice',
+                            text: 'Hi ' + user.username + '. For the period starting ' + periodStart + ', you will be charged a total of $' + event.data.object.amount_due/100 + ' ' + event.data.object.currency.toUpperCase() + '. Details: ' + detailsText + ' Thank you for using Dewy.',
+                            html: 'Hi ' + user.username + '.<br/>For the period starting ' + periodStart + ', you will be charged a total of <strong>$' + event.data.object.amount_due/100 + ' ' + event.data.object.currency.toUpperCase() + '</strong>. Details:</p>' + detailsHTML + '<p>Thank you for using Dewy.'
                         }, function(error, result) {
                             res.send();
                         });
