@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var User = require('../models/user');
 var email = require('../helpers/email');
+var moment = require('moment');
 var config = new require('../config')();
 var stripe = require("stripe")(config.stripe.private_key);
 
@@ -130,14 +131,14 @@ router.post('/', function (req, res, next) {
                         var detailsText = '';
                         var detailsHTML = '<table width="100%"><tr>';
                         for (line in event.data.object.lines.data) {
-                            var periodStart = event.data.object.lines.data[line].period.start;
-                            var periodEnd = event.data.object.lines.data[line].period.end;
+                            var periodStart = moment.unix(event.data.object.lines.data[line].period.start).format("YYYY/MM/DD");
+                            var periodEnd = moment.unix(event.data.object.lines.data[line].period.end).format("YYYY/MM/DD");
                             detailsText = detailsText + "\n" + event.data.object.lines.data[line].plan.id.charAt(0).toUpperCase() + event.data.object.lines.data[line].plan.id.slice(1) + ' ' + event.data.object.lines.data[line].plan.object + ', ' + periodStart + ' to ' + periodEnd + ', $' + event.data.object.lines.data[line].amount/100 + ' ' + event.data.object.lines.data[line].currency.toUpperCase();
                             detailsHTML = detailsHTML + '<td><strong>' + event.data.object.lines.data[line].plan.id.charAt(0).toUpperCase() + event.data.object.lines.data[line].plan.id.slice(1) + ' ' + event.data.object.lines.data[line].plan.object + '</strong></td><td><strong>' + periodStart + ' to ' + periodEnd + '</strong></td><td><strong>$' + event.data.object.lines.data[line].amount/100 + ' ' + event.data.object.lines.data[line].currency.toUpperCase() + '</strong></td>'; 
                         }
                         detailsHTML = detailsHTML + '</tr></table>';
                         
-                        var periodStart = event.data.object.period_start*1000;
+                        var periodStart = moment.unix(event.data.object.period_start).format("YYYY/MM/DD");
                         email.send({
                             to: user.email,
                             subject: 'Your Dewy invoice',
