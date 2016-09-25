@@ -78,22 +78,7 @@ router.get('/', oauth.authorise(), function (req, res, next) {
         if (result.getSubscriptionType() == 'expired') {
             expired = true;
         }
-        // Return stripped down version of userDoc
-        var user = {
-            email: result.email,
-            username: result.username,
-            gravatar: result.gravatar,
-            apikey: result.apikey,
-            uid: result.uid,
-            verified: result.verified,
-            created: result.created,
-            subscription: {
-                endDate: result.subscription.endDate,
-                type: result.subscription.type,
-                expired: expired
-            }
-        };
-        res.send(user);
+        res.send(user.getUserDoc(true));
     });
 });
 
@@ -275,7 +260,7 @@ router.put('/:uid', oauth.authorise(), function (req, res, next) {
                         return res.status(400).send(error);
                     }
                 }
-                return res.send(user);
+                return res.send(user.getUserDoc(true));
             });
         }
     });
@@ -354,7 +339,7 @@ router.post('/:uid/_subscription/:plan', oauth.authorise(), function (req, res, 
                                 return res.status(400).send(error);
                             }
                         }
-                        return res.send(user);
+                        return res.send(user.getUserDoc(true));
                     });
                 });
             }
@@ -378,7 +363,7 @@ router.post('/:uid/_subscription/:plan', oauth.authorise(), function (req, res, 
                                 return res.status(400).send(error);
                             }
                         }
-                        return res.send(user);
+                        return res.send(user.getUserDoc(true));
                     });
                 });
             }

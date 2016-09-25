@@ -140,24 +140,44 @@ User.prototype.getSubscriptionType = function () {
     return subscriptionType;    
 }
 
-User.prototype.getUserDoc = function() {
-    return {
-        email: this.email,
-        username: this.username,
-        password: this.password,
-        gravatar: this.gravatar,
-        apikey: this.apikey,
-        uid: this.uid,
-        verified: this.verified,
-        passwordRequested: this.passwordRequested,
-        lastNotified: this.lastNotified,
-        created: this.created,
-        subscription: {
-            startDate: this.subscription.startDate,
-            endDate: this.subscription.endDate,
-            type: this.subscription.type,
-            stripeID: this.subscription.stripeID,
-            subscriptionID: this.subscription.subscriptionID
+User.prototype.getUserDoc = function(safe) {
+    if (safe) {
+        // Return stripped down version of userDoc safe for front-end
+        return {
+            email: result.email,
+            username: result.username,
+            gravatar: result.gravatar,
+            apikey: result.apikey,
+            uid: result.uid,
+            verified: result.verified,
+            created: result.created,
+            subscription: {
+                endDate: result.subscription.endDate,
+                type: this.getSubscriptionType(),
+                expired: expired
+            }
+        }
+    }
+    else {
+        // Return userDOc for internal consumption
+        return {
+            email: this.email,
+            username: this.username,
+            password: this.password,
+            gravatar: this.gravatar,
+            apikey: this.apikey,
+            uid: this.uid,
+            verified: this.verified,
+            passwordRequested: this.passwordRequested,
+            lastNotified: this.lastNotified,
+            created: this.created,
+            subscription: {
+                startDate: this.subscription.startDate,
+                endDate: this.subscription.endDate,
+                type: this.subscription.type,
+                stripeID: this.subscription.stripeID,
+                subscriptionID: this.subscription.subscriptionID
+            }
         }
     }
 }
