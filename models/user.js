@@ -144,17 +144,17 @@ User.prototype.getUserDoc = function(safe) {
     if (safe) {
         // Return stripped down version of userDoc safe for front-end
         return {
-            email: result.email,
-            username: result.username,
-            gravatar: result.gravatar,
-            apikey: result.apikey,
-            uid: result.uid,
-            verified: result.verified,
-            created: result.created,
+            email: this.email,
+            username: this.username,
+            gravatar: this.gravatar,
+            apikey: this.apikey,
+            uid: this.uid,
+            verified: this.verified,
+            created: this.created,
             subscription: {
-                endDate: result.subscription.endDate,
-                type: this.getSubscriptionType(),
-                expired: expired
+                startDate: this.subscription.startDate,
+                endDate: this.subscription.endDate,
+                type: this.subscription.type
             }
         }
     }

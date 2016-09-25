@@ -71,11 +71,12 @@ router.get('/', oauth.authorise(), function (req, res, next) {
             return res.status(500).send(error);
         }
 
-        if (result.verified !== true) {
-            result.verified = false;
+        var user = result;
+        if (user.verified !== true) {
+            user.verified = false;
         }
         var expired = false;
-        if (result.getSubscriptionType() == 'expired') {
+        if (user.getSubscriptionType() == 'expired') {
             expired = true;
         }
         res.send(user.getUserDoc(true));
