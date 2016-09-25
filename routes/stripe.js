@@ -138,7 +138,7 @@ router.post('/', function (req, res, next) {
                         }
                         detailsHTML = detailsHTML + '</tr></table>';
                         
-                        var periodStart = moment.unix(event.data.object.period_start).format("YYYY/MM/DD");
+                        var periodStart = moment.unix(event.data.object.period_start).format("MMMM Do YYYY");
                         email.send({
                             to: user.email,
                             subject: 'Your Dewy invoice',
