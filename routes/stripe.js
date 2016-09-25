@@ -30,7 +30,7 @@ router.post('/', function (req, res, next) {
             }
             if (result === false) {
                 console.error('The customer ' + stripeID + ' cannot be found');
-                return res.status(400).send('The customer ' + stripeID + ' cannot be found');
+                return res.send('The customer ' + stripeID + ' cannot be found');
             }
             User.get(result, function(error, result) {
                 if (error) {
