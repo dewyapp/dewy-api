@@ -129,12 +129,12 @@ router.post('/', function (req, res, next) {
                         // The user is being rebilled for the next month
                         // Send an email with the payment details
                         var detailsText = '';
-                        var detailsHTML = '<table width="100%"><tr>';
+                        var detailsHTML = '<table border="1" frame="hsides" rules="rows" bordercolor="#EEE" cellpadding="14" width="100%"><tr>';
                         for (line in event.data.object.lines.data) {
                             var periodStart = moment.unix(event.data.object.lines.data[line].period.start).format("YYYY/MM/DD");
                             var periodEnd = moment.unix(event.data.object.lines.data[line].period.end).format("YYYY/MM/DD");
                             detailsText = detailsText + "\n" + event.data.object.lines.data[line].plan.id.charAt(0).toUpperCase() + event.data.object.lines.data[line].plan.id.slice(1) + ' ' + event.data.object.lines.data[line].plan.object + ', ' + periodStart + ' to ' + periodEnd + ', $' + event.data.object.lines.data[line].amount/100 + ' ' + event.data.object.lines.data[line].currency.toUpperCase();
-                            detailsHTML = detailsHTML + '<td><strong>' + event.data.object.lines.data[line].plan.id.charAt(0).toUpperCase() + event.data.object.lines.data[line].plan.id.slice(1) + ' ' + event.data.object.lines.data[line].plan.object + '</strong></td><td><strong>' + periodStart + ' to ' + periodEnd + '</strong></td><td><strong>$' + event.data.object.lines.data[line].amount/100 + ' ' + event.data.object.lines.data[line].currency.toUpperCase() + '</strong></td>'; 
+                            detailsHTML = detailsHTML + '<td><span style="font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><strong>' + event.data.object.lines.data[line].plan.id.charAt(0).toUpperCase() + event.data.object.lines.data[line].plan.id.slice(1) + ' ' + event.data.object.lines.data[line].plan.object + '</strong></span></td><td><span style="font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><strong>' + periodStart + ' to ' + periodEnd + '</strong></span></td><td><span style="font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><strong>$' + event.data.object.lines.data[line].amount/100 + ' ' + event.data.object.lines.data[line].currency.toUpperCase() + '</strong></span></td>'; 
                         }
                         detailsHTML = detailsHTML + '</tr></table>';
                         
