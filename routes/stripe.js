@@ -143,7 +143,7 @@ router.post('/', function (req, res, next) {
                             to: user.email,
                             subject: 'Your Dewy invoice',
                             text: 'Hi ' + user.username + '. For the period starting ' + periodStart + ', you will be charged a total of $' + event.data.object.amount_due/100 + ' ' + event.data.object.currency.toUpperCase() + '. Details: ' + detailsText + ' Thank you for using Dewy.',
-                            html: 'Hi ' + user.username + '.<br/>For the period starting ' + periodStart + ', you will be charged a total of <strong>$' + event.data.object.amount_due/100 + ' ' + event.data.object.currency.toUpperCase() + '</strong>. Details:</p>' + detailsHTML + '<p>Thank you for using Dewy.'
+                            html: 'Hi ' + user.username + '.<br/>For the period starting ' + periodStart + ', you will be charged a total of <strong>$' + event.data.object.amount_due/100 + ' ' + event.data.object.currency.toUpperCase() + '</strong>. Details:</p>' + detailsHTML + '<p style="padding: 28px 0 28px 0;font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666">Thank you for using Dewy.'
                         }, function(error, result) {
                             res.send();
                         });
@@ -180,13 +180,8 @@ router.post('/', function (req, res, next) {
                         });
                         break;
 
-                    case 'ping':
-                        res.send();
-                        break;
-
                     default:
-                        console.error('A supported webhook type is required');
-                        res.status(400).send('A supported webhook type is required');
+                        res.send("Hi Stripe, I'm not doing anything with this webhook type but thanks for sending!");
                 }
             });
         });
