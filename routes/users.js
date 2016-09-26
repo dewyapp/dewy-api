@@ -259,7 +259,7 @@ router.put('/:uid', oauth.authorise(), function (req, res, next) {
     });
 });
 
-router.get('/:uid/_subscription/', oauth.authorise(), function (req, res, next) {
+router.get('/:uid/_subscription', oauth.authorise(), function (req, res, next) {
     User.get(req.user.id, function(error, result) {
         if (error) {
             return res.status(500).send(error);
@@ -293,12 +293,13 @@ router.get('/:uid/_subscription/', oauth.authorise(), function (req, res, next) 
     });
 });
 
-router.post('/:uid/_subscription/:plan', oauth.authorise(), function (req, res, next) {
+router.post('/:uid/_subscription', oauth.authorise(), function (req, res, next) {
 
     var availablePlans = ['basic'];
+    var planType = req.body.planType;
 
-    if (availablePlans.indexOf(req.params.plan) == -1) {
-        res.status(400).send('The ' + req.params.plan + ' plan is not available.');
+    if (availablePlans.indexOf(planType) == -1) {
+        res.status(400).send('The ' + planType + ' plan is not available.');
     }
     else {
         User.get(req.user.id, function(error, result) {
@@ -316,13 +317,13 @@ router.post('/:uid/_subscription/:plan', oauth.authorise(), function (req, res, 
                 var stripeToken = req.body.stripeToken;
                 stripe.customers.create({
                     source: stripeToken,
-                    plan: req.params.plan,
+                    plan: planType,
                     email: user.email
                 }, function(error, result) {
                     if (error) {
                         return res.status(500).send(error);
                     }
-                    user.setSubscription(result.subscriptions.data[0].current_period_start, result.subscriptions.data[0].current_period_end, req.params.plan, result.id, result.subscriptions.data[0].id);
+                    user.setSubscription(result.subscriptions.data[0].current_period_start, result.subscriptions.data[0].current_period_end, planType, result.id, result.subscriptions.data[0].id);
                     user.update(null, function (error, result) {
                         if (error) {
                             if (error.error) {
@@ -341,12 +342,12 @@ router.post('/:uid/_subscription/:plan', oauth.authorise(), function (req, res, 
                 stripe.subscriptions.create({
                     source: stripeToken,
                     customer: user.subscription.stripeID,
-                    plan: req.params.plan
+                    plan: planType
                 }, function(error, result) {
                     if (error) {
                         return res.status(500).send(error);
                     }
-                    user.setSubscription(result.current_period_start, result.current_period_end, req.params.plan, null, result.id);
+                    user.setSubscription(result.current_period_start, result.current_period_end, planType, null, result.id);
                     user.update(null, function (error, result) {
                         if (error) {
                             if (error.error) {
