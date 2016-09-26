@@ -382,7 +382,7 @@ router.put('/:uid/_subscription', oauth.authorise(), function (req, res, next) {
 
         var stripe = require("stripe")(config.stripe.private_key);
         // Cancel subscription at period end
-        if (req.body.cancelled) {
+        if (req.body.cancel) {
             stripe.subscriptions.del(user.subscription.subscriptionID, { 
                 at_period_end: true 
             }, function(error, result) {
