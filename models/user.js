@@ -154,7 +154,8 @@ User.prototype.getUserDoc = function(safe) {
             subscription: {
                 startDate: this.subscription.startDate,
                 endDate: this.subscription.endDate,
-                type: this.subscription.type
+                type: this.subscription.type,
+                subscriptionID: this.subscription.subscriptionID
             }
         }
     }
