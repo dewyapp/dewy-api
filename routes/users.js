@@ -278,7 +278,7 @@ router.get('/:uid/_subscription', oauth.authorise(), function (req, res, next) {
             // User has customer ID, but customer missing or deleted from stripe
             // Wipe customer ID from user
             if ((error && error.statusCode == 404) || result.deleted) {
-                user.setSubscription(null, null, null, false, null);
+                user.setSubscription(null, null, null, false);
                 user.update(null, function(error, result) {
                     return res.status(400).send('There is no longer a Stripe customer associated with this user.');
                 });
@@ -301,17 +301,16 @@ router.post('/:uid/_subscription', oauth.authorise(), function (req, res, next) 
         if (req.params.uid != req.user.id) {
             return res.status(403).send('You do not have permission to access this resource.');
         }
-
         var user = result;
-        var stripe = require("stripe")(config.stripe.private_key);
-        var availablePlans = ['basic'];
-        var planType = req.body.planType;
 
+        var planType = req.body.planType;
+        var availablePlans = ['basic'];
         if (availablePlans.indexOf(planType) == -1) {
             return res.status(400).send('The ' + planType + ' plan is not available.');
         }
 
         // User isn't a Dewy Stripe customer yet, create the customer and the subscription
+        var stripe = require("stripe")(config.stripe.private_key);
         if (user.subscription.stripeID === false) {
             var stripeToken = req.body.stripeToken;
             stripe.customers.create({
@@ -364,6 +363,76 @@ router.post('/:uid/_subscription', oauth.authorise(), function (req, res, next) 
         // else
         // {
         // }
+    });
+});
+
+router.put('/:uid/_subscription', oauth.authorise(), function (req, res, next) {
+    User.get(req.user.id, function(error, result) {
+        if (error) {
+            return res.status(500).send(error);
+        }
+        if (req.params.uid != req.user.id) {
+            return res.status(403).send('You do not have permission to access this resource.');
+        }
+        var user = result;
+
+        if (!user.subscription.subscriptionID) {
+            return res.status(400).send('There is no Stripe subscription associated with this user.');
+        }
+
+        var stripe = require("stripe")(config.stripe.private_key);
+        // Cancel subscription at period end
+        if (req.body.cancelled) {
+            stripe.subscriptions.del(user.subscription.subscriptionID, { 
+                at_period_end: true 
+            }, function(error, result) {
+                if (error) {
+                    return res.status(500).send(error);
+                }
+                user.setSubscription(null, null, null, null, null, true);
+                user.update(null, function (error, result) {
+                    if (error) {
+                        if (error.error) {
+                            return res.status(500).send(error.error);
+                        }
+                        else {
+                            return res.status(400).send(error);
+                        }
+                    }
+                    return res.send(user.getUserDoc(true));
+                });
+            });
+        }
+        // Update plan, this removes any cancellation
+        else {
+            var planType = user.subscription.type;
+            if (req.body.planType) {
+                planType = req.body.planType;
+                var availablePlans = ['basic'];
+                if (availablePlans.indexOf(planType) == -1) {
+                    return res.status(400).send('The ' + planType + ' plan is not available.');
+                }
+            }
+            stripe.subscriptions.update(user.subscription.subscriptionID, { 
+                plan: planType
+            }, function(error, result) {
+                if (error) {
+                    return res.status(500).send(error);
+                }
+                user.setSubscription(null, null, planType, null, null, false);
+                user.update(null, function (error, result) {
+                    if (error) {
+                        if (error.error) {
+                            return res.status(500).send(error.error);
+                        }
+                        else {
+                            return res.status(400).send(error);
+                        }
+                    }
+                    return res.send(user.getUserDoc(true));
+                });
+            });
+        }
     });
 });
 

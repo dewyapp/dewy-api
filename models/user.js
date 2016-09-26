@@ -10,7 +10,7 @@ var swearjar = require('swearjar');
 var randomstring = require('randomstring');
 var config = new require('../config')();
 
-function User(email, username, password, gravatar, apikey, uid, verified, passwordRequested, lastNotified, created, startDate, endDate, type, stripeID, subscriptionID) {
+function User(email, username, password, gravatar, apikey, uid, verified, passwordRequested, lastNotified, created, startDate, endDate, type, stripeID, subscriptionID, cancelled) {
     this.email = email || null;
     this.username = username || null;
     this.password = password || null;
@@ -36,7 +36,8 @@ function User(email, username, password, gravatar, apikey, uid, verified, passwo
         endDate: endDate|| this.created + (60*60*24*10),
         type: type || 'basic',
         stripeID: stripeID || false,
-        subscriptionID: subscriptionID || false
+        subscriptionID: subscriptionID || false,
+        cancelled: cancelled || false
     }
     this.changes = [];
     this.unchangedValues = this.getUserDoc();
@@ -62,7 +63,8 @@ User.get = function(uid, callback) {
             result.value.subscription.endDate,
             result.value.subscription.type,
             result.value.subscription.stripeID,
-            result.value.subscription.subscriptionID
+            result.value.subscription.subscriptionID,
+            result.value.subscription.cancelled
         );
 
         callback(null, user);
@@ -158,6 +160,7 @@ User.prototype.getUserDoc = function(safe) {
                 endDate: this.subscription.endDate,
                 type: this.subscription.type,
                 subscriptionID: this.subscription.subscriptionID,
+                cancelled: this.subscription.cancelled,
                 expired: this.getSubscriptionExpired()
             }
         }
@@ -180,7 +183,8 @@ User.prototype.getUserDoc = function(safe) {
                 endDate: this.subscription.endDate,
                 type: this.subscription.type,
                 stripeID: this.subscription.stripeID,
-                subscriptionID: this.subscription.subscriptionID
+                subscriptionID: this.subscription.subscriptionID,
+                cancelled: this.subscription.cancelled
             }
         }
     }
@@ -208,20 +212,24 @@ User.prototype.setPassword = function(password) {
     this.password = password;
 }
 
-User.prototype.setSubscription = function(startDate, endDate, type, stripeID, subscriptionID) {
+User.prototype.setSubscription = function(startDate, endDate, type, stripeID, subscriptionID, cancelled) {
     this.changes.push('subscription');
     this.subscription = {
         startDate: startDate || this.subscription.startDate,
         endDate: endDate || this.subscription.endDate,
         type: type || this.subscription.type,
         stripeID: stripeID || this.subscription.stripeID,
-        subscriptionID: subscriptionID || this.subscription.subscriptionID
+        subscriptionID: subscriptionID || this.subscription.subscriptionID,
+        cancelled: cancelled || this.subscription.cancelled
     }
     if (stripeID === false) {
         this.subscription.stripeID = false;
     }
     if (subscriptionID === false) {
         this.subscription.subscriptionID = false;
+    }
+    if (cancelled === false) {
+        this.subscription.cancelled = false;
     }
 }
 
@@ -471,6 +479,5 @@ User.prototype.update = function(existingPassword, callback) {
         }
     }.bind( {user: this} ));
 }
-
 
 module.exports = User;
