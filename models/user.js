@@ -34,7 +34,7 @@ function User(email, username, password, gravatar, apikey, uid, verified, passwo
     this.subscription = {
         startDate: startDate || this.created,
         endDate: endDate|| this.created + (60*60*24*10),
-        type: type || 'trial',
+        type: type || 'basic',
         stripeID: stripeID || false,
         subscriptionID: subscriptionID || false
     }
@@ -129,38 +129,41 @@ User.getUidByUsername = function(username, callback) {
     });
 }
 
-User.prototype.getSubscriptionType = function () {
+User.prototype.getSubscriptionExpired = function () {
     var subscriptionType = this.subscription.type;
     if (this.subscription.endDate < Date.now()/1000) {
-        subscriptionType = 'expired';
+        return true;
     }
-    else if (subscriptionType == 'trial') {
-        subscriptionType = 'basic';
-    }
-    return subscriptionType;    
+    return false;
 }
 
 User.prototype.getUserDoc = function(safe) {
     if (safe) {
         // Return stripped down version of userDoc safe for front-end
+        var verified = true;
+        if (user.verified !== true) {
+            verified = false;
+        }
+
         return {
             email: this.email,
             username: this.username,
             gravatar: this.gravatar,
             apikey: this.apikey,
             uid: this.uid,
-            verified: this.verified,
+            verified: verified,
             created: this.created,
             subscription: {
                 startDate: this.subscription.startDate,
                 endDate: this.subscription.endDate,
                 type: this.subscription.type,
-                subscriptionID: this.subscription.subscriptionID
+                subscriptionID: this.subscription.subscriptionID,
+                expired: this.getSubscriptionExpired()
             }
         }
     }
     else {
-        // Return userDOc for internal consumption
+        // Return userDoc for internal consumption
         return {
             email: this.email,
             username: this.username,

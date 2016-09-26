@@ -6,15 +6,16 @@ exports.require = function(type) {
             if (error) {
                 return res.status(500).send(error);
             }
+            var user = result;
 
             // Get subscription type
-            subscriptionType = result.getSubscriptionType();
+            var expired = user.getSubscriptionExpired();
 
             // Determine if it's valid
-            if (subscriptionType == 'expired' ||
-                (type == 'pro' && subscriptionType == 'basic') ||
-                (type == 'enterprise' && subscriptionType == 'basic') ||
-                (type == 'enterprise' && subscriptionType == 'pro')
+            if (expired ||
+                (type == 'pro' && user.subscription.type == 'basic') ||
+                (type == 'enterprise' && user.subscription.type == 'basic') ||
+                (type == 'enterprise' && user.subscription.type == 'pro')
             ) {
                 return res.status(402).send('You do not have a subscription that allows this request.');
             }

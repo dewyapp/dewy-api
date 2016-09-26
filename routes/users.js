@@ -70,15 +70,7 @@ router.get('/', oauth.authorise(), function (req, res, next) {
         if (error) {
             return res.status(500).send(error);
         }
-
         var user = result;
-        if (user.verified !== true) {
-            user.verified = false;
-        }
-        var expired = false;
-        if (user.getSubscriptionType() == 'expired') {
-            expired = true;
-        }
         res.send(user.getUserDoc(true));
     });
 });
