@@ -141,7 +141,7 @@ User.prototype.getUserDoc = function(safe) {
     if (safe) {
         // Return stripped down version of userDoc safe for front-end
         var verified = true;
-        if (user.verified !== true) {
+        if (this.verified !== true) {
             verified = false;
         }
 
