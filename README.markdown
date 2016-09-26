@@ -85,16 +85,16 @@
 	
 		This should be run daily
 		
-			./api.js audit-all
+			0 0 * * * ./api.js audit-all
 	
 	2. Pulling Drupal.org release data
 	
 		This should be run every 30 minutes:
 		
-			./api.js releases
+			*/30 * * * * ./api.js releases
 	
 	3. Sending notifications around users expiring/expired subscriptions
 	
-		This should be run daily:
+		This should be run hourly:
 		
-			./api.js notify-users
+			0 * * * * ./api.js notify-users
