@@ -294,79 +294,77 @@ router.get('/:uid/_subscription', oauth.authorise(), function (req, res, next) {
 });
 
 router.post('/:uid/_subscription', oauth.authorise(), function (req, res, next) {
+    User.get(req.user.id, function(error, result) {
+        if (error) {
+            return res.status(500).send(error);
+        }
+        if (req.params.uid != req.user.id) {
+            return res.status(403).send('You do not have permission to access this resource.');
+        }
 
-    var availablePlans = ['basic'];
-    var planType = req.body.planType;
+        var user = result;
+        var stripe = require("stripe")(config.stripe.private_key);
+        var availablePlans = ['basic'];
+        var planType = req.body.planType;
 
-    if (availablePlans.indexOf(planType) == -1) {
-        res.status(400).send('The ' + planType + ' plan is not available.');
-    }
-    else {
-        User.get(req.user.id, function(error, result) {
-            if (error) {
-                return res.status(500).send(error);
-            }
-            if (req.params.uid != req.user.id) {
-                return res.status(403).send('You do not have permission to access this resource.');
-            }
-            var user = result;
-            var stripe = require("stripe")(config.stripe.private_key);
+        if (availablePlans.indexOf(planType) == -1) {
+            return res.status(400).send('The ' + planType + ' plan is not available.');
+        }
 
-            // User isn't a Dewy Stripe customer yet, create the customer and the subscription
-            if (user.subscription.stripeID === false) {
-                var stripeToken = req.body.stripeToken;
-                stripe.customers.create({
-                    source: stripeToken,
-                    plan: planType,
-                    email: user.email
-                }, function(error, result) {
+        // User isn't a Dewy Stripe customer yet, create the customer and the subscription
+        if (user.subscription.stripeID === false) {
+            var stripeToken = req.body.stripeToken;
+            stripe.customers.create({
+                source: stripeToken,
+                plan: planType,
+                email: user.email
+            }, function(error, result) {
+                if (error) {
+                    return res.status(500).send(error);
+                }
+                user.setSubscription(result.subscriptions.data[0].current_period_start, result.subscriptions.data[0].current_period_end, planType, result.id, result.subscriptions.data[0].id);
+                user.update(null, function (error, result) {
                     if (error) {
-                        return res.status(500).send(error);
-                    }
-                    user.setSubscription(result.subscriptions.data[0].current_period_start, result.subscriptions.data[0].current_period_end, planType, result.id, result.subscriptions.data[0].id);
-                    user.update(null, function (error, result) {
-                        if (error) {
-                            if (error.error) {
-                                return res.status(500).send(error.error);
-                            }
-                            else {
-                                return res.status(400).send(error);
-                            }
+                        if (error.error) {
+                            return res.status(500).send(error.error);
                         }
-                        return res.send(user.getUserDoc(true));
-                    });
+                        else {
+                            return res.status(400).send(error);
+                        }
+                    }
+                    return res.send(user.getUserDoc(true));
                 });
-            }
-            // If the user is a Stripe customer but doesn't have a current subscription, create one
-            else if (user.subscription.subscriptionID === false) {
-                stripe.subscriptions.create({
-                    source: stripeToken,
-                    customer: user.subscription.stripeID,
-                    plan: planType
-                }, function(error, result) {
+            });
+        }
+        // If the user is a Stripe customer but doesn't have a current subscription, create one
+        else if (user.subscription.subscriptionID === false) {
+            stripe.subscriptions.create({
+                source: stripeToken,
+                customer: user.subscription.stripeID,
+                plan: planType
+            }, function(error, result) {
+                if (error) {
+                    return res.status(500).send(error);
+                }
+                user.setSubscription(result.current_period_start, result.current_period_end, planType, null, result.id);
+                user.update(null, function (error, result) {
                     if (error) {
-                        return res.status(500).send(error);
-                    }
-                    user.setSubscription(result.current_period_start, result.current_period_end, planType, null, result.id);
-                    user.update(null, function (error, result) {
-                        if (error) {
-                            if (error.error) {
-                                return res.status(500).send(error.error);
-                            }
-                            else {
-                                return res.status(400).send(error);
-                            }
+                        if (error.error) {
+                            return res.status(500).send(error.error);
                         }
-                        return res.send(user.getUserDoc(true));
-                    });
+                        else {
+                            return res.status(400).send(error);
+                        }
+                    }
+                    return res.send(user.getUserDoc(true));
                 });
-            }
-            // Otherwise, they are changing their plan
-            // else
-            // {
-            // }
-        });
-    }
+            });
+        }
+        // Otherwise, they are changing their plan
+        // else
+        // {
+        // }
+    });
 });
 
 module.exports = router;
