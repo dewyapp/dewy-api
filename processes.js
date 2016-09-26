@@ -46,25 +46,27 @@ exports.notifyUsers = function(callback) {
                         var user = result;
                         var now = Math.round(new Date().getTime() / 1000);
                         var subject, text, html;
-                        if (user.lastNotified + 3600 < now && user.subscription.endDate + 3600 < now) {
-                            // User has been expired for an hour
-                            subject = "Your " + user.subscription.type + " Dewy subscription has expired";
-                            text = "Please renew your subscription to Dewy at " + config.website.url + " so you don't miss a beat on what your sites are doing.";
+                        // User has been expired for a week
+                        if (user.lastNotified < user.subscription.endDate + 604800 && user.subscription.endDate + 604800 < now) {
+                            subject = "What are your Drupal sites up to now?";
+                            text = "It has been a week since your " + user.subscription.type + " subscription to Dewy ended. A lot could have changed for your Drupal sites since then! Renew your subscription at " + config.website.url + " to get back into the action."
                         }
-                        if (user.lastNotified + 604800 < now && user.subscription.endDate + 604800 < now) {
-                            // User has been expired for a week
-                            subject = "What are your sites up to now?";
-                            text = "It has been a week since your " + user.subscription.type + " subscription to Dewy has expired. A lot could have changed for your Drupal sites since then! Renew your subscription at " + config.website.url + " to get back into the action."
-                        }
-                        else if (user.subscription.type == 'trial') {
+                        // User is on a trial
+                        else if (user.subscription.type == 'basic' && !user.subscription.stripeID) {
+                            // User will expire in less than 2 days
                             if (!user.lastNotified && user.subscription.endDate - now < 172800) {
-                                // User will expire in less than 2 days
                                 subject = "There are 2 days remaining in your Dewy trial";
                                 text = "Please sign up for a Dewy subscription at " + config.website.url + " before features are disabled for your account.";
                             }
-                            else if (user.lastNotified - now > 86400 && user.subscription.endDate - now < 86400) {
+                            // User will expire in less than a day
+                            else if (user.lastNotified < user.subscription.endDate - 86400 && user.subscription.endDate - now < 86400) {
                                 subject = "There is 1 day remaining in your Dewy trial";
                                 text = "Please sign up for a Dewy subscription at " + config.website.url + " before features are disabled for your account.";
+                            }
+                            // User has been expired for an hour
+                            else if (user.lastNotified < user.subscription.endDate + 3600 && user.subscription.endDate + 3600 < now) {
+                                subject = "Your Dewy trial subscription has expired";
+                                text = "Thank you for trying Dewy. Please start your subscription to Dewy at " + config.website.url + " so you don't miss a beat on what your sites are doing.";
                             }
                         }
 

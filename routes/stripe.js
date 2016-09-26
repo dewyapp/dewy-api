@@ -137,11 +137,12 @@ router.post('/', function (req, res, next) {
                             detailsHTML = detailsHTML + '<td><span style="font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><strong>' + event.data.object.lines.data[line].plan.id.charAt(0).toUpperCase() + event.data.object.lines.data[line].plan.id.slice(1) + ' ' + event.data.object.lines.data[line].plan.object + '</strong></span></td><td><span style="font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><strong>' + periodStart + ' to ' + periodEnd + '</strong></span></td><td><span style="font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><strong>$' + event.data.object.lines.data[line].amount/100 + ' ' + event.data.object.lines.data[line].currency.toUpperCase() + '</strong></span></td>'; 
                         }
                         detailsHTML = detailsHTML + '</tr></table>';
-                        
+
+                        var periodMonth = moment.unix(event.data.object.period_start).format("MMMM");
                         var periodStart = moment.unix(event.data.object.period_start).format("MMMM Do YYYY");
                         email.send({
                             to: user.email,
-                            subject: 'Your Dewy invoice',
+                            subject: 'Your Dewy invoice for ' + periodMonth,
                             text: 'Hi ' + user.username + '. For the period starting ' + periodStart + ', you will be charged a total of $' + event.data.object.amount_due/100 + ' ' + event.data.object.currency.toUpperCase() + '. Details: ' + detailsText + ' Thank you for using Dewy.',
                             html: 'Hi ' + user.username + '.<br/>For the period starting ' + periodStart + ', you will be charged a total of <strong>$' + event.data.object.amount_due/100 + ' ' + event.data.object.currency.toUpperCase() + '</strong>. Details:</p>' + detailsHTML + '<p style="padding: 28px 0 28px 0;font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666">Thank you for using Dewy.'
                         }, function(error, result) {
