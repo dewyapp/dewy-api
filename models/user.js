@@ -33,7 +33,7 @@ function User(email, username, password, gravatar, apikey, uid, verified, passwo
     this.created = created || Math.round(new Date().getTime() / 1000);
     this.subscription = {
         startDate: startDate || this.created,
-        endDate: endDate|| this.created + (60*60*24*10),
+        endDate: endDate|| this.created + (60*60*24*14),
         type: type || 'basic',
         stripeID: stripeID || false,
         subscriptionID: subscriptionID || false,
