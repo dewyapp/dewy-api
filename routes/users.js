@@ -386,7 +386,7 @@ router.put('/:uid/_subscription', oauth.authorise(), function (req, res, next) {
         var stripe = require("stripe")(config.stripe.private_key);
         // User wishes to update credit card (source)
         if (req.body.source) {
-            stripe.customers.update(user.subscription.subscriptionID, { 
+            stripe.customers.update(user.subscription.stripeID, { 
                 source: req.body.source
             }, function(error, result) {
                 if (error) {
