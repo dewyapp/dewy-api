@@ -284,7 +284,7 @@ router.get('/:uid/_subscription', oauth.authorise(), function (req, res, next) {
                 });
             }
             else if (error) {
-                return res.status(500).send(error);
+                return res.status(500).send(error.message);
             }
             else {
                 return res.send(result);
@@ -319,7 +319,7 @@ router.post('/:uid/_subscription', oauth.authorise(), function (req, res, next) 
                 email: user.email
             }, function(error, result) {
                 if (error) {
-                    return res.status(500).send(error);
+                    return res.status(500).send(error.message);
                 }
                 user.setSubscription(result.subscriptions.data[0].current_period_start, result.subscriptions.data[0].current_period_end, planType, result.id, result.subscriptions.data[0].id);
                 user.update(null, function (error, result) {
@@ -343,7 +343,7 @@ router.post('/:uid/_subscription', oauth.authorise(), function (req, res, next) 
                 plan: planType
             }, function(error, result) {
                 if (error) {
-                    return res.status(500).send(error);
+                    return res.status(500).send(error.message);
                 }
                 user.setSubscription(result.current_period_start, result.current_period_end, planType, null, result.id);
                 user.update(null, function (error, result) {
@@ -390,7 +390,7 @@ router.put('/:uid/_subscription', oauth.authorise(), function (req, res, next) {
                 source: req.body.source
             }, function(error, result) {
                 if (error) {
-                    return res.status(500).send(error);
+                    return res.status(500).send(error.message);
                 }
                 return res.send();
             });
@@ -401,7 +401,7 @@ router.put('/:uid/_subscription', oauth.authorise(), function (req, res, next) {
                 at_period_end: true 
             }, function(error, result) {
                 if (error) {
-                    return res.status(500).send(error);
+                    return res.status(500).send(error.message);
                 }
                 user.setSubscription(null, null, null, null, null, true);
                 user.update(null, function (error, result) {
@@ -431,7 +431,7 @@ router.put('/:uid/_subscription', oauth.authorise(), function (req, res, next) {
                 plan: planType
             }, function(error, result) {
                 if (error) {
-                    return res.status(500).send(error);
+                    return res.status(500).send(error.message);
                 }
                 user.setSubscription(null, null, planType, null, null, false);
                 user.update(null, function (error, result) {
