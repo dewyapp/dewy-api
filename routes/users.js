@@ -376,13 +376,27 @@ router.put('/:uid/_subscription', oauth.authorise(), function (req, res, next) {
         }
         var user = result;
 
+        if (!user.subscription.stripeID) {
+            return res.status(400).send('There is no Stripe customer associated with this user.');
+        }
         if (!user.subscription.subscriptionID) {
             return res.status(400).send('There is no Stripe subscription associated with this user.');
         }
 
         var stripe = require("stripe")(config.stripe.private_key);
-        // Cancel subscription at period end
-        if (req.body.cancel) {
+        // User wishes to update credit card (source)
+        if (req.body.source) {
+            stripe.customers.update(user.subscription.subscriptionID, { 
+                source: req.body.source
+            }, function(error, result) {
+                if (error) {
+                    return res.status(500).send(error);
+                }
+                return res.send();
+            });
+        }
+        // User wishes to cancel subscription at period end
+        else if (req.body.cancel) {
             stripe.subscriptions.del(user.subscription.subscriptionID, { 
                 at_period_end: true 
             }, function(error, result) {
@@ -403,7 +417,7 @@ router.put('/:uid/_subscription', oauth.authorise(), function (req, res, next) {
                 });
             });
         }
-        // Update plan, this removes any cancellation
+        // User wishes to update plan, this removes any cancellation
         else {
             var planType = user.subscription.type;
             if (req.body.planType) {
