@@ -26,6 +26,26 @@ if (process.argv[2]) {
     var program = require('commander');
 
     program
+        .command('add-fake-sites <uid> <number-of-sites>')
+        .description('Add fake sites to a user account')
+        .action(function (uid, numberOfSites) {
+            var numberOfSites = parseInt(numberOfSites);
+            if (!numberOfSites > 0) {
+                console.log('A positive number of sites was not specified.');
+                process.exit(1);
+            }
+            admin.addFakeSites(uid, numberOfSites, function(error, result) {
+                if (error) {
+                    console.log(error);
+                    process.exit(1);
+                } else {
+                    console.log(result);
+                    process.exit(0);
+                }
+            });
+        });
+
+    program
         .command('audit <sid>')
         .description('Audit an individual site in Dewy')
         .action(function (sid) {
@@ -60,6 +80,21 @@ if (process.argv[2]) {
         .description('Create a Dewy user, user will receive an email with instructions')
         .action(function (email, username) {
             admin.createUser(email, username, function(error, result) {
+                if (error) {
+                    console.log(error);
+                    process.exit(1);
+                } else {
+                    console.log(result);
+                    process.exit(0);
+                }
+            });
+        });
+
+    program
+        .command('delete-fake-sites <uid>')
+        .description('Delete fake sites on a user account')
+        .action(function (uid) {
+            admin.deleteFakeSites(uid, function(error, result) {
                 if (error) {
                     console.log(error);
                     process.exit(1);
@@ -153,42 +188,6 @@ if (process.argv[2]) {
                 }
             });
         });
-
-    if (config.environment == 'development') {
-        program
-            .command('add-fake-sites <uid> <number-of-sites>')
-            .description('Add fake sites to a user account')
-            .action(function (uid, numberOfSites) {
-                var numberOfSites = parseInt(numberOfSites);
-                if (!numberOfSites > 0) {
-                    console.log('A positive number of sites was not specified.');
-                    process.exit(1);
-                }
-                admin.addFakeSites(uid, numberOfSites, function(error, result) {
-                    if (error) {
-                        console.log(error);
-                        process.exit(1);
-                    } else {
-                        console.log(result);
-                        process.exit(0);
-                    }
-                });
-            });
-        program
-            .command('delete-fake-sites <uid>')
-            .description('Delete fake sites on a user account')
-            .action(function (uid) {
-                admin.deleteFakeSites(uid, function(error, result) {
-                    if (error) {
-                        console.log(error);
-                        process.exit(1);
-                    } else {
-                        console.log(result);
-                        process.exit(0);
-                    }
-                });
-            });
-    }
 
     program.parse(process.argv);
 }
