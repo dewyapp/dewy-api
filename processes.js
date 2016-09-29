@@ -54,7 +54,7 @@ exports.notifyUsers = function(callback) {
                         // User is on a trial
                         else if (user.subscription.type == 'standard' && !user.subscription.stripeID) {
                             // User will expire in less than 2 days
-                            if (!user.lastNotified && user.subscription.endDate - now < 172800) {
+                            if (!user.lastNotified && user.subscription.endDate - now < 172800 && user.subscription.endDate - now >= 86400) {
                                 subject = "There are 2 days remaining in your Dewy trial";
                                 text = "Please sign up for a Dewy subscription at " + config.website.url + " before features are disabled for your account.";
                             }
