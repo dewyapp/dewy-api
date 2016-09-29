@@ -13,8 +13,8 @@ exports.require = function(type) {
 
             // Determine if it's valid
             if (expired ||
-                (type == 'pro' && user.subscription.type == 'basic') ||
-                (type == 'enterprise' && user.subscription.type == 'basic') ||
+                (type == 'pro' && user.subscription.type == 'standard') ||
+                (type == 'enterprise' && user.subscription.type == 'standard') ||
                 (type == 'enterprise' && user.subscription.type == 'pro')
             ) {
                 return res.status(402).send('You do not have a subscription that allows this request.');

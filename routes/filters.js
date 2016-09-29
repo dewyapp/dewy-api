@@ -16,7 +16,7 @@ router.get('/', oauth.authorise(), function (req, res, next) {
     });
 });
 
-router.post('/', oauth.authorise(), oauth.authorise(), subscription.require('basic'), function (req, res, next) {
+router.post('/', oauth.authorise(), oauth.authorise(), subscription.require('standard'), function (req, res, next) {
     filters.create(req.user.id, req.body, function(error, result) {
         if (error) {
             return res.status(500).send(error.toString());
@@ -43,7 +43,7 @@ router.post('/_index', oauth.authorise(), function (req, res, next) {
     });
 });
 
-router.get('/:fid', oauth.authorise(), oauth.authorise(), subscription.require('basic'), function (req, res, next) {
+router.get('/:fid', oauth.authorise(), oauth.authorise(), subscription.require('standard'), function (req, res, next) {
     filters.get(req.params.fid, function(error, result) {
         if (error) {
             return res.status(500).send(error.toString());
@@ -55,7 +55,7 @@ router.get('/:fid', oauth.authorise(), oauth.authorise(), subscription.require('
     });
 });
 
-router.delete('/:fid', oauth.authorise(), oauth.authorise(), subscription.require('basic'), function (req, res, next) {
+router.delete('/:fid', oauth.authorise(), oauth.authorise(), subscription.require('standard'), function (req, res, next) {
     filters.get(req.params.fid, function(error, result) {
         if (error) {
             return res.status(500).send(error.toString());
@@ -72,7 +72,7 @@ router.delete('/:fid', oauth.authorise(), oauth.authorise(), subscription.requir
     });
 });
 
-router.put('/:fid', oauth.authorise(), oauth.authorise(), subscription.require('basic'), function (req, res, next) {
+router.put('/:fid', oauth.authorise(), oauth.authorise(), subscription.require('standard'), function (req, res, next) {
     filters.get(req.params.fid, function(error, result) {
         if (error) {
             return res.status(500).send(error.toString());

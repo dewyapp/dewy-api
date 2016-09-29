@@ -304,7 +304,7 @@ router.post('/:uid/_subscription', oauth.authorise(), function (req, res, next) 
         var user = result;
 
         var planType = req.body.planType;
-        var availablePlans = ['basic'];
+        var availablePlans = ['standard'];
         if (availablePlans.indexOf(planType) == -1) {
             return res.status(400).send('The ' + planType + ' plan is not available.');
         }
@@ -422,7 +422,7 @@ router.put('/:uid/_subscription', oauth.authorise(), function (req, res, next) {
             var planType = user.subscription.type;
             if (req.body.planType) {
                 planType = req.body.planType;
-                var availablePlans = ['basic'];
+                var availablePlans = ['standard'];
                 if (availablePlans.indexOf(planType) == -1) {
                     return res.status(400).send('The ' + planType + ' plan is not available.');
                 }

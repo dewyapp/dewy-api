@@ -75,7 +75,7 @@ router.post('/', function (req, res, next) {
     });
 });
 
-router.get('/_filter/:fid', oauth.authorise(), subscription.require('basic'), function (req, res, next) {
+router.get('/_filter/:fid', oauth.authorise(), subscription.require('standard'), function (req, res, next) {
     filters.get(req.params.fid, function(error, result) {
         if (error) {
             return res.status(500).send(error);
@@ -187,7 +187,7 @@ router.delete('/:sid', oauth.authorise(), function (req, res, next) {
     });
 });
 
-router.get('/:sid/_detail', oauth.authorise(), subscription.require('basic'), function (req, res, next) {
+router.get('/:sid/_detail', oauth.authorise(), subscription.require('standard'), function (req, res, next) {
     sites.get(req.params.sid, function (error, result) {
         if (error) {
             return res.status(500).send(error);

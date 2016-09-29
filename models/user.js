@@ -34,7 +34,7 @@ function User(email, username, password, gravatar, apikey, uid, verified, passwo
     this.subscription = {
         startDate: startDate || this.created,
         endDate: endDate|| this.created + (60*60*24*14),
-        type: type || 'basic',
+        type: type || 'standard',
         stripeID: stripeID || false,
         subscriptionID: subscriptionID || false,
         cancelled: cancelled || false
