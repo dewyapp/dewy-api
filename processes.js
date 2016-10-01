@@ -52,7 +52,7 @@ exports.notifyUsers = function(callback) {
                             text = "It has been a week since your " + user.subscription.type + " subscription to Dewy ended. A lot could have changed for your Drupal sites since then! Renew your subscription at " + config.website.url + " to get back into the action."
                         }
                         // User is on a trial
-                        else if (user.subscription.type == 'basic' && !user.subscription.stripeID) {
+                        else if (user.subscription.type == 'standard' && !user.subscription.stripeID) {
                             // User will expire in less than 2 days
                             if (!user.lastNotified && user.subscription.endDate - now < 172800) {
                                 subject = "There are 2 days remaining in your Dewy trial";
