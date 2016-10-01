@@ -113,6 +113,15 @@ exports.setup = function (callback) {
                             '}',
                         '}'
                         ].join('\n')
+                },
+                by_uid: {
+                    map: [
+                        'function (doc, meta) {',
+                            'if (meta.id.substring(0, 13) == "accesstoken::" || meta.id.substring(0, 14) == "refreshtoken::") {',
+                                'emit([doc.uid], meta.id);',
+                            '}',
+                        '}'
+                        ].join('\n')
                 }
             }
         },

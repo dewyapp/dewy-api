@@ -116,3 +116,24 @@ exports.getUser = function (username, password, callback) {
         callback(null, result.length ? result[0].value : false);
     });
 }
+
+exports.deleteUserTokens = function (uid) {
+    query = couchbase.ViewQuery.from('oauth', 'by_uid')
+        .key([uid]);
+    db.query(query, function(error, result) {
+        if (error) {
+            return callback(error, null);
+        }
+        async.each(result,
+            function(row, callback) {
+                var id = row.value;
+                db.remove(id, function(error, result) {
+                    callback();
+                });
+            },
+            function(error) {
+                callback();
+            }
+        );
+    });
+}

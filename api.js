@@ -223,24 +223,19 @@ else {
         debug: config.debug
     });
     module.exports.oauth = app.oauth;
-    app.post('/oauth/token', function (req, res, next) {
-        // If the user wants their session remembered, the token will persist for a longer amount of time
-        if (req.body.remember) {
-            app.oauth.accessTokenLifetime = config.oauth.rememberedSessionLifetime;
-        }
-        next();
-    }, app.oauth.grant());
 
     // API endpoints
     var fieldRoutes = require('./routes/fields');
     var filterRoutes = require('./routes/filters');
     var moduleRoutes = require('./routes/modules');
+    var oauthRoutes = require('./routes/oauth');
     var siteRoutes = require('./routes/sites');
     var stripeRoutes = require('./routes/stripe');
     var userRoutes = require('./routes/users');
     app.use('/fields', fieldRoutes);
     app.use('/filters', filterRoutes);
     app.use('/modules', moduleRoutes);
+    app.use('/oauth', oauthRoutes);
     app.use('/sites', siteRoutes);
     app.use('/stripe', stripeRoutes);
     app.use('/users', userRoutes);
