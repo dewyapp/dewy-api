@@ -1,6 +1,7 @@
 var couchbase = require('couchbase');
 var forge = require('node-forge');
 var db = require('../api.js').bucket;
+var async = require('async');
 var config = new require('../config')();
 
 exports.getAccessToken = function (bearerToken, callback) {
@@ -117,7 +118,7 @@ exports.getUser = function (username, password, callback) {
     });
 }
 
-exports.deleteUserTokens = function (uid) {
+exports.deleteUserTokens = function (uid, callback) {
     query = couchbase.ViewQuery.from('oauth', 'by_uid')
         .key([uid]);
     db.query(query, function(error, result) {
