@@ -24,7 +24,7 @@ exports.audit = function(sid, results, callback) {
             body: 'token=' + siteDoc.token,
             rejectUnauthorized: false,
             charset: 'utf-8',
-            timeout: 300000,
+            timeout: 600000,
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
@@ -63,32 +63,63 @@ exports.audit = function(sid, results, callback) {
                 });
             } 
             else {
-                try {
-                    // Store details
-                    siteDoc.details = JSON.parse(body);
-                    // Process details
-                    exports.processDoc(siteDoc, function(error, result) {
-                        if (error) {
-                            results.push({ sid: siteDoc.sid, error: error });
-                            return callback();
+                // Store details
+                siteDoc.details = JSON.parse(body);
+
+                async.parallel([
+                    function(callback) {
+                        // Now if the site has content enabled, grab the raw content
+                        if (siteDoc.content) {
+                            request({
+                                uri: siteDoc.baseurl + '/admin/reports/dewy-content',
+                                method: 'POST',
+                                body: 'token=' + siteDoc.token,
+                                rejectUnauthorized: false,
+                                charset: 'utf-8',
+                                timeout: 600000,
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded'
+                                }
+                            }, function(error, response, body) {
+                                if (error) {
+                                    results.push({ sid: siteDoc.sid, error: 'Content retrieval failed' });
+                                }
+                                else {
+                                    siteDoc.raw = JSON.parse(body);
+                                }
+                                callback();
+                            });
                         }
-                        // Save site
-                        exports.update(result, function(error, result) {
+                        else {
+                            callback();
+                        }
+                    }
+                ], function (error) {
+                    try {
+                        // Process details
+                        exports.processDoc(siteDoc, function(error, result) {
                             if (error) {
                                 results.push({ sid: siteDoc.sid, error: error });
                                 return callback();
                             }
+                            // Save site
+                            exports.update(result, function(error, result) {
+                                if (error) {
+                                    results.push({ sid: siteDoc.sid, error: error });
+                                    return callback();
+                                }
+                                return callback();
+                            });
+                        });
+                    }
+                    catch (e) {
+                        siteDoc.audited.error = 'Failed to parse: ' + e.message;
+                        exports.update(siteDoc, function(error, result) {
+                            results.push({ sid: siteDoc.sid, error: siteDoc.audited.error });
                             return callback();
                         });
-                    });
-                }
-                catch (e) {
-                    siteDoc.audited.error = 'Failed to parse: ' + e.message;
-                    exports.update(siteDoc, function(error, result) {
-                        results.push({ sid: siteDoc.sid, error: siteDoc.audited.error });
-                        return callback();
-                    });
-                }
+                    }
+                });
             }
         });
     });
@@ -345,7 +376,7 @@ exports.processDoc = function(siteDoc, callback) {
             contentTypes.push(siteDoc.details.nodes[i].type)
         }
         for (var j in siteDoc.details.nodes[i].content) {
-            words = words + siteDoc.details.nodes[i].content[j].split(' ').length;
+            words = words + siteDoc.details.nodes[i].content[j].words;
         }
     }
     var nodes = _.keys(siteDoc.details.nodes).length;
