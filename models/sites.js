@@ -375,9 +375,7 @@ exports.processDoc = function(siteDoc, callback) {
         if (contentTypes.indexOf(siteDoc.details.nodes[i].type) == '-1') {
             contentTypes.push(siteDoc.details.nodes[i].type)
         }
-        for (var j in siteDoc.details.nodes[i].content) {
-            words = words + siteDoc.details.nodes[i].content[j].words;
-        }
+        words = words + siteDoc.details.nodes[i].words;
     }
     var nodes = _.keys(siteDoc.details.nodes).length;
     avgLastModified = Math.round(avgLastModified / nodes);
