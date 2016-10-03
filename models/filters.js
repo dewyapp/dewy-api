@@ -340,7 +340,7 @@ exports.createDesignDoc = function(filterDoc, callback) {
             modules: {
                 map: [
                     'function (doc, meta) {',
-                        'if (meta.id.substring(0, 6) == "site::" && doc.uid == "' + filterDoc.uid + '" && doc.enabled == "1" && ("details" in doc) && !("error" in doc.audited)) {',
+                        'if (meta.id.substring(0, 6) == "site::" && doc.uid == "' + filterDoc.uid + '" && doc.enabled == "1" && doc.audit.lastSuccessfulAudit && doc.audit.errors.length < 3) {',
                             processedRules.test,
                             'if (' + processedRules.rule + ') {',
                                 'var core = doc.details.drupal_core.split(".");',
@@ -374,7 +374,7 @@ exports.createDesignDoc = function(filterDoc, callback) {
             sites: {
                 map: [
                     'function (doc, meta) { ',
-                        'if (meta.id.substring(0, 6) == "site::" && doc.uid == "' + filterDoc.uid + '" && doc.enabled == "1" && ("details" in doc) && !("error" in doc.audited)) {',
+                        'if (meta.id.substring(0, 6) == "site::" && doc.uid == "' + filterDoc.uid + '" && doc.enabled == "1" && doc.audit.lastSuccessfulAudit && doc.audit.errors.length < 3) {',
                             processedRules.test,
                             'if (' + processedRules.rule + ') {',
                                 'emit([doc.uid], {sid: doc.sid, title: doc.details.title, baseurl: doc.baseurl, attributes: doc.attributes, tags: doc.tags, dateAdded: doc.dateAdded});',
