@@ -28,7 +28,7 @@ exports.setup = function (callback) {
                 audited_by_uid: {
                     map: [
                         'function (doc, meta) {',
-                            'if (meta.id.substring(0, 6) == "site::" && doc.enabled == "1" && ("details" in doc) && !("error" in doc.audited)) {',
+                            'if (meta.id.substring(0, 6) == "site::" && doc.enabled == "1" && doc.audit.lastSuccessfulAudit && doc.audit.errors.length < 3) {',
                                 'var core = doc.details.drupal_core.split(".");',
                                 'core = core[0] + ".x";',
                                 'for (project in doc.details.projects) {',
@@ -130,7 +130,7 @@ exports.setup = function (callback) {
                 audited_by_uid: {
                     map: [
                         'function (doc, meta) {',
-                            'if (meta.id.substring(0, 6) == "site::" && doc.enabled == "1" && ("details" in doc) && !("error" in doc.audited)) {',
+                            'if (meta.id.substring(0, 6) == "site::" && doc.enabled == "1" && doc.audit.lastSuccessfulAudit && doc.audit.errors.length < 3) {',
                                 'emit([doc.uid], {sid: doc.sid, title: doc.details.title, baseurl: doc.baseurl, attributes: doc.attributes, tags: doc.tags, dateAdded: doc.dateAdded});',
                             '}',
                         '}'
@@ -139,7 +139,7 @@ exports.setup = function (callback) {
                 by_project: {
                     map: [
                         'function (doc, meta) {',
-                            'if (meta.id.substring(0, 6) == "site::" && doc.enabled == "1" && ("details" in doc) && !("error" in doc.audited)) {',
+                            'if (meta.id.substring(0, 6) == "site::" && doc.enabled == "1" && doc.audit.lastSuccessfulAudit && doc.audit.errors.length < 3) {',
                                 'var core = doc.details.drupal_core.split(\'.\');',
                                 'core = core[0] + \'.x\';',
                                 'for (var project in doc.details.projects) {',
@@ -182,8 +182,8 @@ exports.setup = function (callback) {
                 offline_by_uid: {
                     map: [
                         'function (doc, meta) {',
-                            'if (meta.id.substring(0, 6) == "site::" && (doc.enabled == "0" || !("details" in doc) || ("error" in doc.audited))) {',
-                                'emit([doc.uid], {sid: doc.sid, baseurl: doc.baseurl, enabled: doc.enabled, dateAdded:doc.dateAdded, audited: doc.audited, token: doc.token});',
+                            'if (meta.id.substring(0, 6) == "site::" && (doc.enabled == "0" || !doc.audit.lastSuccessfulAudit || doc.audit.errors.length >= 3)) {',
+                                'emit([doc.uid], {sid: doc.sid, baseurl: doc.baseurl, enabled: doc.enabled, dateAdded:doc.dateAdded, audit: doc.audit, token: doc.token});',
                             '}',
                         '}'
                         ].join('\n')
