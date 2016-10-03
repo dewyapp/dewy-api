@@ -44,7 +44,7 @@ exports.audit = function(sid, results, callback) {
                     errors: []
                 }
             }
-            console.log(body.length);
+            
             if (error) {
                 siteDoc.audit.errors.unshift({date: date, error: error});
                 if (siteDoc.audit.errors.length > 3) {
