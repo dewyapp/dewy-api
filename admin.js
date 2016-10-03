@@ -133,6 +133,7 @@ exports.addFakeSites = function(uid, numberOfSites, callback) {
 
                     // Determine nodes
                     var nodes = {};
+                    var nodesRaw = {};
                     var contentTypes = [];
                     var contentTypeChoices = ['page', 'article', 'blog', 'news', 'event', 'webform', 'private page'];
                     var numberOfContentTypes = Math.floor(Math.random()*(contentTypeChoices.length - 1)+1);
@@ -154,10 +155,13 @@ exports.addFakeSites = function(uid, numberOfSites, callback) {
                             created: Math.floor(Date.now() / 1000) - timeAgoCreated,
                             changed: Math.floor(Date.now() / 1000) - Math.floor(Math.random()*timeAgoCreated),
                             type: contentTypeChoices[Math.floor(Math.random()*contentTypeChoices.length)],
+                            words: numberOfWords
+                        };
+                        nodesRaw[i] = {
                             content: {
                                 body_value: content.join(' ')
                             }
-                        };
+                        }
                     }
 
                     // Determine projects
@@ -249,9 +253,11 @@ exports.addFakeSites = function(uid, numberOfSites, callback) {
                         users: "1",
                         content: "1",
                         dateAdded: Math.floor(Date.now() / 1000) - timeAgoAdded,
-                        lastUpdated: lastUpdated,
-                        audited: {
-                            date: lastUpdated
+                        audit: {
+                            lastAudit: lastUpdated,
+                            lastSuccessfulAudit: lastUpdated,
+                            lastSuccessfulContentAudit: lastUpdated,
+                            errors: []
                         },
                         details: {
                             date: lastUpdated,
@@ -285,6 +291,9 @@ exports.addFakeSites = function(uid, numberOfSites, callback) {
                             projects: projects,
                             themes: themes,
                             variables: variables
+                        },
+                        raw: {
+                            nodes: nodesRaw,
                         },
                         tags: tags
                     };

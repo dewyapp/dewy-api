@@ -138,7 +138,8 @@ router.put('/:sid', oauth.authorise(), function (req, res, next) {
                     return res.status(500).send(error);
                 }
                 else {
-                    if (results.length) {
+                    // Don't pass on warnings to front end, just errors
+                    if (results.length && results[0].error) {
                         res.status(500).send(results[0].error + "");
                     }
                     else {

@@ -31,94 +31,157 @@ exports.audit = function(sid, results, callback) {
         }, function(error, response, body) {
             var date = new Date().getTime() / 1000;
             date = Math.round(date);
-            siteDoc.lastUpdated = date;
-            siteDoc.audited = {
-                date: date
-            }
 
+            // Define audit values if they've never been defined before
+            if ('audit' in siteDoc) {
+                siteDoc.audit.lastAudit = date;
+            }
+            else {
+                siteDoc.audit = {
+                    lastAudit: date,
+                    lastSuccessfulAudit: 0,
+                    lastSuccessfulContentAudit: 0,
+                    errors: []
+                }
+            }
+            console.log(body.length);
             if (error) {
-                siteDoc.audited.error = error.code;
+                siteDoc.audit.errors.unshift({date: date, error: error});
+                if (siteDoc.audit.errors.length > 3) {
+                    siteDoc.audit.errors.splice(3, siteDoc.audit.errors.length-3);
+                }
                 exports.update(siteDoc, function(error, result) {
                     if (error) {
                         results.push({ sid: siteDoc.sid, error: error });
                         return callback();
                     }
                     else {
-                        results.push({ sid: siteDoc.sid, error: siteDoc.audited.error });
+                        results.push({ sid: siteDoc.sid, error: siteDoc.audit.errors[0].error });
                         return callback();
                     }
                 });
             } 
             else if (response.statusCode != 200) {
-                siteDoc.audited.error = response.statusCode;
+                siteDoc.audit.errors.unshift({date: date, error: response.statusCode});
+                if (siteDoc.audit.errors.length > 3) {
+                    siteDoc.audit.errors.splice(3, siteDoc.audit.errors.length-3);
+                }
                 exports.update(siteDoc, function(error, result) {
                     if (error) {
                         results.push({ sid: siteDoc.sid, error: error });
                         return callback();
                     }
                     else {
-                        results.push({ sid: siteDoc.sid, error: siteDoc.audited.error });
+                        results.push({ sid: siteDoc.sid, error: siteDoc.audit.errors[0].error });
                         return callback();
                     }
                 });
             } 
             else {
                 // Store details
-                siteDoc.details = JSON.parse(body);
-
+                var auditSuccessful = false;
                 async.parallel([
                     function(callback) {
-                        // Now if the site has content enabled, grab the raw content
-                        if (siteDoc.content) {
-                            request({
-                                uri: siteDoc.baseurl + '/admin/reports/dewy-content',
-                                method: 'POST',
-                                body: 'token=' + siteDoc.token,
-                                rejectUnauthorized: false,
-                                charset: 'utf-8',
-                                timeout: 600000,
-                                headers: {
-                                    'Content-Type': 'application/x-www-form-urlencoded'
-                                }
-                            }, function(error, response, body) {
-                                if (error) {
-                                    results.push({ sid: siteDoc.sid, error: 'Content retrieval failed' });
-                                }
-                                else {
-                                    siteDoc.raw = JSON.parse(body);
-                                }
-                                callback();
-                            });
+                        try {
+                            siteDoc.details = JSON.parse(body);
+                            auditSuccessful = true;
+                            return callback();
                         }
-                        else {
-                            callback();
-                        }
-                    }
-                ], function (error) {
-                    try {
-                        // Process details
-                        exports.processDoc(siteDoc, function(error, result) {
-                            if (error) {
-                                results.push({ sid: siteDoc.sid, error: error });
-                                return callback();
+                        catch (e) {
+                            siteDoc.audit.errors.unshift({date: date, error: 'Failed to parse: ' + e.message});
+                            if (siteDoc.audit.errors.length > 3) {
+                                siteDoc.audit.errors.splice(3, siteDoc.audit.errors.length-3);
                             }
-                            // Save site
-                            exports.update(result, function(error, result) {
+                            exports.update(siteDoc, function(error, result) {
                                 if (error) {
                                     results.push({ sid: siteDoc.sid, error: error });
                                     return callback();
                                 }
-                                return callback();
+                                else {
+                                    results.push({ sid: siteDoc.sid, error: siteDoc.audit.errors[0].error });
+                                    return callback();
+                                }
                             });
-                        });
+                        }
                     }
-                    catch (e) {
-                        siteDoc.audited.error = 'Failed to parse: ' + e.message;
-                        exports.update(siteDoc, function(error, result) {
-                            results.push({ sid: siteDoc.sid, error: siteDoc.audited.error });
-                            return callback();
-                        });
+                ], function (error) {
+                    if (!auditSuccessful) {
+                        return callback();
                     }
+                    var contentAuditSuccessful = false;
+                    async.parallel([
+                        function(callback) {
+                            // Now if the site has content enabled, grab the raw content
+                            if (siteDoc.content) {
+                                request({
+                                    uri: siteDoc.baseurl + '/admin/reports/dewy-content',
+                                    method: 'POST',
+                                    body: 'token=' + siteDoc.token,
+                                    rejectUnauthorized: false,
+                                    charset: 'utf-8',
+                                    timeout: 600000,
+                                    headers: {
+                                        'Content-Type': 'application/x-www-form-urlencoded'
+                                    }
+                                }, function(error, response, body) {
+                                    if (error) {
+                                        results.push({ sid: siteDoc.sid, warning: 'Content retrieval failed' });
+                                    }
+                                    else {
+                                        try {
+                                            siteDoc.raw = JSON.parse(body);
+                                            contentAuditSuccessful = true;
+                                        }
+                                        catch (e) {
+                                            results.push({ sid: siteDoc.sid, warning: 'Content parsing failed' });
+                                        }
+                                    }
+                                    return callback();
+                                });
+                            }
+                            else {
+                                return callback();
+                            }
+                        }
+                    ], function (error) {
+                        try {
+                            // Process details
+                            exports.processDoc(siteDoc, function(error, result) {
+                                if (error) {
+                                    results.push({ sid: siteDoc.sid, error: error });
+                                    return callback();
+                                }
+                                // Save site with a successful audit
+                                siteDoc.audit.lastSuccessfulAudit = date;
+                                siteDoc.audit.errors = [];
+                                if (contentAuditSuccessful) {
+                                    siteDoc.audit.lastSuccessfulContentAudit = date;
+                                }
+                                exports.update(result, function(error, result) {
+                                    if (error) {
+                                        results.push({ sid: siteDoc.sid, error: error });
+                                    }
+                                    return callback();
+                                });
+                            });
+                        }
+                        catch (e) {
+                            siteDoc.audit.errors.unshift({date: date, error: 'Failed to process: ' + e.message});
+                            if (siteDoc.audit.errors.length > 3) {
+                                siteDoc.audit.errors.splice(3, siteDoc.audit.errors.length-3);
+                            }
+                            exports.update(siteDoc, function(error, result) {
+                                if (error) {
+                                    results.push({ sid: siteDoc.sid, error: error });
+                                    return callback();
+                                }
+                                else {
+                                    results.push({ sid: siteDoc.sid, error: siteDoc.audit.errors[0].error });
+                                    return callback();
+                                }
+                            });
+                        }
+                    });
                 });
             }
         });
@@ -319,7 +382,7 @@ exports.processDoc = function(siteDoc, callback) {
     var enabledModules = [];
 
     // Process time offset
-    siteDoc.audited.timeOffset = siteDoc.audited.date - siteDoc.details.date;
+    siteDoc.audit.timeOffset = siteDoc.audit.lastAudit - siteDoc.details.date;
 
     // Process projects
     var enabledProjects = 0;
@@ -357,7 +420,7 @@ exports.processDoc = function(siteDoc, callback) {
         hits = hits + siteDoc.details.traffic.paths[i].hits;
     }
     if (hits) {
-        var days = (siteDoc.audited.date - siteDoc.details.traffic.recorded_since + siteDoc.audited.timeOffset) / 86400;
+        var days = (siteDoc.audit.lastAudit - siteDoc.details.traffic.recorded_since + siteDoc.audit.timeOffset) / 86400;
         hitsPerDay = hits / days;
         hitsPerDay = +hitsPerDay.toFixed(1);
     }
@@ -488,10 +551,10 @@ exports.processDoc = function(siteDoc, callback) {
                     files: siteDoc.details.files.public.count + siteDoc.details.files.private.count,
                     words: words,
                     diskSpace: diskSpace,
-                    lastModified: lastModified + siteDoc.audited.timeOffset,
-                    avgLastModified: avgLastModified + siteDoc.audited.timeOffset,
-                    lastAccess: lastAccess + siteDoc.audited.timeOffset,
-                    avgLastAccess: avgLastAccess + siteDoc.audited.timeOffset,
+                    lastModified: lastModified + siteDoc.audit.timeOffset,
+                    avgLastModified: avgLastModified + siteDoc.audit.timeOffset,
+                    lastAccess: lastAccess + siteDoc.audit.timeOffset,
+                    avgLastAccess: avgLastAccess + siteDoc.audit.timeOffset,
                     hitsPerDay: hitsPerDay,
                     databaseUpdates: databaseUpdates.length,
                     projectsWithUpdates: projectsWithUpdates.length,
