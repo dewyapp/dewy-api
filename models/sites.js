@@ -371,7 +371,7 @@ exports.getByProject = function(project, core, maxModuleUpdateLevel, callback) {
 }
 
 exports.getDetail = function(siteDoc) {
-    return siteDoc.attributeDetails;
+    return { content: siteDoc.content, attributeDetails: siteDoc.attributeDetails, audit: siteDoc.audit };
 }
 
 exports.processDoc = function(siteDoc, callback) {
