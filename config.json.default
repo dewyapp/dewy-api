@@ -18,6 +18,7 @@
             "sessionLifetime": 43200,
             "rememberedSessionLifetime": 604800
         },
+        "port": 3001,
         "stripe": {
             "private_key": ""
         },
@@ -44,6 +45,7 @@
             "sessionLifetime": 43200,
             "rememberedSessionLifetime": 604800
         },
+        "port": 3001,
         "stripe": {
             "private_key": ""
         },

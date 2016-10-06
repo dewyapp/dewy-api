@@ -246,8 +246,10 @@ else {
         res.status(404).send("Not a valid API endpoint");
     });
 
-    app.listen(3001, function () {
-        console.log('API in ' + config.environment + ' mode listening on port 3001 and allowed to serve requests to ' + config.website.url + '...');
+    // Grab port from config or supply a default
+    var port = config.port || 3001;
+    app.listen(port, function () {
+        console.log('API in ' + config.environment + ' mode listening on port ' + port + ' and allowed to serve requests to ' + config.website.url + '...');
     });
 }
 
