@@ -438,8 +438,14 @@ exports.processDoc = function(siteDoc, callback) {
         if (contentTypes.indexOf(siteDoc.details.nodes[i].type) == '-1') {
             contentTypes.push(siteDoc.details.nodes[i].type)
         }
-        words = words + siteDoc.details.nodes[i].words;
+        if ('raw' in siteDoc) {
+            words = words + siteDoc.raw.nodes[i].words;
+        }
     }
+    if (!('raw' in siteDoc)) {
+        words = -1;
+    }
+
     var nodes = _.keys(siteDoc.details.nodes).length;
     avgLastModified = Math.round(avgLastModified / nodes);
 
