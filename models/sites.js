@@ -111,37 +111,9 @@ exports.audit = function(sid, results, callback) {
                     var contentAuditSuccessful = false;
                     async.parallel([
                         function(callback) {
-                            // Now if the site has content enabled, grab the raw content
-                            if (siteDoc.content) {
-                                request({
-                                    uri: siteDoc.baseurl + '/admin/reports/dewy-content',
-                                    method: 'POST',
-                                    body: 'token=' + siteDoc.token,
-                                    rejectUnauthorized: false,
-                                    charset: 'utf-8',
-                                    timeout: 600000,
-                                    headers: {
-                                        'Content-Type': 'application/x-www-form-urlencoded'
-                                    }
-                                }, function(error, response, body) {
-                                    if (error) {
-                                        results.push({ sid: siteDoc.sid, warning: 'Content retrieval failed' });
-                                    }
-                                    else {
-                                        try {
-                                            siteDoc.raw = JSON.parse(body);
-                                            contentAuditSuccessful = true;
-                                        }
-                                        catch (e) {
-                                            results.push({ sid: siteDoc.sid, warning: 'Content parsing failed' });
-                                        }
-                                    }
-                                    return callback();
-                                });
-                            }
-                            else {
-                                return callback();
-                            }
+                            exports.auditContent(siteDoc, results, function(error, result) {
+                                callback();
+                            });
                         }
                     ], function (error) {
                         try {
@@ -186,6 +158,41 @@ exports.audit = function(sid, results, callback) {
             }
         });
     });
+}
+
+exports.auditContent = function(siteDoc, results, callback) {
+    // If the site has content enabled, grab the raw content
+    if (siteDoc.content) {
+        request({
+            uri: siteDoc.baseurl + '/admin/reports/dewy-content',
+            method: 'POST',
+            body: 'token=' + siteDoc.token,
+            rejectUnauthorized: false,
+            charset: 'utf-8',
+            timeout: 600000,
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        }, function(error, response, body) {
+            if (error) {
+                results.push({ sid: siteDoc.sid, warning: 'Content retrieval failed' });
+            }
+            else {
+                try {
+                    siteDoc.raw = JSON.parse(body);
+                    contentAuditSuccessful = true;
+                }
+                catch (e) {
+                    results.push({ sid: siteDoc.sid, warning: 'Content parsing failed' });
+                }
+            }
+            return callback();
+        });
+    }
+    else {
+        results.push({ sid: siteDoc.sid, warning: 'Content not permitted for audit' });
+        return callback();
+    }
 }
 
 exports.auditAll = function(callback) {
