@@ -19,7 +19,6 @@ module.exports.bucket = (new couchbase.Cluster(config.couchbase.server)).openBuc
 
 // Allow command line input
 if (process.argv[2]) {
-    console.log('API initialized in ' + config.environment + ' mode');
     var admin = require('./admin.js');
     var setup = require('./setup.js');
     var processes = require('./processes.js');
@@ -249,7 +248,7 @@ else {
     // Grab port from config or supply a default
     var port = config.port || 3001;
     app.listen(port, function () {
-        console.log('API in ' + config.environment + ' mode listening on port ' + port + ' and allowed to serve requests to ' + config.website + '...');
+        console.log('API listening on port ' + port + ' and allowed to serve requests to ' + config.website + '...');
     });
 }
 
