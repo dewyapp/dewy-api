@@ -264,13 +264,33 @@ exports.create = function(uid, token, baseurl, enabled, users, content, dateAdde
         dateAdded: dateAdded
     };
 
-    // Insert site
-    db.insert('site::' + siteDoc.sid, siteDoc, function(error, result) {
-        if (error) {
-            callback(error, null);
-            return;
+    // Test if site can be reached
+    request({
+        uri: siteDoc.baseurl + '/admin/reports/dewy',
+        method: 'POST',
+        body: 'token=' + siteDoc.token,
+        rejectUnauthorized: false,
+        charset: 'utf-8',
+        timeout: 60000,
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
         }
-        callback(null, siteDoc.sid);
+    }, function(error, response, body) {
+        if (error) {
+            return callback(error);
+        }
+        else if (response.statusCode != 200) {
+            return callback(response.statusCode);
+        }
+
+        // Insert site
+        db.insert('site::' + siteDoc.sid, siteDoc, function(error, result) {
+            if (error) {
+                callback(error, null);
+                return;
+            }
+            callback(null, siteDoc.sid);
+        });
     });
 }
 
