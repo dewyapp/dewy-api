@@ -21,7 +21,5 @@
     "stripe": {
         "private_key": ""
     },
-    "website": {
-        "url": "https://dewy.io"
-    }
+    "website": "https://dewy.io"
 }
