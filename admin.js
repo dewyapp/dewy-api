@@ -6,7 +6,7 @@ var sites = require('./models/sites');
 var email = require('./helpers/email');
 var couchbase = require('couchbase');
 var db = require('./api.js').bucket;
-var config = new require('./config')();
+var config = require('./config');
 
 exports.addFakeSites = function(uid, numberOfSites, callback) {
     var createSiteName = function(domains) {

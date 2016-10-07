@@ -7,7 +7,7 @@ var uuid = require('uuid');
 var User = require('../models/user');
 var email = require('../helpers/email');
 var oauthModel = require('../helpers/oauth');
-var config = new require('../config')();
+var config = require('../config');
 
 router.post('/', function (req, res, next) {
     // Don't allow self sign-up in production (we're not ready yet!)
@@ -145,8 +145,8 @@ router.get('/_verify/:uid', oauth.authorise(), function (req, res, next) {
             to: user.email,
             cc: null,
             subject: 'Your Dewy email address requires verification',
-            text: 'Hi ' + user.username + '. Your email address requires verification, please verify your email address by visiting this link: ' + config.website.url + '/verify/' + user.uid + '/' + user.verified,
-            html: 'Hi ' + user.username + '.<br/>Your email address requires verification, please verify your email address by visiting this link: ' + config.website.url + '/verify/' + user.uid + '/' + user.verified
+            text: 'Hi ' + user.username + '. Your email address requires verification, please verify your email address by visiting this link: ' + config.website + '/verify/' + user.uid + '/' + user.verified,
+            html: 'Hi ' + user.username + '.<br/>Your email address requires verification, please verify your email address by visiting this link: ' + config.website + '/verify/' + user.uid + '/' + user.verified
         }, function(error, result) {
             if (error) {
                 return res.status(500).send(error);

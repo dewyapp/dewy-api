@@ -1,56 +1,27 @@
 {
-    "development": {
-        "couchbase": {
-            "server": "",
-            "bucket": "",
-            "password": ""
-        },
-        "client": {
-            "client_id": "",
-            "client_secret": ""
-        },
-        "debug": true,
-        "mailgun": {
-            "api_key": "",
-            "domain": ""
-        },
-        "oauth": {
-            "sessionLifetime": 43200,
-            "rememberedSessionLifetime": 604800
-        },
-        "port": 3001,
-        "stripe": {
-            "private_key": ""
-        },
-        "website": {
-            "url": "http://dewy.local"
-        }
+    "couchbase": {
+        "server": "",
+        "bucket": "",
+        "password": ""
     },
-    "production": {
-        "couchbase": {
-            "server": "",
-            "bucket": "",
-            "password": ""
-        },
-        "client": {
-            "client_id": "",
-            "client_secret": ""
-        },
-        "debug": false,
-        "mailgun": {
-            "api_key": "",
-            "domain": ""
-        },
-        "oauth": {
-            "sessionLifetime": 43200,
-            "rememberedSessionLifetime": 604800
-        },
-        "port": 3001,
-        "stripe": {
-            "private_key": ""
-        },
-        "website": {
-            "url": "https://dewy.io"
-        }
+    "client": {
+        "client_id": "",
+        "client_secret": ""
+    },
+    "debug": false,
+    "mailgun": {
+        "api_key": "",
+        "domain": ""
+    },
+    "oauth": {
+        "sessionLifetime": 43200,
+        "rememberedSessionLifetime": 604800
+    },
+    "port": 3001,
+    "stripe": {
+        "private_key": ""
+    },
+    "website": {
+        "url": "https://dewy.io"
     }
 }

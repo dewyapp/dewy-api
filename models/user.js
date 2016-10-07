@@ -8,7 +8,7 @@ var email = require('../helpers/email');
 var validator = require('validator');
 var swearjar = require('swearjar');
 var randomstring = require('randomstring');
-var config = new require('../config')();
+var config = require('../config');
 
 function User(email, username, password, gravatar, apikey, uid, verified, passwordRequested, lastNotified, created, startDate, endDate, type, stripeID, subscriptionID, cancelled) {
     this.email = email || null;
@@ -380,10 +380,10 @@ User.prototype.create = function(callback) {
 
                 var message;
                 if (this.user.verified !== true) {
-                    message = 'Welcome to Dewy. Please verify your email address by visiting this link: ' + config.website.url + '/verify/' + this.user.uid + '/' + this.user.verified;
+                    message = 'Welcome to Dewy. Please verify your email address by visiting this link: ' + config.website + '/verify/' + this.user.uid + '/' + this.user.verified;
                 }
                 else {
-                    message = 'An account has been created for you on ' + config.website.url + '. Use the username "' + this.user.username + '" and password "' + actualPassword + '" to sign on. Change your password after signing on at ' + config.website.url + '/signon.';
+                    message = 'An account has been created for you on ' + config.website + '. Use the username "' + this.user.username + '" and password "' + actualPassword + '" to sign on. Change your password after signing on at ' + config.website + '/signon.';
                 }
 
                 var userDoc = this.user.getUserDoc();
@@ -436,8 +436,8 @@ User.prototype.update = function(existingPassword, callback) {
                     email.send({
                         to: this.user.email,
                         subject: 'Your Dewy account password has been reset',
-                        text: 'Hi ' + this.user.username + '. Your password has been reset. Use the username "' + this.user.username + '" and password "' + actualPassword + '" to sign on. Change your password after signing on at ' + config.website.url + '/signon.',
-                        html: 'Hi ' + this.user.username + '.<br/>Your password has been reset. Use the username "' + this.user.username + '" and password "' + actualPassword + '" to sign on. Change your password after signing on.' + config.website.url + '/signon.'
+                        text: 'Hi ' + this.user.username + '. Your password has been reset. Use the username "' + this.user.username + '" and password "' + actualPassword + '" to sign on. Change your password after signing on at ' + config.website + '/signon.',
+                        html: 'Hi ' + this.user.username + '.<br/>Your password has been reset. Use the username "' + this.user.username + '" and password "' + actualPassword + '" to sign on. Change your password after signing on.' + config.website + '/signon.'
                     }, function(error, result) {
                         callback(null, userDoc);
                     });
@@ -446,8 +446,8 @@ User.prototype.update = function(existingPassword, callback) {
                     email.send({
                         to: this.user.email,
                         subject: 'A password reset request for your Dewy account',
-                        text: 'Hi ' + this.user.username + '. A request to reset your password has been initiated. To reset your password and recieve a new one, visit this link: ' + config.website.url + '/reset/' + this.user.uid + '/' + this.user.passwordRequested,
-                        html: 'Hi ' + this.user.username + '.<br/>A request to reset your password has been initiated. To reset your password and recieve a new one, visit this link: ' + config.website.url + '/reset/' + this.user.uid + '/' + this.user.passwordRequested
+                        text: 'Hi ' + this.user.username + '. A request to reset your password has been initiated. To reset your password and recieve a new one, visit this link: ' + config.website + '/reset/' + this.user.uid + '/' + this.user.passwordRequested,
+                        html: 'Hi ' + this.user.username + '.<br/>A request to reset your password has been initiated. To reset your password and recieve a new one, visit this link: ' + config.website + '/reset/' + this.user.uid + '/' + this.user.passwordRequested
                     }, function(error, result) {
                         callback(null, userDoc);
                     });
@@ -456,8 +456,8 @@ User.prototype.update = function(existingPassword, callback) {
                     email.send({
                         to: this.user.email,
                         subject: 'Your Dewy email address has changed',
-                        text: 'Hi ' + this.user.username + '. Your email address has been changed, please verify your new email address by visiting this link: ' + config.website.url + '/verify/' + this.user.uid + '/' + this.user.verified,
-                        html: 'Hi ' + this.user.username + '.<br/>A request has been made to change your email address, please verify your new email address by visiting this link: ' + config.website.url + '/verify/' + this.user.uid + '/' + this.user.verified
+                        text: 'Hi ' + this.user.username + '. Your email address has been changed, please verify your new email address by visiting this link: ' + config.website + '/verify/' + this.user.uid + '/' + this.user.verified,
+                        html: 'Hi ' + this.user.username + '.<br/>A request has been made to change your email address, please verify your new email address by visiting this link: ' + config.website + '/verify/' + this.user.uid + '/' + this.user.verified
                     }, function(error, result) {
                         callback(null, userDoc);
                     });

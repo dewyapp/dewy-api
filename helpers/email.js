@@ -2,7 +2,7 @@ var express = require('express');
 var app = express();
 var nodemailer = require('nodemailer');
 var mg = require('nodemailer-mailgun-transport');
-var config = new require('../config')();
+var config = require('../config');
 
 // Define email template render engine
 var mustacheExpress = require('mustache-express');
@@ -18,7 +18,7 @@ exports.send = function(params, callback) {
     app.render('email', {
         header: params.subject,
         content: content,
-        website: config.website.url
+        website: config.website
     }, function(err, html) {
         var mail = {
             from: 'noreply@dewy.io',

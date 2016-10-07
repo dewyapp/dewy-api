@@ -6,7 +6,7 @@ var bodyParser = require('body-parser');
 var oauthserver = require('oauth2-server');
 var couchbase = require('couchbase');
 var program = require('commander');
-var config = new require('./config')();
+var config = require('./config');
 
 var app = express();
 
@@ -204,7 +204,7 @@ else {
     }
     // Allow API access from dewy.io
     app.use(function(req, res, next) {
-        res.header('Access-Control-Allow-Origin', config.website.url);
+        res.header('Access-Control-Allow-Origin', config.website);
         res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
         res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
         next();
@@ -249,7 +249,7 @@ else {
     // Grab port from config or supply a default
     var port = config.port || 3001;
     app.listen(port, function () {
-        console.log('API in ' + config.environment + ' mode listening on port ' + port + ' and allowed to serve requests to ' + config.website.url + '...');
+        console.log('API in ' + config.environment + ' mode listening on port ' + port + ' and allowed to serve requests to ' + config.website + '...');
     });
 }
 

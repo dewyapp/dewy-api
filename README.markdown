@@ -30,7 +30,7 @@
 
 		$ npm start
 
-* Make requests to the API at localhost:3001
+* Make requests to the API at localhost:3001 (or whatever port number configured in config.json)
 
 ### Running the API in production
 
@@ -62,10 +62,6 @@
 * Install a [process manager for Node](http://expressjs.com/en/advanced/pm.html)
 
 		$ npm install forever -g
-
-* Set the environment to production:
-
-		$ export NODE_ENV=production
 
 * Run the Dewy API using that process manager
 

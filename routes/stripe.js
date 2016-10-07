@@ -3,7 +3,7 @@ var router = express.Router();
 var User = require('../models/user');
 var email = require('../helpers/email');
 var moment = require('moment');
-var config = new require('../config')();
+var config = require('../config');
 var stripe = require("stripe")(config.stripe.private_key);
 
 router.post('/', function (req, res, next) {
@@ -117,8 +117,8 @@ router.post('/', function (req, res, next) {
                             email.send({
                                 to: user.email,
                                 subject: 'Your Dewy subscription has been cancelled',
-                                text: 'Hi ' + user.username + '. Your Dewy subscription has been cancelled. You can still sign on to Dewy but features will be disabled. You can resubscribe at any time at ' + config.website.url + '.',
-                                html: 'Hi ' + user.username + '.<br/>Your Dewy subscription has been cancelled. You can still sign on to Dewy but features will be disabled. You can resubscribe at any time at ' + config.website.url + '.'
+                                text: 'Hi ' + user.username + '. Your Dewy subscription has been cancelled. You can still sign on to Dewy but features will be disabled. You can resubscribe at any time at ' + config.website + '.',
+                                html: 'Hi ' + user.username + '.<br/>Your Dewy subscription has been cancelled. You can still sign on to Dewy but features will be disabled. You can resubscribe at any time at ' + config.website + '.'
                             }, function(error, result) {
                                 res.send();
                             });
@@ -162,13 +162,13 @@ router.post('/', function (req, res, next) {
                         // Send a warning message
 
                         var subject = 'Your Dewy invoice payment failed for a final time';
-                        var text = 'Hi ' + user.username + '. The charge to your credit card ending with ' + event.data.object.last4 + ' has failed for a final time and your subscription will be cancelled. You can resubscribe at any time at ' + config.website.url + '.';
-                        var html = 'Hi ' + user.username + '.<br/>The charge to your credit card ending with ' + event.data.object.last4 + ' has failed for a final time and your subscription will be cancelled. You can resubscribe at any time at ' + config.website.url + '.';
+                        var text = 'Hi ' + user.username + '. The charge to your credit card ending with ' + event.data.object.last4 + ' has failed for a final time and your subscription will be cancelled. You can resubscribe at any time at ' + config.website + '.';
+                        var html = 'Hi ' + user.username + '.<br/>The charge to your credit card ending with ' + event.data.object.last4 + ' has failed for a final time and your subscription will be cancelled. You can resubscribe at any time at ' + config.website + '.';
                         
                         if (event.data.next_payment_attempt) {
                             var subject = 'Your Dewy invoice payment failed';
-                            var text = 'Hi ' + user.username + '. The charge to your credit card ending with ' + event.data.object.last4 + ' has failed. Please update your credit card information at ' + config.website.url + '.';
-                            var html = 'Hi ' + user.username + '.<br/>The charge to your credit card ending with <strong>' + event.data.object.last4 + '</strong> has failed. Please update your credit card information at ' + config.website.url + '.';
+                            var text = 'Hi ' + user.username + '. The charge to your credit card ending with ' + event.data.object.last4 + ' has failed. Please update your credit card information at ' + config.website + '.';
+                            var html = 'Hi ' + user.username + '.<br/>The charge to your credit card ending with <strong>' + event.data.object.last4 + '</strong> has failed. Please update your credit card information at ' + config.website + '.';
                         }
 
                         email.send({

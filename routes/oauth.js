@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 var oauthHelper = require('../helpers/oauth');
 var oauth = require('../api.js').oauth;
-var config = new require('../config')();
+var config = require('../config');
 
 router.post('/token', function (req, res, next) {
     // If the user wants their session remembered, the token will persist for a longer amount of time
