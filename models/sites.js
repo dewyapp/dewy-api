@@ -277,10 +277,10 @@ exports.create = function(uid, token, baseurl, enabled, users, content, dateAdde
         }
     }, function(error, response, body) {
         if (error) {
-            return callback(error);
+            return callback('Dewy cannot reach ' + siteDoc.baseurl + ': ' + error);
         }
         else if (response.statusCode != 200) {
-            return callback(response.statusCode);
+            return callback('Dewy cannot reach ' + siteDoc.baseurl + ': ' + response.statusCode);
         }
 
         // Insert site
