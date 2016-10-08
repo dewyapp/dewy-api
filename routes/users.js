@@ -10,9 +10,9 @@ var oauthModel = require('../helpers/oauth');
 var config = require('../config');
 
 router.post('/', function (req, res, next) {
-    // Don't allow self sign-up in production (we're not ready yet!)
-    if (config.environment == 'production') {
-        return res.status(501).send('User self-registration only allowed on production API.');
+    // Check if self registration is allowed
+    if (!config.userSelfRegistration) {
+        return res.status(501).send('User self-registration not allowd on this version of the API.');
     }
     var user = new User(req.body.email, req.body.username, req.body.password);
     // Check user values without creating the user

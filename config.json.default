@@ -19,7 +19,9 @@
     },
     "port": 3001,
     "stripe": {
-        "private_key": ""
+        "private_key": "",
+        "verifyEvents": true
     },
+    "userSelfRegistration": false,
     "website": "https://dewy.io"
 }

@@ -11,13 +11,13 @@ router.post('/', function (req, res, next) {
     
     // Verify the event by fetching it from Stripe
     stripe.events.retrieve(req.body.id, function(error, result) {
-        if (error && config.environment == 'production') {
+        if (error && config.stripe.verifyEvents) {
             console.error('The event was received but not confirmed by Stripe');
             return res.status(400).send('The event was received but not confirmed by Stripe');
         }
 
         var event = req.body;
-        if (config.environment == 'production') {
+        if (config.stripe.verifyEvents) {
             event = result;
         }
 
