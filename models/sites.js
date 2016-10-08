@@ -251,7 +251,7 @@ exports.auditAll = function(callback) {
     });
 }
 
-exports.create = function(uid, token, baseurl, enabled, users, content, dateAdded, callback) {
+exports.create = function(uid, token, baseurl, enabled, users, content, traffic, dateAdded, callback) {
     // Construct site document
     var siteDoc = {
         sid: uuid.v4(),
@@ -261,6 +261,7 @@ exports.create = function(uid, token, baseurl, enabled, users, content, dateAdde
         enabled: enabled,
         users: users,
         content: content,
+        traffic: traffic,
         dateAdded: dateAdded
     };
 
@@ -398,7 +399,7 @@ exports.getByProject = function(project, core, maxModuleUpdateLevel, callback) {
 }
 
 exports.getDetail = function(siteDoc) {
-    return { content: siteDoc.content, attributeDetails: siteDoc.attributeDetails, audit: siteDoc.audit };
+    return { content: siteDoc.content, traffic: siteDoc.traffic, attributeDetails: siteDoc.attributeDetails, audit: siteDoc.audit };
 }
 
 exports.processDoc = function(siteDoc, callback) {

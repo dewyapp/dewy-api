@@ -49,6 +49,7 @@ router.post('/', function (req, res, next) {
                         siteDoc.enabled = req.body.enabled;
                         siteDoc.users = req.body.read_users;
                         siteDoc.content = req.body.read_content;
+                        siteDoc.traffic = req.body.read_traffic;
                         sites.update(siteDoc, function(error, result) {
                             if (error) {
                                 return res.status(500).send(error);
@@ -62,7 +63,7 @@ router.post('/', function (req, res, next) {
             else {
                 var dateAdded = new Date().getTime() / 1000;
                 dateAdded = Math.round(dateAdded);
-                sites.create(req.body.uid, req.body.token, req.body.baseurl, req.body.enabled, req.body.read_users, req.body.read_content, dateAdded, function(error, result) {
+                sites.create(req.body.uid, req.body.token, req.body.baseurl, req.body.enabled, req.body.read_users, req.body.read_content, req.body.read_traffic, dateAdded, function(error, result) {
                     if (error) {
                         return res.status(500).send(error);
                     }
