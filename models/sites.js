@@ -442,15 +442,17 @@ exports.processDoc = function(siteDoc, callback) {
     }
 
     // Process traffic
-    var hitsPerDay = 0;
-    var hits = 0;
-    for (var i in siteDoc.details.traffic.paths) {
-        hits = hits + siteDoc.details.traffic.paths[i].hits;
-    }
-    if (hits) {
-        var days = (siteDoc.audit.lastAudit - siteDoc.details.traffic.recorded_since + siteDoc.audit.timeOffset) / 86400;
-        hitsPerDay = hits / days;
-        hitsPerDay = +hitsPerDay.toFixed(1);
+    var hitsPerDay = -1;
+    if ('traffic' in siteDoc.details && siteDoc.traffic) {
+        var hits = 0;
+        for (var i in siteDoc.details.traffic.paths) {
+            hits = hits + siteDoc.details.traffic.paths[i].hits;
+        }
+        if (hits) {
+            var days = (siteDoc.audit.lastAudit - siteDoc.details.traffic.recorded_since + siteDoc.audit.timeOffset) / 86400;
+            hitsPerDay = hits / days;
+            hitsPerDay = +hitsPerDay.toFixed(1);
+        }
     }
 
     // Process nodes
