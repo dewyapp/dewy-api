@@ -252,6 +252,7 @@ exports.addFakeSites = function(uid, numberOfSites, callback) {
                         enabled: "1",
                         users: "1",
                         content: "1",
+                        traffic: "1",
                         dateAdded: Math.floor(Date.now() / 1000) - timeAgoAdded,
                         audit: {
                             lastAudit: lastUpdated,
