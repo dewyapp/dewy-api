@@ -112,6 +112,9 @@ exports.audit = function(sid, results, callback) {
                     async.parallel([
                         function(callback) {
                             exports.auditContent(siteDoc, results, function(error, result) {
+                                if (!results.length) {
+                                    contentAuditSuccessful = true;
+                                }
                                 callback();
                             });
                         }
@@ -180,7 +183,6 @@ exports.auditContent = function(siteDoc, results, callback) {
             else {
                 try {
                     siteDoc.raw = JSON.parse(body);
-                    contentAuditSuccessful = true;
                 }
                 catch (e) {
                     results.push({ sid: siteDoc.sid, warning: 'Content parsing failed' });
