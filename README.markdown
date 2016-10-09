@@ -48,6 +48,10 @@
 		  ssl_certificate  /etc/nginx/ssl/api_dewy_io.crt;
 		  ssl_certificate_key /etc/nginx/ssl/api_dewy_io.key;
 
+		  location /site {
+		    rewrite /site /1.0/sites;
+		  }
+
 		  location /1.0/ {
 		    rewrite ^/1.0(/.*)$ $1 break;
 		    proxy_pass http://localhost:3001;
