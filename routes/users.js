@@ -12,7 +12,7 @@ var config = require('../config');
 router.post('/', function (req, res, next) {
     // Check if self registration is allowed
     if (!config.userSelfRegistration) {
-        return res.status(501).send('User self-registration not allowd on this version of the API.');
+        return res.status(501).send('User self-registration not allowed on this version of the API.');
     }
     var user = new User(req.body.email, req.body.username, req.body.password);
     // Check user values without creating the user
@@ -294,6 +294,9 @@ router.get('/:uid/_subscription', oauth.authorise(), function (req, res, next) {
 });
 
 router.post('/:uid/_subscription', oauth.authorise(), function (req, res, next) {
+    if (!config.subscriptionRequired) {
+        return res.status(400).send('User subscriptions not allowed on this version of the API.');
+    }
     User.get(req.user.id, function(error, result) {
         if (error) {
             return res.status(500).send(error);
@@ -367,6 +370,9 @@ router.post('/:uid/_subscription', oauth.authorise(), function (req, res, next) 
 });
 
 router.put('/:uid/_subscription', oauth.authorise(), function (req, res, next) {
+    if (!config.subscriptionRequired) {
+        return res.status(400).send('User subscriptions not allowed on this version of the API.');
+    }
     User.get(req.user.id, function(error, result) {
         if (error) {
             return res.status(500).send(error);

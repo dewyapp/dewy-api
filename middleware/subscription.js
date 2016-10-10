@@ -1,4 +1,5 @@
 var User = require('../models/user');
+var config = require('../config');
 
 exports.require = function(type) {
     return function (req,res, next) {
@@ -12,11 +13,11 @@ exports.require = function(type) {
             var expired = user.getSubscriptionExpired();
 
             // Determine if it's valid
-            if (expired ||
+            if (config.subscriptionRequired && (expired ||
                 (type == 'pro' && user.subscription.type == 'standard') ||
                 (type == 'enterprise' && user.subscription.type == 'standard') ||
                 (type == 'enterprise' && user.subscription.type == 'pro')
-            ) {
+            )) {
                 return res.status(402).send('You do not have a subscription that allows this request.');
             }
             next();

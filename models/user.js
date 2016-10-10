@@ -132,7 +132,6 @@ User.getUidByUsername = function(username, callback) {
 }
 
 User.prototype.getSubscriptionExpired = function () {
-    var subscriptionType = this.subscription.type;
     if (this.subscription.endDate < Date.now()/1000) {
         return true;
     }
@@ -146,6 +145,10 @@ User.prototype.getUserDoc = function(safe) {
         if (this.verified !== true) {
             verified = false;
         }
+        var endDate = this.subscription.endDate;
+        if (!config.subscriptionRequired) {
+            endDate = -1;
+        }
 
         return {
             email: this.email,
@@ -157,7 +160,7 @@ User.prototype.getUserDoc = function(safe) {
             created: this.created,
             subscription: {
                 startDate: this.subscription.startDate,
-                endDate: this.subscription.endDate,
+                endDate: endDate,
                 type: this.subscription.type,
                 subscriptionID: this.subscription.subscriptionID,
                 cancelled: this.subscription.cancelled,
