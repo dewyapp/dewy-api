@@ -470,16 +470,16 @@ exports.processDoc = function(siteDoc, callback) {
         if (contentTypes.indexOf(siteDoc.details.nodes[i].type) == '-1') {
             contentTypes.push(siteDoc.details.nodes[i].type)
         }
-        if ('raw' in siteDoc) {
-            words = words + siteDoc.raw.nodes[i].words;
-        }
-    }
-    if (!('raw' in siteDoc)) {
-        words = -1;
+        words = words + siteDoc.details.nodes[i].words;
     }
 
     var nodes = _.keys(siteDoc.details.nodes).length;
     avgLastModified = Math.round(avgLastModified / nodes);
+
+    // Process blocks
+    for (var i in siteDoc.details.blocks) {
+        words = words + siteDoc.details.blocks[i].words;
+    }
 
     // Process users
     var lastAccess = 0;

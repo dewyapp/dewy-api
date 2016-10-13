@@ -274,9 +274,9 @@ exports.createDesignDoc = function(filterDoc, callback) {
         }
         else if (rule.field == 'text') {
             var testValue = 'test' + ruleIndex;
-            var compare = stringComparison(rule.choice, 'doc.raw.nodes[i].content[j]', rule.value);
+            var compare = stringComparison(rule.choice, 'doc.raw.nodes[i][j]', rule.value);
             var compare2 = stringComparison(rule.choice, 'doc.raw.blocks[i]', rule.value);
-            var test = 'var ' + testValue + ' = false; for (var i in doc.raw.nodes) { for (var j in doc.raw.nodes[i].content) { if (' + compare + ') { ' + testValue + ' = true } } }; for (var i in doc.raw.blocks) { if (' + compare2 + ') { ' + testValue + ' = true } };';
+            var test = 'var ' + testValue + ' = false; for (var i in doc.raw.nodes) { for (var j in doc.raw.nodes[i]) { if (' + compare + ') { ' + testValue + ' = true } } }; for (var i in doc.raw.blocks) { if (' + compare2 + ') { ' + testValue + ' = true } };';
             return { rule: testValue, test: test };
         }
         else if (rule.field == 'role') {

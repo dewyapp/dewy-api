@@ -6,9 +6,12 @@ var validator = require('validator');
 var filters = require('../models/filters');
 var sites = require('../models/sites');
 var User = require('../models/user');
+var config = require('../config');
 
 router.post('/', function (req, res, next) {
-    console.log(req.body);
+    if (config.debug) {
+        console.log(req.body);
+    }
     if (!req.body.apikey) {
         return res.status(400).send("An API key is required.");
     }
