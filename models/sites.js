@@ -178,14 +178,14 @@ exports.auditContent = function(siteDoc, results, callback) {
             }
         }, function(error, response, body) {
             if (error) {
-                results.push({ sid: siteDoc.sid, warning: 'Content retrieval failed' });
+                results.push({ sid: siteDoc.sid, warning: 'Content retrieval failed: ' + error });
             }
             else {
                 try {
                     siteDoc.raw = JSON.parse(body);
                 }
                 catch (e) {
-                    results.push({ sid: siteDoc.sid, warning: 'Content parsing failed' });
+                    results.push({ sid: siteDoc.sid, warning: 'Content parsing failed: ' + e });
                 }
             }
             return callback();
