@@ -445,7 +445,7 @@ exports.processDoc = function(siteDoc, callback) {
 
     // Process traffic
     var hitsPerDay = -1;
-    if ('traffic' in siteDoc.details && siteDoc.traffic) {
+    if (siteDoc.traffic) {
         var hits = 0;
         for (var i in siteDoc.details.traffic.paths) {
             hits = hits + siteDoc.details.traffic.paths[i].hits;
