@@ -174,6 +174,21 @@ if (process.argv[2]) {
         });
 
     program
+        .command('report-sites')
+        .description('Reports on all sites registered to Dewy')
+        .action(function () {
+            admin.reportSites(function(error, result) {
+                if (error) {
+                    console.log(error);
+                    process.exit(1);
+                } else {
+                    console.log(result);
+                    process.exit(0);
+                }
+            });
+        });
+
+    program
         .command('setup')
         .description('Initialize the database with current configuration')
         .action(function () {

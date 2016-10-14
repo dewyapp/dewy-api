@@ -453,3 +453,45 @@ exports.flushTokens = function(callback) {
         }
     );
 }
+
+exports.reportSites = function(callback) {
+    require('console.table');
+    // Get all users
+    query = couchbase.ViewQuery.from('users', 'by_username')
+        .stale(1);
+    db.query(query, function(error, result) {
+        if (error) {
+            return callback(error);
+        }
+        if (result.length) {
+            async.eachLimit(result, 1,
+                function(row, callback) {
+                    var username = row.key;
+                    var uid = row.value;
+                    var rows = [];
+                    query = couchbase.ViewQuery.from('sites', 'by_uid')
+                        .key([uid, null]);
+                    db.query(query, function(error, result) {
+                        async.eachLimit(result, 1,
+                            function(row, callback) {
+                                sites.get(row.value, function(error, result) {
+                                    if (result && !result.fake) {
+                                        rows.push({baseURL: result.baseurl, users: result.users, content: result.content, traffic: result.traffic, nodes: result.attributes.nodes, lastAudit: result.audit.lastAudit, lastSuccess: result.audit.lastSuccessfulAudit, lastContent: result.audit.lastSuccessfulContentAudit, benchmark: result.details.benchmark});
+                                    }
+                                    callback();
+                                });
+                            },
+                            function(error) {
+                                console.table('User ' + username + ' (' + uid + ')', rows);
+                                callback();
+                            }
+                        );
+                    });
+                },
+                function(error){
+                    callback(null, 'Finished');
+                }
+            );  
+        }
+    });
+}
