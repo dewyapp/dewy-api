@@ -482,8 +482,10 @@ exports.reportSites = function(callback) {
                                 });
                             },
                             function(error) {
-                                console.table('User ' + username + ' (' + uid + ')', rows);
-                                console.log(rows.length + ' sites');
+                                if (rows.length) {
+                                    console.table('User ' + username + ' (' + uid + ')', rows);
+                                    console.log(rows.length + ' sites');
+                                }
                                 callback();
                             }
                         );
