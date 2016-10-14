@@ -158,9 +158,7 @@ exports.addFakeSites = function(uid, numberOfSites, callback) {
                             words: numberOfWords
                         };
                         nodesRaw[i] = {
-                            content: {
-                                body_value: content.join(' ')
-                            }
+                            body_value: content.join(' ')
                         }
                     }
 
@@ -291,7 +289,8 @@ exports.addFakeSites = function(uid, numberOfSites, callback) {
                             blocks: {},
                             projects: projects,
                             themes: themes,
-                            variables: variables
+                            variables: variables,
+                            benchmark: 0
                         },
                         raw: {
                             nodes: nodesRaw,
