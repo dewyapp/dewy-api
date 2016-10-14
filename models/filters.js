@@ -208,7 +208,7 @@ exports.createDesignDoc = function(filterDoc, callback) {
             'base url': 'doc.baseurl',
             'default theme': 'doc.details.variables.theme_default',
             'drupal core': 'doc.details.drupal_core',
-            'php version': 'doc.details.php_version',
+            'php version': 'doc.details.php.version',
             'title': 'doc.details.title',
         }
 
