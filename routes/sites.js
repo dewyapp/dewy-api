@@ -24,6 +24,9 @@ router.post('/', function (req, res, next) {
     // Check uid from apikey
     User.getUidByApiKey(req.body.apikey, function(error, result) {
         if (error) {
+            if (config.debug) {
+                console.log('Failed to get UID by API key:' + error);
+            }
             return res.status(500).send(error);
         }
         if (!result) {
@@ -35,6 +38,9 @@ router.post('/', function (req, res, next) {
         // Check if site exists
         sites.getByBaseurl({uid: req.body.uid, baseurl: req.body.baseurl}, function(error, result) {
             if (error) {
+                if (config.debug) {
+                    console.log('Failed to get site by base URL:' + error);
+                }
                 return res.status(500).send(error);
             }
             // If site exists, update document
@@ -42,7 +48,9 @@ router.post('/', function (req, res, next) {
                 // Get full document so it can be updated
                 sites.get(result[0].value, function (error, result) {
                     if (error) {
-                        console.log(error);
+                        if (config.debug) {
+                            console.log('Failed to retrieve sitedoc:' + error);
+                        }
                         return res.status(500).send(error);
                     }
                     else {
@@ -55,6 +63,7 @@ router.post('/', function (req, res, next) {
                         siteDoc.traffic = req.body.read_traffic;
                         sites.update(siteDoc, function(error, result) {
                             if (error) {
+                                console.log('Failed to update sitedoc:' + error);
                                 return res.status(500).send(error);
                             }
                             res.send(result);
@@ -68,6 +77,15 @@ router.post('/', function (req, res, next) {
                 dateAdded = Math.round(dateAdded);
                 sites.create(req.body.uid, req.body.token, req.body.baseurl, req.body.enabled, req.body.read_users, req.body.read_content, req.body.read_traffic, dateAdded, function(error, result) {
                     if (error) {
+                        if (error.statusCode) {
+                            if (config.debug) {
+                                console.log('Failed to create site: ' + error.error + ' (' + error.statusCode + ')');
+                            }
+                            return res.status(error.statusCode).send(error.error + ' (' + error.statusCode + ')');
+                        }
+                        if (config.debug) {
+                            console.log(error);
+                        }
                         return res.status(500).send(error);
                     }
                     res.send(result);
