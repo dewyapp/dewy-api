@@ -476,7 +476,7 @@ exports.reportSites = function(callback) {
                             function(row, callback) {
                                 sites.get(row.value, function(error, result) {
                                     if (result && !result.fake) {
-                                        rows.push({baseURL: result.baseurl, users: result.users, content: result.content, traffic: result.traffic, nodes: result.attributes.nodes, lastAudit: result.audit.lastAudit, lastSuccess: result.audit.lastSuccessfulAudit, lastContent: result.audit.lastSuccessfulContentAudit, benchmark: result.details.benchmark});
+                                        rows.push({sid: result.sid, baseURL: result.baseurl, users: result.users, content: result.content, traffic: result.traffic, nodes: result.attributes.nodes, lastAudit: result.audit.lastAudit, lastSuccess: result.audit.lastSuccessfulAudit, lastContent: result.audit.lastSuccessfulContentAudit, benchmark: result.details.benchmark});
                                     }
                                     callback();
                                 });
