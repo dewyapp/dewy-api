@@ -47,8 +47,11 @@ exports.audit = function(sid, results, callback) {
             
             if (error || response.statusCode != 200) {
                 var errorValue = error;
-                if (response.statusCode != 200) {
-                    errorValue = response.statusCode + ' - Dewy is not permitted to communicate to this site. Is this site still linked to this account and enabled for Dewy reporting? Is this site behind a proxy? Please edit your site\'s settings.php file and follow the steps to configure reverse proxy servers.'
+                if (response.statusCode == 403) {
+                    errorValue = 'Dewy is not permitted to communicate to this site. Is this site still linked to this account and enabled for Dewy reporting? Is this site behind a proxy? Please edit your site\'s settings.php file and follow the steps to configure reverse proxy servers.';
+                }
+                else if (response.statusCode == 404) {
+                    errorValue = 'Dewy could not be found on this site. Is the module enabled on the site?';
                 }
                 else if (response.statusCode != 200) {
                     errorValue = response.statusCode;
@@ -103,10 +106,7 @@ exports.audit = function(sid, results, callback) {
                     var contentAuditSuccessful = false;
                     async.parallel([
                         function(callback) {
-                            exports.auditContent(siteDoc, results, function(error, result) {
-                                if (!results.length) {
-                                    contentAuditSuccessful = true;
-                                }
+                            exports.auditContent(siteDoc, results, contentAuditSuccessful, function(error, result) {
                                 callback();
                             });
                         }
@@ -155,7 +155,7 @@ exports.audit = function(sid, results, callback) {
     });
 }
 
-exports.auditContent = function(siteDoc, results, callback) {
+exports.auditContent = function(siteDoc, results, contentAuditSuccessful, callback) {
     // If the site has content enabled, grab the raw content
     if (siteDoc.content == 1) {
         request({
@@ -178,6 +178,7 @@ exports.auditContent = function(siteDoc, results, callback) {
             else {
                 try {
                     siteDoc.raw = JSON.parse(body);
+                    contentAuditSuccessful = true;
                 }
                 catch (e) {
                     results.push({ sid: siteDoc.sid, warning: 'Content parsing failed: ' + e });
