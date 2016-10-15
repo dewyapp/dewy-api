@@ -45,8 +45,15 @@ exports.audit = function(sid, results, callback) {
                 }
             }
             
-            if (error) {
-                siteDoc.audit.errors.unshift({date: date, error: error});
+            if (error || response.statusCode != 200 || substr($body, 0, 7) === "ERROR: ") {
+                var errorValue = error;
+                if (response.statusCode != 200) {
+                    errorValue = response.statusCode;
+                }
+                else if (substr($body, 0, 7) === "ERROR: ") {
+                    errorValue = substr($body, 7);
+                }
+                siteDoc.audit.errors.unshift({date: date, error: errorValue});
                 if (siteDoc.audit.errors.length > 3) {
                     siteDoc.audit.errors.splice(3, siteDoc.audit.errors.length-3);
                 }
@@ -60,23 +67,7 @@ exports.audit = function(sid, results, callback) {
                         return callback();
                     }
                 });
-            } 
-            else if (response.statusCode != 200) {
-                siteDoc.audit.errors.unshift({date: date, error: response.statusCode});
-                if (siteDoc.audit.errors.length > 3) {
-                    siteDoc.audit.errors.splice(3, siteDoc.audit.errors.length-3);
-                }
-                exports.update(siteDoc, function(error, result) {
-                    if (error) {
-                        results.push({ sid: siteDoc.sid, error: error });
-                        return callback();
-                    }
-                    else {
-                        results.push({ sid: siteDoc.sid, error: siteDoc.audit.errors[0].error });
-                        return callback();
-                    }
-                });
-            } 
+            }
             else {
                 // Store details
                 var auditSuccessful = false;
@@ -284,6 +275,9 @@ exports.create = function(uid, token, baseurl, enabled, users, content, traffic,
         }
         else if (response.statusCode != 200) {
             return callback({error: 'Dewy cannot reach ' + siteDoc.baseurl, statusCode: response.statusCode});
+        }
+        else if ($body == "ERROR: Could not confirm Dewy's IP address") {
+            return callback({error: "Cannot verify Dewy's IP address. Is " + siteDoc.baseurl + " behind a proxy? Please edit your site's settings.php file and follow the steps to configure reverse proxy servers."});
         }
 
         // Insert site

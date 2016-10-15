@@ -79,7 +79,7 @@ router.post('/', function (req, res, next) {
                     if (error) {
                         if (error.statusCode) {
                             if (config.debug) {
-                                console.log('Failed to create site: ' + error.error + ' (' + error.statusCode + ')');
+                                console.log(error.error + ' (' + error.statusCode + ')');
                             }
                             return res.status(error.statusCode).send(error.error + ' (' + error.statusCode + ')');
                         }
