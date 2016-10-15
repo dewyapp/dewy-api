@@ -74,12 +74,10 @@ exports.audit = function(sid, results, callback) {
             }
             else {
                 // Store details
-                var auditSuccessful = false;
                 async.parallel([
                     function(callback) {
                         try {
                             siteDoc.details = JSON.parse(body);
-                            auditSuccessful = true;
                             return callback();
                         }
                         catch (e) {
@@ -89,28 +87,35 @@ exports.audit = function(sid, results, callback) {
                             }
                             exports.update(siteDoc, function(error, result) {
                                 if (error) {
-                                    results.push({ sid: siteDoc.sid, error: error });
-                                    return callback();
+                                    return callback({ sid: siteDoc.sid, error: error });
                                 }
                                 else {
-                                    results.push({ sid: siteDoc.sid, error: siteDoc.audit.errors[0].error });
-                                    return callback();
+                                    return callback({ sid: siteDoc.sid, error: siteDoc.audit.errors[0].error });
                                 }
                             });
                         }
                     }
                 ], function (error) {
-                    if (!auditSuccessful) {
+                    if (error) {
+                        results.push(error);
                         return callback();
                     }
-                    var contentAuditSuccessful = false;
                     async.parallel([
                         function(callback) {
-                            exports.auditContent(siteDoc, results, contentAuditSuccessful, function(error, result) {
-                                callback();
+                            exports.auditContent(siteDoc, function(error, result) {
+                                if (error) {
+                                    return callback(error);
+                                }
+                                return callback();
                             });
                         }
                     ], function (error) {
+                        contentAuditSuccessful = true;
+                        if (error) {
+                            contentAuditSuccessful = false;
+                            results.push(error);
+                        }
+
                         try {
                             // Process details
                             exports.processDoc(siteDoc, function(error, result) {
@@ -155,7 +160,7 @@ exports.audit = function(sid, results, callback) {
     });
 }
 
-exports.auditContent = function(siteDoc, results, contentAuditSuccessful, callback) {
+exports.auditContent = function(siteDoc, callback) {
     // If the site has content enabled, grab the raw content
     if (siteDoc.content == 1) {
         request({
@@ -170,26 +175,24 @@ exports.auditContent = function(siteDoc, results, contentAuditSuccessful, callba
             }
         }, function(error, response, body) {
             if (error) {
-                results.push({ sid: siteDoc.sid, warning: 'Content retrieval failed: ' + error });
+                return callback({ sid: siteDoc.sid, warning: 'Content retrieval failed: ' + error });
             }
             else if (response.statusCode != 200) {
-                results.push({ sid: siteDoc.sid, warning: 'Content retrieval failed: ' + response.statusCode });
+                return callback({ sid: siteDoc.sid, warning: 'Content retrieval failed: ' + response.statusCode });
             }
             else {
                 try {
                     siteDoc.raw = JSON.parse(body);
-                    contentAuditSuccessful = true;
                 }
                 catch (e) {
-                    results.push({ sid: siteDoc.sid, warning: 'Content parsing failed: ' + e });
+                    return callback({ sid: siteDoc.sid, warning: 'Content parsing failed: ' + e });
                 }
             }
             return callback();
         });
     }
     else {
-        results.push({ sid: siteDoc.sid, warning: 'Content not permitted for audit' });
-        return callback();
+        return callback({ sid: siteDoc.sid, warning: 'Content not permitted for audit' });
     }
 }
 
