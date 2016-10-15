@@ -45,14 +45,15 @@ exports.audit = function(sid, results, callback) {
                 }
             }
             
-            if (error || response.statusCode != 200 || substr($body, 0, 7) === "ERROR: ") {
+            if (error || response.statusCode != 200) {
                 var errorValue = error;
                 if (response.statusCode != 200) {
+                    errorValue = response.statusCode + ' - Dewy is not permitted to communicate to this site. Is this site behind a proxy? Please edit your site\'s settings.php file and follow the steps to configure reverse proxy servers.'
+                }
+                else if (response.statusCode != 200) {
                     errorValue = response.statusCode;
                 }
-                else if (substr($body, 0, 7) === "ERROR: ") {
-                    errorValue = substr($body, 7);
-                }
+
                 siteDoc.audit.errors.unshift({date: date, error: errorValue});
                 if (siteDoc.audit.errors.length > 3) {
                     siteDoc.audit.errors.splice(3, siteDoc.audit.errors.length-3);
@@ -171,6 +172,9 @@ exports.auditContent = function(siteDoc, results, callback) {
             if (error) {
                 results.push({ sid: siteDoc.sid, warning: 'Content retrieval failed: ' + error });
             }
+            else if (response.statusCode != 200) {
+                results.push({ sid: siteDoc.sid, warning: 'Content retrieval failed: ' + response.statusCode });
+            }
             else {
                 try {
                     siteDoc.raw = JSON.parse(body);
@@ -258,36 +262,13 @@ exports.create = function(uid, token, baseurl, enabled, users, content, traffic,
         dateAdded: dateAdded
     };
 
-    // Test if site can be reached
-    request({
-        uri: siteDoc.baseurl + '/admin/reports/dewy',
-        method: 'POST',
-        body: 'token=' + siteDoc.token,
-        rejectUnauthorized: false,
-        charset: 'utf-8',
-        timeout: 60000,
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        }
-    }, function(error, response, body) {
+    // Insert site
+    db.insert('site::' + siteDoc.sid, siteDoc, function(error, result) {
         if (error) {
-            return callback('Dewy cannot reach ' + siteDoc.baseurl + ': ' + error);
+            callback(error, null);
+            return;
         }
-        else if (response.statusCode != 200) {
-            return callback({error: 'Dewy cannot reach ' + siteDoc.baseurl, statusCode: response.statusCode});
-        }
-        else if ($body == "ERROR: Could not confirm Dewy's IP address") {
-            return callback({error: "Cannot verify Dewy's IP address. Is " + siteDoc.baseurl + " behind a proxy? Please edit your site's settings.php file and follow the steps to configure reverse proxy servers."});
-        }
-
-        // Insert site
-        db.insert('site::' + siteDoc.sid, siteDoc, function(error, result) {
-            if (error) {
-                callback(error, null);
-                return;
-            }
-            callback(null, siteDoc.sid);
-        });
+        callback(null, siteDoc.sid);
     });
 }
 
