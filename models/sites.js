@@ -157,7 +157,7 @@ exports.audit = function(sid, results, callback) {
 
 exports.auditContent = function(siteDoc, results, callback) {
     // If the site has content enabled, grab the raw content
-    if (siteDoc.content) {
+    if (siteDoc.content == 1) {
         request({
             uri: siteDoc.baseurl + '/admin/reports/dewy-content',
             method: 'POST',
@@ -420,7 +420,7 @@ exports.processDoc = function(siteDoc, callback) {
 
     // Process traffic
     var hitsPerDay = -1;
-    if (siteDoc.traffic) {
+    if (siteDoc.traffic == 1) {
         var hits = 0;
         for (var i in siteDoc.details.traffic.paths) {
             hits = hits + siteDoc.details.traffic.paths[i].hits;
