@@ -35,7 +35,6 @@ router.post('/', function (req, res, next) {
         }
         req.body.uid = result;
 
-        // Test if site can be reached on the internet
         request({
             uri: req.body.baseurl + '/admin/reports/dewy',
             method: 'POST',
@@ -47,14 +46,17 @@ router.post('/', function (req, res, next) {
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
         }, function(error, response, body) {
-            if (error) {
-                return res.status(500).send('Dewy cannot reach ' + req.body.baseurl + ': ' + error);
-            }
-            else if (response.statusCode == 403) {
-                return res.status(403).send('Dewy is not permitted to communicate to ' + req.body.baseurl + '. Is this site behind a proxy? Please edit your site\'s settings.php file and follow the steps to configure reverse proxy servers.');
-            }
-            else if (response.statusCode != 200) {
-                return res.status(response.statusCode).send('Dewy cannot reach ' + req.body.baseurl);
+            // Test if site is set to be enabled, check if it can be reached on the internet
+            if (req.body.enabled == 1) {
+                if (error) {
+                    return res.status(500).send('Dewy cannot reach ' + req.body.baseurl + ': ' + error);
+                }
+                else if (response.statusCode == 403) {
+                    return res.status(403).send('Dewy is not permitted to communicate to ' + req.body.baseurl + '. Is this site behind a proxy? Please edit your site\'s settings.php file and follow the steps to configure reverse proxy servers.');
+                }
+                else if (response.statusCode != 200) {
+                    return res.status(response.statusCode).send('Dewy cannot reach ' + req.body.baseurl);
+                }
             }
 
             // Check if site exists in Dewy

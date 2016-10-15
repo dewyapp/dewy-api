@@ -48,7 +48,7 @@ exports.audit = function(sid, results, callback) {
             if (error || response.statusCode != 200) {
                 var errorValue = error;
                 if (response.statusCode != 200) {
-                    errorValue = response.statusCode + ' - Dewy is not permitted to communicate to this site. Is this site behind a proxy? Please edit your site\'s settings.php file and follow the steps to configure reverse proxy servers.'
+                    errorValue = response.statusCode + ' - Dewy is not permitted to communicate to this site. Is this site still linked to this account and enabled for Dewy reporting? Is this site behind a proxy? Please edit your site\'s settings.php file and follow the steps to configure reverse proxy servers.'
                 }
                 else if (response.statusCode != 200) {
                     errorValue = response.statusCode;
