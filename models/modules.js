@@ -52,15 +52,20 @@ exports.getAll = function(uid, fid, callback) {
             return;
         }
 
-        var modules = [];
-        var modulesIndex = {}
+        var moduleData = {siteTotal: 0, modules: []};
+        var modulesIndex = {};
+        var sitesIndex = [];
 
         for (item in result) {
             var moduleResult = result[item].value;
             var module = moduleResult.module + '-' + moduleResult.core;
 
+            if (sitesIndex.indexOf(moduleResult.sid) == -1) {
+                sitesIndex.push(moduleResult.sid);
+            }
+
             if (!(module in modulesIndex)) {
-                modules.push({
+                moduleData.modules.push({
                     module: module,
                     project: moduleResult.project,
                     sitesWithAvailable: [],
@@ -70,31 +75,34 @@ exports.getAll = function(uid, fid, callback) {
                     sitesWithSecurityUpdates: [],
                     versions: {}
                 });
-                modulesIndex[module] = modules.length-1;
+                modulesIndex[module] = moduleData.modules.length-1;
             }
 
-            modules[modulesIndex[module]].sitesWithAvailable.push(moduleResult.baseurl);
+            moduleData.modules[modulesIndex[module]].sitesWithAvailable.push(moduleResult.baseurl);
             if (moduleResult.enabled) {
-                modules[modulesIndex[module]].sitesWithEnabled.push(moduleResult.baseurl);
+                moduleData.modules[modulesIndex[module]].sitesWithEnabled.push(moduleResult.baseurl);
             }
             if (moduleResult.databaseUpdate) {
-                modules[modulesIndex[module]].sitesWithDatabaseUpdates.push(moduleResult.baseurl);
+                moduleData.modules[modulesIndex[module]].sitesWithDatabaseUpdates.push(moduleResult.baseurl);
             }
             if (moduleResult.update) {
-                modules[modulesIndex[module]].sitesWithUpdates.push(moduleResult.baseurl);
+                moduleData.modules[modulesIndex[module]].sitesWithUpdates.push(moduleResult.baseurl);
             }
             if (moduleResult.securityUpdate) {
-                modules[modulesIndex[module]].sitesWithSecurityUpdates.push(moduleResult.baseurl);
+                moduleData.modules[modulesIndex[module]].sitesWithSecurityUpdates.push(moduleResult.baseurl);
             }
-            if (!(moduleResult.version in modules[modulesIndex[module]].versions)) {
-                modules[modulesIndex[module]].versions[moduleResult.version] = [];
-                modules[modulesIndex[module]].versions[moduleResult.version].push(moduleResult.baseurl);
+            if (!(moduleResult.version in moduleData.modules[modulesIndex[module]].versions)) {
+                moduleData.modules[modulesIndex[module]].versions[moduleResult.version] = [];
+                moduleData.modules[modulesIndex[module]].versions[moduleResult.version].push(moduleResult.baseurl);
             }
             else {
-                modules[modulesIndex[module]].versions[moduleResult.version].push(moduleResult.baseurl);
+                moduleData.modules[modulesIndex[module]].versions[moduleResult.version].push(moduleResult.baseurl);
             }
         }
-        callback(null, modules);
+        // Get site total
+        moduleData.siteTotal = sitesIndex.length;
+
+        callback(null, moduleData);
     });
 }
 
