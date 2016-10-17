@@ -52,55 +52,54 @@ exports.getAll = function(uid, fid, callback) {
             return;
         }
 
-        var moduleData = {siteTotal: 0, modules: []};
-        var modulesIndex = {};
-        var sitesIndex = [];
+        var moduleData = {modules: []};
+        var moduleIndex = {};
+        var siteIndex = [];
 
         for (item in result) {
             var moduleResult = result[item].value;
             var module = moduleResult.module + '-' + moduleResult.core;
 
-            if (sitesIndex.indexOf(moduleResult.sid) == -1) {
-                sitesIndex.push(moduleResult.sid);
+            if (siteIndex.indexOf(moduleResult.baseurl) == -1) {
+                siteIndex.push(moduleResult.baseurl)
             }
 
-            if (!(module in modulesIndex)) {
+            if (!(module in moduleIndex)) {
                 moduleData.modules.push({
-                    module: module,
-                    project: moduleResult.project,
-                    sitesWithAvailable: [],
-                    sitesWithEnabled: [],
-                    sitesWithDatabaseUpdates: [],
-                    sitesWithUpdates: [],
-                    sitesWithSecurityUpdates: [],
-                    versions: {}
+                    m: module,
+                    p: moduleResult.project,
+                    a: [], //sitesWithAvailable
+                    e: [], //sitesWithEnabled
+                    d: [], //sitesWithDatabaseUpdates
+                    u: [], //sitesWithUpdates
+                    s: [], //sitesWithSecurityUpdates
+                    v: {} //versions
                 });
-                modulesIndex[module] = moduleData.modules.length-1;
+                moduleIndex[module] = moduleData.modules.length-1;
             }
 
-            moduleData.modules[modulesIndex[module]].sitesWithAvailable.push(moduleResult.baseurl);
+            moduleData.modules[moduleIndex[module]].a.push(siteIndex.indexOf(moduleResult.baseurl));
             if (moduleResult.enabled) {
-                moduleData.modules[modulesIndex[module]].sitesWithEnabled.push(moduleResult.baseurl);
+                moduleData.modules[moduleIndex[module]].e.push(siteIndex.indexOf(moduleResult.baseurl));
             }
             if (moduleResult.databaseUpdate) {
-                moduleData.modules[modulesIndex[module]].sitesWithDatabaseUpdates.push(moduleResult.baseurl);
+                moduleData.modules[moduleIndex[module]].d.push(siteIndex.indexOf(moduleResult.baseurl));
             }
             if (moduleResult.update) {
-                moduleData.modules[modulesIndex[module]].sitesWithUpdates.push(moduleResult.baseurl);
+                moduleData.modules[moduleIndex[module]].u.push(siteIndex.indexOf(moduleResult.baseurl));
             }
             if (moduleResult.securityUpdate) {
-                moduleData.modules[modulesIndex[module]].sitesWithSecurityUpdates.push(moduleResult.baseurl);
+                moduleData.modules[moduleIndex[module]].s.push(siteIndex.indexOf(moduleResult.baseurl));
             }
-            if (!(moduleResult.version in moduleData.modules[modulesIndex[module]].versions)) {
-                moduleData.modules[modulesIndex[module]].versions[moduleResult.version] = [];
-                moduleData.modules[modulesIndex[module]].versions[moduleResult.version].push(moduleResult.baseurl);
+            if (!(moduleResult.version in moduleData.modules[moduleIndex[module]].v)) {
+                moduleData.modules[moduleIndex[module]].v[moduleResult.version] = [];
+                moduleData.modules[moduleIndex[module]].v[moduleResult.version].push(siteIndex.indexOf(moduleResult.baseurl));
             }
             else {
-                moduleData.modules[modulesIndex[module]].versions[moduleResult.version].push(moduleResult.baseurl);
+                moduleData.modules[moduleIndex[module]].v[moduleResult.version].push(siteIndex.indexOf(moduleResult.baseurl));
             }
         }
-        // Get site total
-        moduleData.siteTotal = sitesIndex.length;
+        moduleData.siteIndex = siteIndex;
 
         callback(null, moduleData);
     });
