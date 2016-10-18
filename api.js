@@ -146,6 +146,21 @@ if (process.argv[2]) {
         });
 
     program
+        .command('get-sitedoc <sid>')
+        .description('Retrieves a site doc in it\'s entirety')
+        .action(function (uid) {
+            admin.deleteFakeSites(uid, function(error, result) {
+                if (error) {
+                    console.log(error);
+                    process.exit(1);
+                } else {
+                    console.log(result);
+                    process.exit(0);
+                }
+            });
+        });
+
+    program
         .command('notify-users')
         .description('Notifies applicable users about key dates in their subscriptions')
         .action(function () {
@@ -177,7 +192,7 @@ if (process.argv[2]) {
         .command('report-sites')
         .description('Reports on all sites registered to Dewy')
         .action(function () {
-            admin.reportSites(function(error, result) {
+            admin.getSite(function(error, result) {
                 if (error) {
                     console.log(error);
                     process.exit(1);

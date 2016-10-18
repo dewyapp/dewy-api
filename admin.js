@@ -375,6 +375,15 @@ exports.deleteFakeSites = function(uid, callback) {
     });
 }
 
+exports.getSite = function(sid, callback) {
+    sites.get(sid, function (error, result) {
+        if (error) {
+            return callback(error);
+        }
+        return callback(null, result);
+    });
+}
+
 exports.flushReleases = function(callback) {
     var couchbase = require('couchbase');
     query = couchbase.ViewQuery.from('modules', 'drupalorg_by_project')
