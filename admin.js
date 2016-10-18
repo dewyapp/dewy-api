@@ -375,7 +375,7 @@ exports.deleteFakeSites = function(uid, callback) {
     });
 }
 
-exports.getSite = function(sid, callback) {
+exports.getSiteDoc = function(sid, callback) {
     sites.get(sid, function (error, result) {
         if (error) {
             return callback(error);

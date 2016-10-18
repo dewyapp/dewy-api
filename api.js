@@ -148,8 +148,8 @@ if (process.argv[2]) {
     program
         .command('get-sitedoc <sid>')
         .description('Retrieves a site doc in it\'s entirety')
-        .action(function (uid) {
-            admin.deleteFakeSites(uid, function(error, result) {
+        .action(function (sid) {
+            admin.getSiteDoc(sid, function(error, result) {
                 if (error) {
                     console.log(error);
                     process.exit(1);
