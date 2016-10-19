@@ -463,16 +463,29 @@ exports.flushTokens = function(callback) {
     );
 }
 
-exports.reportSites = function(callback) {
+exports.reportSites = function(uid, callback) {
     require('console.table');
-    // Get all users
-    query = couchbase.ViewQuery.from('users', 'by_username')
-        .stale(1);
-    db.query(query, function(error, result) {
-        if (error) {
-            return callback(error);
+
+    function getUsers(uid, callback) {
+        if (uid) {
+            callback(null, [{value: uid}]);
         }
-        if (result.length) {
+        else {
+            query = couchbase.ViewQuery.from('users', 'by_username')
+                .stale(1);
+            db.query(query, function(error, result) {
+                if (error) {
+                    return callback(error);
+                }
+                callback(null, result);
+            });
+        }
+    }
+
+    getUsers(uid, function(error, result) {
+        if (error) {
+            callback(error);
+        } else {
             async.eachLimit(result, 1,
                 function(row, callback) {
                     var username = row.key;
@@ -519,7 +532,7 @@ exports.reportSites = function(callback) {
                 function(error){
                     callback(null, 'Finished');
                 }
-            );  
+            );
         }
     });
 }

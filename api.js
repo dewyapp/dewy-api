@@ -189,10 +189,10 @@ if (process.argv[2]) {
         });
 
     program
-        .command('report-sites')
-        .description('Reports on all sites registered to Dewy')
-        .action(function () {
-            admin.getSite(function(error, result) {
+        .command('report-sites [uid]')
+        .description('Reports on all users\' sites, or a specific user\'s sites, registered to Dewy')
+        .action(function (uid) {
+            admin.reportSites(uid, function(error, result) {
                 if (error) {
                     console.log(error);
                     process.exit(1);
