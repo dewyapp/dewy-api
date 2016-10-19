@@ -468,7 +468,12 @@ exports.reportSites = function(uid, callback) {
 
     function getUsers(uid, callback) {
         if (uid) {
-            callback(null, [{value: uid}]);
+            User.get(uid, function(error, result) {
+                if (error) {
+                    return callback(error);
+                }
+                callback(null, [{key: result.username, value: uid}]);
+            });
         }
         else {
             query = couchbase.ViewQuery.from('users', 'by_username')
