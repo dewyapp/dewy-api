@@ -507,19 +507,20 @@ exports.reportSites = function(uid, callback) {
                                         rows.push({
                                             sid: result.sid,
                                             baseURL: result.baseurl,
-                                            users: result.users,
-                                            content: result.content,
-                                            traffic: result.traffic,
+                                            u: result.users,
+                                            c: result.content,
+                                            t: result.traffic,
                                             drupal: result.details.drupal_core,
                                             php: result.details.php.version,
-                                            execTime: result.details.php.max_execution_time,
+                                            time: result.details.php.max_execution_time,
                                             mem: result.details.php.memory_limit,
                                             nodes: result.attributes.nodes,
                                             lastAudit: moment.unix(result.audit.lastAudit).fromNow(),
                                             lastSuccess: moment.unix(result.audit.lastSuccessfulAudit).fromNow(),
                                             lastContent: moment.unix(result.audit.lastSuccessfulContentAudit).fromNow(),
-                                            benchmark: result.details.benchmark,
-                                            token: result.token
+                                            benchmark: result.details.benchmark.toFixed(2),
+                                            token: result.token,
+                                            tags: result.tags
                                         });
                                     }
                                     callback();
