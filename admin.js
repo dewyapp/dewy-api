@@ -547,3 +547,21 @@ exports.reportSites = function(uid, callback) {
         }
     });
 }
+
+exports.signonToken = function(uid, callback) {
+    var expires = new Date(this.now);
+    expires.setSeconds(expires.getSeconds() + config.oauth.accessTokenLifetime);
+    var token = {
+        access_token: uuid.v4(),
+        client_id: config.client.client_id,
+        expires: expires,
+        uid: uid
+    }
+    var oauthModel = require('./helpers/oauth');
+    oauthModel.saveAccessToken(token.access_token, token.client_id, token.expires, token.uid, function(error, result) {
+        if (error) {
+            return callback(error);
+        }
+        callback(null, '{token_type:"bearer",access_token:'+token.access_token+',expires_in:604800}');
+    });
+}

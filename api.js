@@ -218,6 +218,21 @@ if (process.argv[2]) {
             });
         });
 
+    program
+        .command('signon-token <uid>')
+        .description('Creates a sign on token for a user for use to sign on to the site')
+        .action(function (uid) {
+            admin.signonToken(uid, function(error, result) {
+                if (error) {
+                    console.log(error);
+                    process.exit(1);
+                } else {
+                    console.log(result);
+                    process.exit(0);
+                }
+            });
+        });
+
     program.parse(process.argv);
 }
 // If no command line input, run the API
