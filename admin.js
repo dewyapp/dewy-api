@@ -504,6 +504,10 @@ exports.reportSites = function(uid, callback) {
                             function(row, callback) {
                                 sites.get(row.value, function(error, result) {
                                     if (result && !result.fake) {
+                                        var lastContent = '';
+                                        if (result.audit.lastSuccessfulContentAudit) {
+                                            lastContent = moment.unix(result.audit.lastSuccessfulContentAudit).fromNow();
+                                        }
                                         rows.push({
                                             sid: result.sid,
                                             baseURL: result.baseurl,
@@ -517,7 +521,7 @@ exports.reportSites = function(uid, callback) {
                                             nodes: result.attributes.nodes,
                                             lastAudit: moment.unix(result.audit.lastAudit).fromNow(),
                                             lastSuccess: moment.unix(result.audit.lastSuccessfulAudit).fromNow(),
-                                            lastContent: moment.unix(result.audit.lastSuccessfulContentAudit).fromNow(),
+                                            lastContent: lastContent,
                                             benchmark: result.details.benchmark.toFixed(2),
                                             token: result.token,
                                             tags: result.tags
