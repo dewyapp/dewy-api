@@ -398,7 +398,7 @@ exports.flushReleases = function(callback) {
             function(row, callback) {
                 db.remove(row.id, function(error, result) {
                     if (error) {
-                        results.push('Failed to remove ' + row.id);
+                        results.push('Failed to remove ' + row.id + ': ' + error);
                         return callback();
                     } else {
                         console.log('Deleted ' + row.id);
@@ -435,7 +435,7 @@ exports.flushTokens = function(callback) {
                     function(row, callback) {
                         db.remove(row.id, function(error, result) {
                             if (error) {
-                                results.push('Failed to remove ' + row.id);
+                                results.push('Failed to remove ' + row.id + ': ' + error);
                                 return callback();
                             }
                             console.log('Deleted ' + row.id);
@@ -562,6 +562,6 @@ exports.signonToken = function(uid, callback) {
         if (error) {
             return callback(error);
         }
-        callback(null, '{token_type:"bearer",access_token:'+token.access_token+',expires_in:604800}');
+        callback(null, '{"token_type":"bearer","access_token":"'+token.access_token+'","expires_in":604800}');
     });
 }
