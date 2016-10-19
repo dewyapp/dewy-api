@@ -3,6 +3,7 @@ var randomstring = require('randomstring');
 var uuid = require('uuid');
 var User = require('./models/user');
 var sites = require('./models/sites');
+var moment = require('moment');
 var email = require('./helpers/email');
 var couchbase = require('couchbase');
 var db = require('./api.js').bucket;
@@ -511,12 +512,12 @@ exports.reportSites = function(uid, callback) {
                                             traffic: result.traffic,
                                             drupal: result.details.drupal_core,
                                             php: result.details.php.version,
-                                            mem: result.details.php.max_execution_time,
-                                            execTime: result.details.php.memory_limit,
+                                            execTime: result.details.php.max_execution_time,
+                                            mem: result.details.php.memory_limit,
                                             nodes: result.attributes.nodes,
-                                            lastAudit: result.audit.lastAudit,
-                                            lastSuccess: result.audit.lastSuccessfulAudit,
-                                            lastContent: result.audit.lastSuccessfulContentAudit,
+                                            lastAudit: moment.unix(result.audit.lastAudit).fromNow(),
+                                            lastSuccess: moment.unix(result.audit.lastSuccessfulAudit).fromNow(),
+                                            lastContent: moment.unix(result.audit.lastSuccessfulContentAudit).fromNow(),
                                             benchmark: result.details.benchmark,
                                             token: result.token
                                         });
