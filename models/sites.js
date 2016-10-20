@@ -474,7 +474,7 @@ exports.processDoc = function(siteDoc, callback) {
         if (siteDoc.details.users[i].last_access > lastAccess) {
             lastAccess = siteDoc.details.users[i].last_access;
         }
-        if (siteDoc.users) {
+        if (siteDoc.users == 1) {
             users.push(i);
         }
         else {
