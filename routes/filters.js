@@ -6,7 +6,6 @@ var util = require('util');
 var validator = require('validator');
 var filters = require('../models/filters');
 
-// TODO: what's this route used for?!
 router.get('/', oauth.authorise(), function (req, res, next) {
     filters.getAll(req.user.id, function(error, result) {
         if (error) {

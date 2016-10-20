@@ -511,6 +511,7 @@ exports.reportSites = function(uid, callback) {
                                         rows.push({
                                             sid: result.sid,
                                             baseURL: result.baseurl,
+                                            e: result.enabled,
                                             u: result.users,
                                             c: result.content,
                                             t: result.traffic,
