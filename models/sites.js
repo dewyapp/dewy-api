@@ -474,7 +474,12 @@ exports.processDoc = function(siteDoc, callback) {
         if (siteDoc.details.users[i].last_access > lastAccess) {
             lastAccess = siteDoc.details.users[i].last_access;
         }
-        users.push(i);
+        if (siteDoc.users) {
+            users.push(i);
+        }
+        else {
+            users.push('[obfuscated]');
+        }
         for (var j in siteDoc.details.users[i].roles) {
             if (roles.indexOf(siteDoc.details.users[i].roles[j]) == '-1') {
                 roles.push(siteDoc.details.users[i].roles[j]);
