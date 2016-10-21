@@ -244,7 +244,7 @@ exports.getRelease = function(projectName, core, updatedProjects, callback) {
 }
 
 exports.getReleases = function(callback) {
-    query = couchbase.ViewQuery.from('modules', 'by_project')
+    query = couchbase.ViewQuery.from('projects', 'projects_from_sites')
         .group(true)
         .stale(1);
     db.query(query, function(error, result) {

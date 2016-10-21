@@ -55,24 +55,6 @@ exports.setup = function (callback) {
                             '}',
                         '}'
                         ].join('\n')
-                },
-                by_project: {
-                    map: [
-                        'function (doc, meta) {',
-                            'if (meta.id.substring(0, 6) == "site::") {',
-                                'var core = doc.details.drupal_core.split(\'.\');',
-                                'core = core[0] + \'.x\';',
-                                'for (var project in doc.details.projects) {',
-                                    'if (project != null) {',
-                                        'emit([project, core]);',
-                                    '}',
-                                '}',
-                            '}',
-                        '}'
-                        ].join('\n'),
-                    reduce: [
-                        '_count'
-                        ].join('\n')
                 }
             }
         },
@@ -123,13 +105,31 @@ exports.setup = function (callback) {
                         'function (doc, meta) {',
                             'if (meta.id.substring(0, 9) == "project::") {',
                                 'if (doc.releases && doc.releases.length) { ',
-                                    'emit(doc.project + "-" + doc.core, doc.releases);',
+                                    'emit(doc.project + "-" + doc.core, doc.releases[0]);',
                                 '}',
                                 'else {',
                                     'emit(doc.project + "-" + doc.core)',
                                 '}',
                             '}',
                         '}'
+                        ].join('\n')
+                },
+                projects_from_sites: {
+                    map: [
+                        'function (doc, meta) {',
+                            'if (meta.id.substring(0, 6) == "site::") {',
+                                'var core = doc.details.drupal_core.split(\'.\');',
+                                'core = core[0] + \'.x\';',
+                                'for (var project in doc.details.projects) {',
+                                    'if (project != null) {',
+                                        'emit([project, core]);',
+                                    '}',
+                                '}',
+                            '}',
+                        '}'
+                        ].join('\n'),
+                    reduce: [
+                        '_count'
                         ].join('\n')
                 }
             }
