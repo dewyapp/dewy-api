@@ -25,7 +25,7 @@ exports.setup = function (callback) {
         },
         modules: {
             views: {
-                audited_by_uid: {
+                from_audited_sites_by_uid: {
                     map: [
                         'function (doc, meta) {',
                             'if (meta.id.substring(0, 6) == "site::" && doc.enabled == "1" && doc.audit.lastSuccessfulAudit && doc.audit.errors.length < 3) {',
@@ -100,7 +100,7 @@ exports.setup = function (callback) {
         },
         projects: {
             views: {
-                latest_release_by_project: {
+                latest_drupalorg_release_by_project: {
                     map: [
                         'function (doc, meta) {',
                             'if (meta.id.substring(0, 9) == "project::") {',

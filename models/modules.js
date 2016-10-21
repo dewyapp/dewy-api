@@ -39,7 +39,7 @@ exports.checkVersionForUpdate = function(projectDoc, version) {
 exports.getAll = function(uid, fid, callback) {
     // If no filter is given, return all modules
     if (fid == null) {
-        query = couchbase.ViewQuery.from('modules', 'audited_by_uid')
+        query = couchbase.ViewQuery.from('modules', 'from_audited_sites_by_uid')
             .key([uid])
             .stale(1);
     } else {
