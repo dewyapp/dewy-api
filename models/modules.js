@@ -36,14 +36,16 @@ exports.checkVersionForUpdate = function(projectDoc, version) {
     return {securityUpdate: securityUpdate, update: update};
 }
 
-exports.getAll = function(uid, fid, callback) {
-    // If no filter is given, return all modules
+exports.get = function(uid, fid, module, callback) {
     if (fid == null) {
         query = couchbase.ViewQuery.from('modules', 'from_audited_sites_by_uid')
-            .key([uid])
+            .range([uid, module, null], [uid, module, {}])
+            .reduce(false)
             .stale(1);
     } else {
         query = couchbase.ViewQuery.from('users-filter-' + fid, 'modules')
+            .range([uid, module, null], [uid, module, {}])
+            .reduce(false)
             .stale(1);
     }
     db.query(query, function(error, result) {
@@ -52,56 +54,96 @@ exports.getAll = function(uid, fid, callback) {
             return;
         }
 
-        var moduleData = {modules: []};
-        var moduleIndex = {};
-        var siteIndex = [];
+        var moduleData = {
+            v: {}, //versions
+            a: [], //sitesWithAvailable
+            e: [], //sitesWithEnabled
+            d: [], //sitesWithDatabaseUpdates
+            u: [], //sitesWithUpdates
+            s: [] //sitesWithSecurityUpdates
+        };
+
+        for (item in result) {
+
+            var moduleResult = result[item].value;
+            var version = result[item].key[2];
+
+            if (version in moduleData.v) {
+                moduleData.v[version] = moduleData.v[version].concat(moduleResult.baseurls);
+            }
+            else {
+                moduleData.v[version] = moduleResult.baseurls;
+            }
+            moduleData.p = moduleResult.project;
+            moduleData.a = moduleData.a.concat(moduleResult.baseurls);
+            if (moduleResult.enabled) {
+                moduleData.e = moduleData.e.concat(moduleResult.baseurls);
+            }
+            if (moduleResult.databaseUpdate) {
+                moduleData.d = moduleData.d.concat(moduleResult.baseurls);
+            }
+            if (moduleResult.update) {
+                moduleData.u = moduleData.u.concat(moduleResult.baseurls);
+            }
+            if (moduleResult.securityUpdate) {
+                moduleData.s = moduleData.s.concat(moduleResult.baseurls);
+            }
+        }
+        callback(null, moduleData);
+    });
+}
+
+exports.getAll = function(uid, fid, callback) {
+    // If no filter is given, return all modules
+    if (fid == null) {
+        query = couchbase.ViewQuery.from('modules', 'from_audited_sites_by_uid')
+            .range([uid, null, null], [uid, {}, {}])
+            .group(true)
+            .stale(1);
+    } else {
+        query = couchbase.ViewQuery.from('users-filter-' + fid, 'modules')
+            .range([uid, null, null], [uid, {}, {}])
+            .group(true)
+            .stale(1);
+    }
+    db.query(query, function(error, result) {
+        if (error) {
+            callback(error, null);
+            return;
+        }
+
+        var baseUrls = [];
+        var modules = [];
+        var moduleIndex = [];
 
         for (item in result) {
             var moduleResult = result[item].value;
-            var module = moduleResult.module + '-' + moduleResult.core;
+            baseUrls = baseUrls.concat(moduleResult.baseurls);
+            var module = result[item].key[1];
 
-            if (siteIndex.indexOf(moduleResult.baseurl) == -1) {
-                siteIndex.push(moduleResult.baseurl)
-            }
-
-            if (!(module in moduleIndex)) {
-                moduleData.modules.push({
+            if (moduleIndex.indexOf(module) == -1) {
+                modules[moduleIndex.length] = {
                     m: module,
-                    p: moduleResult.project,
-                    a: [], //sitesWithAvailable
-                    e: [], //sitesWithEnabled
-                    d: [], //sitesWithDatabaseUpdates
-                    u: [], //sitesWithUpdates
-                    s: [], //sitesWithSecurityUpdates
-                    v: {} //versions
-                });
-                moduleIndex[module] = moduleData.modules.length-1;
+                    v: 0, //versions
+                    a: 0, //sitesWithAvailable
+                    e: 0, //sitesWithEnabled
+                    d: 0, //sitesWithDatabaseUpdates
+                    u: 0, //sitesWithUpdates
+                    s: 0 //sitesWithSecurityUpdates
+                };
+                moduleIndex.push(module);
             }
 
-            moduleData.modules[moduleIndex[module]].a.push(siteIndex.indexOf(moduleResult.baseurl));
-            if (moduleResult.enabled) {
-                moduleData.modules[moduleIndex[module]].e.push(siteIndex.indexOf(moduleResult.baseurl));
-            }
-            if (moduleResult.databaseUpdate) {
-                moduleData.modules[moduleIndex[module]].d.push(siteIndex.indexOf(moduleResult.baseurl));
-            }
-            if (moduleResult.update) {
-                moduleData.modules[moduleIndex[module]].u.push(siteIndex.indexOf(moduleResult.baseurl));
-            }
-            if (moduleResult.securityUpdate) {
-                moduleData.modules[moduleIndex[module]].s.push(siteIndex.indexOf(moduleResult.baseurl));
-            }
-            if (!(moduleResult.version in moduleData.modules[moduleIndex[module]].v)) {
-                moduleData.modules[moduleIndex[module]].v[moduleResult.version] = [];
-                moduleData.modules[moduleIndex[module]].v[moduleResult.version].push(siteIndex.indexOf(moduleResult.baseurl));
-            }
-            else {
-                moduleData.modules[moduleIndex[module]].v[moduleResult.version].push(siteIndex.indexOf(moduleResult.baseurl));
-            }
+            // Each row is a different version, add it to list and increment overall totals
+            modules[moduleIndex.indexOf(module)].v += 1;
+            modules[moduleIndex.indexOf(module)].a += moduleResult.available;
+            modules[moduleIndex.indexOf(module)].e += moduleResult.enabled;
+            modules[moduleIndex.indexOf(module)].d += moduleResult.databaseUpdate;
+            modules[moduleIndex.indexOf(module)].u += moduleResult.update;
+            modules[moduleIndex.indexOf(module)].s += moduleResult.securityUpdate;
         }
-        moduleData.siteIndex = siteIndex;
-
-        callback(null, moduleData);
+        var baseUrls = baseUrls.filter((v, i, a) => a.indexOf(v) === i); 
+        callback(null, {modules: modules, siteTotal: baseUrls.length});
     });
 }
 
