@@ -387,10 +387,11 @@ exports.getSiteDoc = function(sid, callback) {
 
 exports.flushReleases = function(callback) {
     var couchbase = require('couchbase');
-    query = couchbase.ViewQuery.from('modules', 'drupalorg_by_project')
+    query = couchbase.ViewQuery.from('projects', 'latest_release_by_project')
         .stale(1);
     db.query(query, function(error, result) {
         if (error) {
+            console.log(error);
             return callback(error, null);
         }
         var results = [];

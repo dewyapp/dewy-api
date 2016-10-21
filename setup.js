@@ -73,15 +73,6 @@ exports.setup = function (callback) {
                     reduce: [
                         '_count'
                         ].join('\n')
-                },
-                drupalorg_by_project: {
-                    map: [
-                        'function (doc, meta) {',
-                            'if (meta.id.substring(0, 9) == "project::") {',
-                                'emit(doc.project + "-" + doc.core, doc.releases);',
-                            '}',
-                        '}'
-                        ].join('\n')
                 }
             }
         },
@@ -119,6 +110,24 @@ exports.setup = function (callback) {
                         'function (doc, meta) {',
                             'if (meta.id.substring(0, 13) == "accesstoken::" || meta.id.substring(0, 14) == "refreshtoken::") {',
                                 'emit([doc.uid], meta.id);',
+                            '}',
+                        '}'
+                        ].join('\n')
+                }
+            }
+        },
+        projects: {
+            views: {
+                latest_release_by_project: {
+                    map: [
+                        'function (doc, meta) {',
+                            'if (meta.id.substring(0, 9) == "project::") {',
+                                'if (doc.releases && doc.releases.length) { ',
+                                    'emit(doc.project + "-" + doc.core, doc.releases);',
+                                '}',
+                                'else {',
+                                    'emit(doc.project + "-" + doc.core)',
+                                '}',
                             '}',
                         '}'
                         ].join('\n')

@@ -125,6 +125,7 @@ if (process.argv[2]) {
         .action(function () {
             admin.flushReleases(function(error, result) {
                 if (error) {
+                    console.log(error);
                     process.exit(1);
                 } else {
                     process.exit(0);
@@ -138,6 +139,7 @@ if (process.argv[2]) {
         .action(function () {
             admin.flushTokens(function(error, result) {
                 if (error) {
+                    console.log(error);
                     process.exit(1);
                 } else {
                     process.exit(0);
@@ -166,6 +168,7 @@ if (process.argv[2]) {
         .action(function () {
             processes.notifyUsers(function(error, result) {
                 if (error) {
+                    console.log(error);
                     process.exit(1);
                 } else {
                     process.exit(0);
