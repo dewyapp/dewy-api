@@ -276,6 +276,7 @@ else {
     var filterRoutes = require('./routes/filters');
     var moduleRoutes = require('./routes/modules');
     var oauthRoutes = require('./routes/oauth');
+    var projectRoutes = require('./routes/projects');
     var siteRoutes = require('./routes/sites');
     var stripeRoutes = require('./routes/stripe');
     var userRoutes = require('./routes/users');
@@ -283,6 +284,7 @@ else {
     app.use('/filters', filterRoutes);
     app.use('/modules', moduleRoutes);
     app.use('/oauth', oauthRoutes);
+    app.use('/projects', projectRoutes);
     app.use('/sites', siteRoutes);
     app.use('/stripe', stripeRoutes);
     app.use('/users', userRoutes);

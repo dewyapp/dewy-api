@@ -127,7 +127,7 @@ exports.setup = function (callback) {
                         'function (doc, meta) {',
                             'if (meta.id.substring(0, 9) == "project::") {',
                                 'if (doc.releases && doc.releases.length) { ',
-                                    'emit(doc.project + "-" + doc.core, doc.releases[0]);',
+                                    'emit(doc.project + "-" + doc.core, doc.releases[0].version);',
                                 '}',
                                 'else {',
                                     'emit(doc.project + "-" + doc.core)',
