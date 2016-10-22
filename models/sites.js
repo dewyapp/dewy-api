@@ -380,7 +380,15 @@ exports.getByProject = function(project, core, maxModuleUpdateLevel, callback) {
 }
 
 exports.getDetail = function(siteDoc) {
-    return { users: siteDoc.users, content: siteDoc.content, traffic: siteDoc.traffic, attributeDetails: siteDoc.attributeDetails, audit: siteDoc.audit };
+    var projectVersions = {};
+    for (project in siteDoc.details.projects) {
+        projectVersions[project] = siteDoc.details.projects[project].version;
+    }
+    var core = {};
+    core['version'] = siteDoc.details.drupal_core;
+    core['major'] = core['version'].split('.');
+    core['major'] = core['major'][0] + '.x';
+    return { core: core, users: siteDoc.users, content: siteDoc.content, traffic: siteDoc.traffic, attributeDetails: siteDoc.attributeDetails, audit: siteDoc.audit, projectVersions: projectVersions };
 }
 
 exports.processDoc = function(siteDoc, callback) {
