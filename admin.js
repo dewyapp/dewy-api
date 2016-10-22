@@ -5,6 +5,7 @@ var User = require('./models/user');
 var sites = require('./models/sites');
 var moment = require('moment');
 var email = require('./helpers/email');
+var util = require('util');
 var couchbase = require('couchbase');
 var db = require('./api.js').bucket;
 var config = require('./config');
@@ -381,7 +382,7 @@ exports.getSiteDoc = function(sid, callback) {
         if (error) {
             return callback(error);
         }
-        return callback(null, result);
+        return callback(null, util.inspect(result, {showHidden: false, depth: null}));
     });
 }
 
