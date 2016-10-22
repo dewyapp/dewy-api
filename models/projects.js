@@ -13,7 +13,6 @@ exports.getAll = function(callback) {
         for (project in result) {
             results[result[project].key] = result[project].value;
         }
-        console.log(results);
         return callback(error, results);
     });
 }
