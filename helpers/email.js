@@ -21,7 +21,7 @@ exports.send = function(params, callback) {
         website: config.website
     }, function(err, html) {
         var mail = {
-            from: 'noreply@dewy.io',
+            from: '"Dewy" <noreply@dewy.io>',
             to: params.to,
             subject: params.subject,
             text: params.text,
@@ -29,7 +29,7 @@ exports.send = function(params, callback) {
         }
         if (params.cc) {
             mail = {
-                from: 'noreply@dewy.io',
+                from: '"Dewy" <noreply@dewy.io>',
                 to: params.to,
                 cc: params.cc,
                 subject: params.subject,
