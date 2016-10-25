@@ -13,6 +13,9 @@ var app = express();
 
 // Morgan configuration
 app.use(morgan('combined'));
+morgan.token('remote-user', function(req, res){ 
+    if (req.user) { return req.user.id; }
+})
 
 // Express configuration
 app.use(bodyParser.json());
