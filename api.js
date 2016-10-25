@@ -247,6 +247,9 @@ if (process.argv[2]) {
 }
 // If no command line input, run the API
 else {
+    // Allow obtaining client IP from proxy
+    app.enable('trust proxy');
+
     // Allow API access from dewy.io
     app.use(function(req, res, next) {
         res.header('Access-Control-Allow-Origin', config.website);
