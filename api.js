@@ -12,7 +12,7 @@ var config = require('./config');
 var app = express();
 
 // Morgan configuration
-app.use(morgan('combined'));
+app.use(morgan('combined', {skip: function (req, res) { return req.method == 'OPTIONS' }}));
 morgan.token('remote-user', function(req, res){ 
     if (req.user) { return req.user.id; }
 })
