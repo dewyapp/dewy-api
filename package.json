@@ -17,6 +17,7 @@
     "jsonschema": "^1.0.3",
     "md5": "^2.0.0",
     "momentjs": "^1.1.17",
+    "morgan": "^1.7.0",
     "mustache-express": "^1.2.2",
     "node-forge": "^0.6.38",
     "nodemailer": "^2.3.0",

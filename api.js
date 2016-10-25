@@ -2,6 +2,7 @@
 
 // Dependencies
 var express = require('express');
+var morgan = require('morgan');
 var bodyParser = require('body-parser');
 var oauthserver = require('oauth2-server');
 var couchbase = require('couchbase');
@@ -9,6 +10,9 @@ var program = require('commander');
 var config = require('./config');
 
 var app = express();
+
+// Morgan configuration
+app.use(morgan('combined'));
 
 // Express configuration
 app.use(bodyParser.json());
@@ -240,15 +244,6 @@ if (process.argv[2]) {
 }
 // If no command line input, run the API
 else {
-    // Log requests
-    if (config.debug) {
-        app.use(function(req, res, next) {
-            if (req.method != 'OPTIONS') {
-                console.log(req.ip + ': ' + req.method + ' ' + req.originalUrl);
-            }
-            next();
-        });
-    }
     // Allow API access from dewy.io
     app.use(function(req, res, next) {
         res.header('Access-Control-Allow-Origin', config.website);
