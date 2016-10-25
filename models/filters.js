@@ -407,7 +407,9 @@ exports.createDesignDoc = function(filterDoc, callback) {
             }
         }
     }
-    console.log(designDoc);
+    if (config.debug) {
+        console.log(designDoc);
+    }
 
     var manager = db.manager();
     manager.upsertDesignDocument('users-filter-' + filterDoc.fid, designDoc, function(error, result) {
@@ -423,7 +425,9 @@ exports.delete = function(uid, fid, callback) {
     var manager = db.manager();
     manager.removeDesignDocument('users-filter-' + fid, function(error, result) {
         if (error && error != 'Error: missing') {
-            console.log(error);
+            if (config.debug) {
+                console.error(error);
+            }
             callback(error, null);
             return;
         }

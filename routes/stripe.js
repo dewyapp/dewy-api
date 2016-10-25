@@ -7,12 +7,16 @@ var config = require('../config');
 var stripe = require("stripe")(config.stripe.private_key);
 
 router.post('/', function (req, res, next) {
-    console.log('Stripe event ' + req.body.id + ' of type ' + req.body.type + ' received');
-    
+    if (config.debug) {
+        console.log('Stripe event ' + req.body.id + ' of type ' + req.body.type + ' received');
+    }
+
     // Verify the event by fetching it from Stripe
     stripe.events.retrieve(req.body.id, function(error, result) {
         if (error && config.stripe.verifyEvents) {
-            console.error('The event was received but not confirmed by Stripe');
+            if (config.debug) {
+                console.error('The event was received but not confirmed by Stripe');
+            }
             return res.status(400).send('The event was received but not confirmed by Stripe');
         }
 
@@ -25,16 +29,22 @@ router.post('/', function (req, res, next) {
         var stripeID = event.data.object.customer;
         User.getUidByStripeID(stripeID, function(error, result) {
             if (error) {
-                console.error(error);
+                if (config.debug) {
+                    console.error(error);
+                }
                 return res.status(500).send(error);
             }
             if (result === false) {
-                console.error('The customer ' + stripeID + ' cannot be found');
+                if (config.debug) {
+                    console.error('The customer ' + stripeID + ' cannot be found');
+                }
                 return res.send('The customer ' + stripeID + ' cannot be found');
             }
             User.get(result, function(error, result) {
                 if (error) {
-                    console.error(error);
+                    if (config.debug) {
+                        console.error(error);
+                    }
                     return res.status(500).send(error);
                 }
 

@@ -6,7 +6,9 @@ exports.getAll = function(callback) {
         .stale(1);
     db.query(query, function(error, result) {
         if (error) {
-            console.log(error);
+            if (config.debug) {
+                console.error(error);
+            }
             return callback(error, null);
         }
         var results = {};

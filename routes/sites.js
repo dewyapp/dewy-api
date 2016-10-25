@@ -26,7 +26,7 @@ router.post('/', function (req, res, next) {
     User.getUidByApiKey(req.body.apikey, function(error, result) {
         if (error) {
             if (config.debug) {
-                console.log('Failed to get UID by API key:' + error);
+                console.error('Failed to get UID by API key:' + error);
             }
             return res.status(500).send(error);
         }
@@ -63,7 +63,7 @@ router.post('/', function (req, res, next) {
             sites.getByBaseurl({uid: req.body.uid, baseurl: req.body.baseurl}, function(error, result) {
                 if (error) {
                     if (config.debug) {
-                        console.log('Failed to get site by base URL:' + error);
+                        console.error('Failed to get site by base URL:' + error);
                     }
                     return res.status(500).send(error);
                 }
@@ -73,7 +73,7 @@ router.post('/', function (req, res, next) {
                     sites.get(result[0].value, function (error, result) {
                         if (error) {
                             if (config.debug) {
-                                console.log('Failed to retrieve sitedoc:' + error);
+                                console.error('Failed to retrieve sitedoc:' + error);
                             }
                             return res.status(500).send(error);
                         }
@@ -87,7 +87,9 @@ router.post('/', function (req, res, next) {
                             siteDoc.traffic = req.body.read_traffic;
                             sites.update(siteDoc, function(error, result) {
                                 if (error) {
-                                    console.log('Failed to update sitedoc:' + error);
+                                    if (config.debug) {
+                                        console.error('Failed to update sitedoc:' + error);
+                                    }
                                     return res.status(500).send(error);
                                 }
                                 res.send(result);
@@ -103,12 +105,12 @@ router.post('/', function (req, res, next) {
                         if (error) {
                             if (error.statusCode) {
                                 if (config.debug) {
-                                    console.log(error.error + ' (' + error.statusCode + ')');
+                                    console.error(error.error + ' (' + error.statusCode + ')');
                                 }
                                 return res.status(error.statusCode).send(error.error + ' (' + error.statusCode + ')');
                             }
                             if (config.debug) {
-                                console.log(error);
+                                console.error(error);
                             }
                             return res.status(500).send(error);
                         }
