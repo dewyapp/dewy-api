@@ -55,6 +55,7 @@
 		  location /1.0/ {
 		    rewrite ^/1.0(/.*)$ $1 break;
 		    proxy_pass http://localhost:3001;
+		    proxy_set_header X-Forwarded-For $remote_addr;
 		    proxy_http_version 1.1;
 		    proxy_set_header Upgrade $http_upgrade;
 		    proxy_set_header Connection 'upgrade';
