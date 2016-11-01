@@ -514,6 +514,7 @@ exports.reportSites = function(uid, callback) {
                                         var php = 'unknown';
                                         var time = 'unknown';
                                         var mem = 'unknown';
+                                        var nodes = '';
                                         var benchmark = '';
                                         if (result.details) {
                                             if (result.details.drupal_core) {
@@ -528,6 +529,11 @@ exports.reportSites = function(uid, callback) {
                                                 benchmark = result.details.benchmark.toFixed(2)
                                             }
                                         }
+                                        if (result.attributes) {
+                                            if (result.attributes.nodes) {
+                                                nodes = result.attributes.nodes;
+                                            }
+                                        }
                                         rows.push({
                                             sid: result.sid,
                                             baseURL: result.baseurl,
@@ -539,7 +545,7 @@ exports.reportSites = function(uid, callback) {
                                             php: php,
                                             time: time,
                                             mem: mem,
-                                            nodes: result.attributes.nodes,
+                                            nodes: nodes,
                                             lastAudit: moment.unix(result.audit.lastAudit).fromNow(),
                                             lastSuccess: moment.unix(result.audit.lastSuccessfulAudit).fromNow(),
                                             lastContent: lastContent,
