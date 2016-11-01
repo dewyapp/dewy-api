@@ -515,7 +515,7 @@ exports.reportSites = function(uid, callback) {
                                         var time = 'unknown';
                                         var mem = 'unknown';
                                         var benchmark = '';
-                                        if (result.details) 
+                                        if (result.details) {
                                             if (result.details.drupal_core) {
                                                 drupal = result.details.drupal_core;
                                             }
