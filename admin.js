@@ -506,6 +506,15 @@ exports.reportSites = function(uid, callback) {
                             function(row, callback) {
                                 sites.get(row.value, function(error, result) {
                                     if (result && !result.fake) {
+
+                                        var lastAudit = '';
+                                        if (result.audit.lastAudit) {
+                                            lastAudit = moment.unix(result.audit.lastAudit).fromNow();
+                                        }
+                                        var lastSuccess = '';
+                                        if (result.audit.lastSuccessfulAudit) {
+                                            lastSuccess = moment.unix(result.audit.lastSuccessfulAudit).fromNow();
+                                        }
                                         var lastContent = '';
                                         if (result.audit.lastSuccessfulContentAudit) {
                                             lastContent = moment.unix(result.audit.lastSuccessfulContentAudit).fromNow();
@@ -546,8 +555,8 @@ exports.reportSites = function(uid, callback) {
                                             time: time,
                                             mem: mem,
                                             nodes: nodes,
-                                            lastAudit: moment.unix(result.audit.lastAudit).fromNow(),
-                                            lastSuccess: moment.unix(result.audit.lastSuccessfulAudit).fromNow(),
+                                            lastAudit: lastAudit,
+                                            lastSuccess: lastSuccess,
                                             lastContent: lastContent,
                                             benchmark: benchmark,
                                             token: result.token,
