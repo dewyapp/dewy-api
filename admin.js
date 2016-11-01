@@ -511,8 +511,8 @@ exports.reportSites = function(uid, callback) {
                                             lastContent = moment.unix(result.audit.lastSuccessfulContentAudit).fromNow();
                                         }
                                         var php = 'unknown';
-                                        if (result.details.php.version) {
-                                            php = result.details.php.version;
+                                        if (result.details.php) {
+                                            php = result.details.php;
                                         }
                                         rows.push({
                                             sid: result.sid,
