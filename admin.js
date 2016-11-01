@@ -510,13 +510,23 @@ exports.reportSites = function(uid, callback) {
                                         if (result.audit.lastSuccessfulContentAudit) {
                                             lastContent = moment.unix(result.audit.lastSuccessfulContentAudit).fromNow();
                                         }
+                                        var drupal = 'unknown';
                                         var php = 'unknown';
                                         var time = 'unknown';
                                         var mem = 'unknown';
-                                        if (result.details.php) {
-                                            php = result.details.php;
-                                            time = result.details.php.max_execution_time;
-                                            mem = result.details.php.memory_limit;
+                                        var benchmark = '';
+                                        if (result.details) 
+                                            if (result.details.drupal_core) {
+                                                drupal = result.details.drupal_core;
+                                            }
+                                            if (result.details.php) {
+                                                php = result.details.php.version;
+                                                time = result.details.php.max_execution_time;
+                                                mem = result.details.php.memory_limit;
+                                            }
+                                            if (result.details.benchmark) {
+                                                benchmark = result.details.benchmark.toFixed(2)
+                                            }
                                         }
                                         rows.push({
                                             sid: result.sid,
@@ -525,7 +535,7 @@ exports.reportSites = function(uid, callback) {
                                             u: result.users,
                                             c: result.content,
                                             t: result.traffic,
-                                            drupal: result.details.drupal_core,
+                                            drupal: drupal,
                                             php: php,
                                             time: time,
                                             mem: mem,
@@ -533,7 +543,7 @@ exports.reportSites = function(uid, callback) {
                                             lastAudit: moment.unix(result.audit.lastAudit).fromNow(),
                                             lastSuccess: moment.unix(result.audit.lastSuccessfulAudit).fromNow(),
                                             lastContent: lastContent,
-                                            benchmark: result.details.benchmark.toFixed(2),
+                                            benchmark: benchmark,
                                             token: result.token,
                                             tags: result.tags
                                         });
