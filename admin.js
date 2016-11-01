@@ -510,6 +510,10 @@ exports.reportSites = function(uid, callback) {
                                         if (result.audit.lastSuccessfulContentAudit) {
                                             lastContent = moment.unix(result.audit.lastSuccessfulContentAudit).fromNow();
                                         }
+                                        var php = 'unknown';
+                                        if (result.details.php.version) {
+                                            php = result.details.php.version;
+                                        }
                                         rows.push({
                                             sid: result.sid,
                                             baseURL: result.baseurl,
@@ -518,7 +522,7 @@ exports.reportSites = function(uid, callback) {
                                             c: result.content,
                                             t: result.traffic,
                                             drupal: result.details.drupal_core,
-                                            php: result.details.php.version,
+                                            php: php,
                                             time: result.details.php.max_execution_time,
                                             mem: result.details.php.memory_limit,
                                             nodes: result.attributes.nodes,
