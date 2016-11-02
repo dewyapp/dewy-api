@@ -110,16 +110,18 @@ exports.getReleases = function(callback) {
 
                                             var subject = 'Update released for ' + updatedProject.project;
                                             var updateType = 'An update';
+                                            var additionalInfo = 'This is not a security update and no action is required.';
                                             if (updatedProject.securityUpdate) {
-                                                var subject = 'Security update released for ' + updatedProject.project;
+                                                subject = 'Security update released for ' + updatedProject.project;
                                                 updateType = 'A security update';
+                                                additionalInfo = 'This update is a security update and it is strongly recommended you take action to update your sites.';
                                             }
 
                                             email.send({
                                                 to: user.email,
                                                 subject: subject,
-                                                text: 'Hi ' + user.username + '. ' + updateType + ' (' + updatedProject.releases[0].version + ') has been released for ' + updatedProject.project + ' affecting ' + sitesUpdated.length + ' of your sites.' + detailsText,
-                                                html: 'Hi ' + user.username + '.<br/>' + updateType + ' (<strong>' + updatedProject.releases[0].version + '</strong>) has been released for <a href="https://www.drupal.org/project/' + updatedProject.project + '">' + updatedProject.project + '</a> affecting ' + sitesUpdated.length + ' of your sites:' + detailsHTML + '<p></p>',
+                                                text: 'Hi ' + user.username + '. ' + updateType + ' (' + updatedProject.latestVersion + ') has been released for ' + updatedProject.project + ' affecting ' + sitesUpdated.length + ' of your sites.' + detailsText + "\n" + additionalInfo,
+                                                html: 'Hi ' + user.username + '.<br/>' + updateType + ' (<strong>' + updatedProject.latestVersion + '</strong>) has been released for <a href="https://www.drupal.org/project/' + updatedProject.project + '">' + updatedProject.project + '</a> affecting ' + sitesUpdated.length + ' of your sites:' + detailsHTML + '<p>' + additionalInfo + '</p>',
                                             }, function(error, result) {
                                                 if (error) {
                                                     console.log('Failed to send a notification for ' + user.email);

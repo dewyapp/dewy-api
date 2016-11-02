@@ -241,7 +241,8 @@ exports.getRelease = function(projectName, core, updatedProjects, callback) {
                                 updatedProjects.push({
                                     project: projectDoc.project,
                                     core: projectDoc.core,
-                                    securityUpdate: securityUpdate
+                                    securityUpdate: securityUpdate,
+                                    latestVersion: projectDoc.releases[0].version
                                 });
                                 console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' has new releases, updating');
                                 exports.createProject(projectDoc, function(error, result) {
