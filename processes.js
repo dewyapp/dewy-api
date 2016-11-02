@@ -40,7 +40,6 @@ exports.getReleases = function(callback) {
                 } else {
                     async.eachLimit(result, 1, function(row, callback) {
                         var uid = row.value;
-                        var userEmail = row.key;
                         sites.getByProject(uid, updatedProject.project, updatedProject.core, maxModuleUpdateLevel, function(error, result) {
                             if (error) {
                                 console.log('Failed to retrieve affected sites for uid ' + uid + ': ' + error);
@@ -97,33 +96,40 @@ exports.getReleases = function(callback) {
                                     console.log(sitesUpdated.length + ' sites for user ' + uid + ' with project ' + updatedProject.project + ' required updates and were updated');
                                     // Send an email notification for any updates
                                     if (sitesUpdated.length) {
-                                        var detailsText = '';
-                                        var detailsHTML = '<table border="1" frame="hsides" rules="rows" bordercolor="#EEE" cellpadding="14" width="100%">';
-                                        for (siteUpdated in sitesUpdated) {
-                                            detailsText = detailsText + "\n" + sitesUpdated[siteUpdated];
-                                            detailsHTML = detailsHTML + '<tr><td><span style="font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><strong>' + sitesUpdated[siteUpdated] + '</strong></span></tr>'; 
-                                        }
-                                        detailsHTML = detailsHTML + '</table>';
-
-                                        var subject = 'Update released for ' + updatedProject.project;
-                                        var updateType = 'An update';
-                                        if (updatedProject.securityUpdate) {
-                                            var subject = 'Security update released for ' + updatedProject.project;
-                                            updateType = 'A security update';
-                                        }
-
-                                        email.send({
-                                            to: userEmail,
-                                            subject: subject,
-                                            text: 'Hi ' + '. ' + updateType + ' has been released for ' + updatedProject.project + ' affecting ' + sitesUpdated.length + ' of your sites.' + detailsText,
-                                            html: 'Hi ' + '.<br/>' + updateType + ' has been released for <a href="https://www.drupal.org/project/' + updatedProject.project + '">' + updatedProject.project + '</a> affecting ' + sitesUpdated.length + ' of your sites:' + detailsHTML,
-                                        }, function(error, result) {
+                                        // Get user details
+                                        User.get(uid, function(error, result) {
+                                            var user = result;
                                             if (error) {
-                                                console.log('Failed to send a notification for ' + userEmail);
                                                 return callback();
                                             }
-                                            console.log('Notification sent for ' + uid + ': ' + subject);
-                                            callback();
+                                            var detailsText = '';
+                                            var detailsHTML = '<table border="1" frame="hsides" rules="rows" bordercolor="#EEE" cellpadding="14" width="100%">';
+                                            for (siteUpdated in sitesUpdated) {
+                                                detailsText = detailsText + "\n" + sitesUpdated[siteUpdated];
+                                                detailsHTML = detailsHTML + '<tr><td><span style="font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><strong>' + sitesUpdated[siteUpdated] + '</strong></span></td></tr>'; 
+                                            }
+                                            detailsHTML = detailsHTML + '</table>';
+
+                                            var subject = 'Update released for ' + updatedProject.project;
+                                            var updateType = 'An update';
+                                            if (updatedProject.securityUpdate) {
+                                                var subject = 'Security update released for ' + updatedProject.project;
+                                                updateType = 'A security update';
+                                            }
+
+                                            email.send({
+                                                to: user.email,
+                                                subject: subject,
+                                                text: 'Hi ' + user.username + '. ' + updateType + ' (' + updatedProject.releases[0].version + ') has been released for ' + updatedProject.project + ' affecting ' + sitesUpdated.length + ' of your sites.' + detailsText,
+                                                html: 'Hi ' + user.username + '.<br/>' + updateType + ' (<strong>' + updatedProject.releases[0].version '</strong>) has been released for <a href="https://www.drupal.org/project/' + updatedProject.project + '">' + updatedProject.project + '</a> affecting ' + sitesUpdated.length + ' of your sites:' + detailsHTML + '<p></p>',
+                                            }, function(error, result) {
+                                                if (error) {
+                                                    console.log('Failed to send a notification for ' + user.email);
+                                                    return callback();
+                                                }
+                                                console.log('Notification sent for ' + uid + ': ' + subject);
+                                                callback();
+                                            });
                                         });
                                     }
                                     else {
