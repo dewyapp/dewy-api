@@ -362,9 +362,9 @@ exports.getByBaseurl = function(params, callback) {
     });
 }
 
-exports.getByProject = function(project, core, maxModuleUpdateLevel, callback) {
+exports.getByProject = function(uid, project, core, maxModuleUpdateLevel, callback) {
     query = couchbase.ViewQuery.from('sites', 'by_uid_and_project')
-        .range([project, core, 0], [project, core, maxModuleUpdateLevel])
+        .range([uid, project, core, 0], [uid, project, core, maxModuleUpdateLevel])
         .stale(1);
     db.query(query, function(error, result) {
         if (error) {

@@ -203,7 +203,7 @@ exports.setup = function (callback) {
                                                 'moduleUpdateLevel = 1; ',
                                             '}',
                                         '}',
-                                        'emit([project, core, moduleUpdateLevel], doc.sid);',
+                                        'emit([doc.uid, project, core, moduleUpdateLevel], doc.sid);',
                                     '}',
                                 '}',
                             '}',

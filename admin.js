@@ -476,7 +476,7 @@ exports.reportSites = function(uid, callback) {
         } else {
             async.eachLimit(result, 1,
                 function(row, callback) {
-                    var username = row.key;
+                    var email = row.key;
                     var uid = row.value;
                     var rows = [];
                     query = couchbase.ViewQuery.from('sites', 'by_uid')
@@ -548,7 +548,7 @@ exports.reportSites = function(uid, callback) {
                             },
                             function(error) {
                                 if (rows.length) {
-                                    console.table('User ' + username + ' (' + uid + ')', rows);
+                                    console.table('User ' + email + ' (' + uid + ')', rows);
                                     console.log(rows.length + ' sites');
                                 }
                                 callback();

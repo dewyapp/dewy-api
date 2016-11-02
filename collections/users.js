@@ -12,7 +12,7 @@ exports.getUsers = function(uid, callback) {
         });
     }
     else {
-        query = couchbase.ViewQuery.from('users', 'by_username')
+        query = couchbase.ViewQuery.from('users', 'by_email')
             .stale(1);
         db.query(query, function(error, result) {
             if (error) {
