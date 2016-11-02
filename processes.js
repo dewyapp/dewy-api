@@ -60,24 +60,22 @@ exports.getReleases = function(callback) {
                                             siteDoc.lastUpdated = date;
                                             sitesUpdated.push(siteDoc.baseurl);
 
-                                            // Loop through all modules associated with project
-                                            for (module in siteDoc.details.projects[updatedProject.project].modules) {
-                                                if (updatedProject.securityUpdate) {
-                                                    if (!('projectsWithSecurityUpdates' in siteDoc.attributeDetails)) {
-                                                        siteDoc.attributeDetails.projectsWithSecurityUpdates = [];
-                                                    }
-                                                    if (siteDoc.attributeDetails.projectsWithSecurityUpdates.indexOf(module) == -1) {
-                                                        siteDoc.attributeDetails.projectsWithSecurityUpdates.push(module);
-                                                        siteDoc.attributes.projectsWithSecurityUpdates = siteDoc.attributes.projectsWithSecurityUpdates + 1;
-                                                    }
+                                            // Update siteDoc's update/securityUpdate attributes with new project
+                                            if (updatedProject.securityUpdate) {
+                                                if (!('projectsWithSecurityUpdates' in siteDoc.attributeDetails)) {
+                                                    siteDoc.attributeDetails.projectsWithSecurityUpdates = [];
                                                 }
-                                                if (!('projectsWithUpdates' in siteDoc.attributeDetails)) {
-                                                    siteDoc.attributeDetails.projectsWithUpdates = [];
+                                                if (siteDoc.attributeDetails.projectsWithSecurityUpdates.indexOf(updatedProject.project) == -1) {
+                                                    siteDoc.attributeDetails.projectsWithSecurityUpdates.push(updatedProject.project);
+                                                    siteDoc.attributes.projectsWithSecurityUpdates = siteDoc.attributes.projectsWithSecurityUpdates + 1;
                                                 }
-                                                if (siteDoc.attributeDetails.projectsWithUpdates.indexOf(module) == -1) {
-                                                    siteDoc.attributeDetails.projectsWithUpdates.push(module);
-                                                    siteDoc.attributes.projectsWithUpdates = siteDoc.attributes.projectsWithUpdates + 1;
-                                                }
+                                            }
+                                            if (!('projectsWithUpdates' in siteDoc.attributeDetails)) {
+                                                siteDoc.attributeDetails.projectsWithUpdates = [];
+                                            }
+                                            if (siteDoc.attributeDetails.projectsWithUpdates.indexOf(updatedProject.project) == -1) {
+                                                siteDoc.attributeDetails.projectsWithUpdates.push(updatedProject.project);
+                                                siteDoc.attributes.projectsWithUpdates = siteDoc.attributes.projectsWithUpdates + 1;
                                             }
 
                                             console.log('Updating project ' + updatedProject.project + ' for ' + uid + ' on ' + siteDoc.sid);
@@ -121,7 +119,7 @@ exports.getReleases = function(callback) {
                                                 to: user.email,
                                                 subject: subject,
                                                 text: 'Hi ' + user.username + '. ' + updateType + ' (' + updatedProject.releases[0].version + ') has been released for ' + updatedProject.project + ' affecting ' + sitesUpdated.length + ' of your sites.' + detailsText,
-                                                html: 'Hi ' + user.username + '.<br/>' + updateType + ' (<strong>' + updatedProject.releases[0].version '</strong>) has been released for <a href="https://www.drupal.org/project/' + updatedProject.project + '">' + updatedProject.project + '</a> affecting ' + sitesUpdated.length + ' of your sites:' + detailsHTML + '<p></p>',
+                                                html: 'Hi ' + user.username + '.<br/>' + updateType + ' (<strong>' + updatedProject.releases[0].version + '</strong>) has been released for <a href="https://www.drupal.org/project/' + updatedProject.project + '">' + updatedProject.project + '</a> affecting ' + sitesUpdated.length + ' of your sites:' + detailsHTML + '<p></p>',
                                             }, function(error, result) {
                                                 if (error) {
                                                     console.log('Failed to send a notification for ' + user.email);
