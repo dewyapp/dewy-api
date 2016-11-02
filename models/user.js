@@ -132,7 +132,7 @@ User.getUidByUsername = function(username, callback) {
 }
 
 User.prototype.getSubscriptionExpired = function () {
-    if (this.subscription.endDate < Date.now()/1000) {
+    if (config.subscriptionRequired && this.subscription.endDate < Date.now()/1000) {
         return true;
     }
     return false;
