@@ -2,6 +2,7 @@ var async = require('async');
 var randomstring = require('randomstring');
 var uuid = require('uuid');
 var User = require('./models/user');
+var Users = require('./collections/users');
 var sites = require('./models/sites');
 var moment = require('moment');
 var email = require('./helpers/email');
@@ -469,28 +470,7 @@ exports.flushTokens = function(callback) {
 exports.reportSites = function(uid, callback) {
     require('console.table');
 
-    function getUsers(uid, callback) {
-        if (uid) {
-            User.get(uid, function(error, result) {
-                if (error) {
-                    return callback(error);
-                }
-                callback(null, [{key: result.username, value: uid}]);
-            });
-        }
-        else {
-            query = couchbase.ViewQuery.from('users', 'by_username')
-                .stale(1);
-            db.query(query, function(error, result) {
-                if (error) {
-                    return callback(error);
-                }
-                callback(null, result);
-            });
-        }
-    }
-
-    getUsers(uid, function(error, result) {
+    Users.getUsers(uid, function(error, result) {
         if (error) {
             callback(error);
         } else {

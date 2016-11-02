@@ -302,6 +302,7 @@ exports.getReleases = function(callback) {
                 });
             }, 
             function(error) {
+            // Loop through each updated project
             async.eachSeries(updatedProjects, function(updatedProject, callback) {
                 console.log('Project ' + updatedProject.project + '-' + updatedProject.core + ' has new updates');
 
