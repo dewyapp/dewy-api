@@ -363,7 +363,7 @@ exports.getByBaseurl = function(params, callback) {
 }
 
 exports.getByProject = function(project, core, maxModuleUpdateLevel, callback) {
-    query = couchbase.ViewQuery.from('sites', 'by_project')
+    query = couchbase.ViewQuery.from('sites', 'by_uid_and_project')
         .range([project, core, 0], [project, core, maxModuleUpdateLevel])
         .stale(1);
     db.query(query, function(error, result) {

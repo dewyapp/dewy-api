@@ -167,7 +167,25 @@ exports.setup = function (callback) {
                         '}'
                         ].join('\n')
                 },
-                by_project: {
+                by_uid: {
+                    map: [
+                        'function (doc, meta) {',
+                            'if (meta.id.substring(0, 6) == "site::") {',
+                                'emit([doc.uid, doc.fake], doc.sid);',
+                            '}',
+                        '}'
+                        ].join('\n')
+                },
+                by_uid_and_baseurl: {
+                    map: [
+                        'function (doc, meta) {',
+                            'if (meta.id.substring(0, 6) == "site::") {',
+                                'emit([doc.uid, doc.baseurl], doc.sid);',
+                            '}',
+                        '}'
+                        ].join('\n')
+                },
+                by_uid_and_project: {
                     map: [
                         'function (doc, meta) {',
                             'if (meta.id.substring(0, 6) == "site::" && doc.enabled == "1" && doc.audit.lastSuccessfulAudit && doc.audit.errors.length < 3) {',
@@ -188,24 +206,6 @@ exports.setup = function (callback) {
                                         'emit([project, core, moduleUpdateLevel], doc.sid);',
                                     '}',
                                 '}',
-                            '}',
-                        '}'
-                        ].join('\n')
-                },
-                by_uid: {
-                    map: [
-                        'function (doc, meta) {',
-                            'if (meta.id.substring(0, 6) == "site::") {',
-                                'emit([doc.uid, doc.fake], doc.sid);',
-                            '}',
-                        '}'
-                        ].join('\n')
-                },
-                by_uid_and_baseurl: {
-                    map: [
-                        'function (doc, meta) {',
-                            'if (meta.id.substring(0, 6) == "site::") {',
-                                'emit([doc.uid, doc.baseurl], doc.sid);',
                             '}',
                         '}'
                         ].join('\n')
