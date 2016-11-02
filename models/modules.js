@@ -295,86 +295,12 @@ exports.getReleases = function(callback) {
             return;
         }
         var updatedProjects = [];
-        async.each(result, 
-            function(row, callback) {
-                exports.getRelease(row.key[0], row.key[1], updatedProjects, function(error, result) {
-                    callback();
-                });
-            }, 
-            function(error) {
-            // Loop through each updated project
-            async.eachSeries(updatedProjects, function(updatedProject, callback) {
-                console.log('Project ' + updatedProject.project + '-' + updatedProject.core + ' has new updates');
-
-                // Get affected sites and update them
-                var maxModuleUpdateLevel = 0;
-                if (updatedProject.securityUpdate) {
-                    maxModuleUpdateLevel = 1;
-                }
-                // TODO: This will not scale well when we are dealing with 1000s of sites, would need to do this in batches using startKey & limit
-                sites.getByProject(updatedProject.project, updatedProject.core, maxModuleUpdateLevel, function(error, result) {
-                    if (error) {
-                        console.log('Failed to retrieve affected sites: ' + error);
-                        callback();
-                    }
-                    else {
-                        // TODO: We may be getting the same site multiple times if it has multiple modules per project
-                        // Should cache previous site result
-                        var sitesUpdated = 0;
-                        async.eachSeries(result, function(siteResult, callback) {
-                            sites.get(siteResult, function(error, result) {
-                                if (error) {
-                                    console.log('Failed to retrive site ' + sid + ': ' + error);
-                                    callback();
-                                }
-                                else {
-                                    var siteDoc = result;
-                                    var date = new Date().getTime() / 1000;
-                                    date = Math.round(date);
-                                    siteDoc.lastUpdated = date;
-                                    sitesUpdated = sitesUpdated + 1;
-
-                                    // Loop through all modules associated with project
-                                    for (module in siteDoc.details.projects[updatedProject.project].modules) {
-                                        if (updatedProject.securityUpdate) {
-                                            if (!('projectsWithSecurityUpdates' in siteDoc.attributeDetails)) {
-                                                siteDoc.attributeDetails.projectsWithSecurityUpdates = [];
-                                            }
-                                            if (siteDoc.attributeDetails.projectsWithSecurityUpdates.indexOf(module) == -1) {
-                                                siteDoc.attributeDetails.projectsWithSecurityUpdates.push(module);
-                                                siteDoc.attributes.projectsWithSecurityUpdates = siteDoc.attributes.projectsWithSecurityUpdates + 1;
-                                            }
-                                        }
-                                        if (!('projectsWithUpdates' in siteDoc.attributeDetails)) {
-                                            siteDoc.attributeDetails.projectsWithUpdates = [];
-                                        }
-                                        if (siteDoc.attributeDetails.projectsWithUpdates.indexOf(module) == -1) {
-                                            siteDoc.attributeDetails.projectsWithUpdates.push(module);
-                                            siteDoc.attributes.projectsWithUpdates = siteDoc.attributes.projectsWithUpdates + 1;
-                                        }
-                                    }
-
-                                    console.log('Updating project ' + updatedProject.project + ' on ' + siteDoc.sid);
-                                    sites.update(siteDoc, function(error, result) {
-                                        if (error) {
-                                            console.log('Failed to update site ' + siteDoc.sid + ': ' + error);
-                                            callback();
-                                        }
-                                        else {
-                                            callback();
-                                        }
-                                    });
-                                }
-                            });
-                        }, function(error) {
-                            console.log(sitesUpdated + ' sites with project ' + updatedProject.project + ' required updates and were updated');
-                            callback();
-                        });
-                    }
-                });
-            }, function(error) {
-                callback(null, 'Release gathering complete');
+        async.each(result, function(row, callback) {
+            exports.getRelease(row.key[0], row.key[1], updatedProjects, function(error, result) {
+                callback();
             });
+        }, function(error) {
+            callback(null, updatedProjects);
         });
     });
 }
