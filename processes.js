@@ -40,13 +40,14 @@ exports.getReleases = function(callback) {
                 } else {
                     async.eachLimit(result, 1, function(row, callback) {
                         var uid = row.value;
-                        sites.getByProject(uid, updatedProject.project, updatedProject.core, maxModuleUpdateLevel, function(error, result) {
+                        sites.getByProject(uid, updatedProject.project, updatedProject.core, 2, function(error, result) {
                             if (error) {
                                 console.log('Failed to retrieve affected sites for uid ' + uid + ': ' + error);
                                 callback();
                             }
                             else {
-                                var sitesUpdated = [];
+                                var sitesUpdated = 0;
+                                var sitesWithProject = [];
                                 async.eachSeries(result, function(siteResult, callback) {
                                     sites.get(siteResult, function(error, result) {
                                         if (error) {
@@ -54,11 +55,12 @@ exports.getReleases = function(callback) {
                                             callback();
                                         }
                                         else {
+                                            var siteProjectValuesChange = false;
                                             var siteDoc = result;
                                             var date = new Date().getTime() / 1000;
                                             date = Math.round(date);
                                             siteDoc.lastUpdated = date;
-                                            sitesUpdated.push(siteDoc.baseurl);
+                                            sitesWithProject.push({baseurl: siteDoc.baseurl, version: siteDoc.details.projects[updatedProject.project].version });
 
                                             // Update siteDoc's update/securityUpdate attributes with new project
                                             if (updatedProject.securityUpdate) {
@@ -68,6 +70,7 @@ exports.getReleases = function(callback) {
                                                 if (siteDoc.attributeDetails.projectsWithSecurityUpdates.indexOf(updatedProject.project) == -1) {
                                                     siteDoc.attributeDetails.projectsWithSecurityUpdates.push(updatedProject.project);
                                                     siteDoc.attributes.projectsWithSecurityUpdates = siteDoc.attributes.projectsWithSecurityUpdates + 1;
+                                                    siteProjectValuesChange = true;
                                                 }
                                             }
                                             if (!('projectsWithUpdates' in siteDoc.attributeDetails)) {
@@ -76,24 +79,31 @@ exports.getReleases = function(callback) {
                                             if (siteDoc.attributeDetails.projectsWithUpdates.indexOf(updatedProject.project) == -1) {
                                                 siteDoc.attributeDetails.projectsWithUpdates.push(updatedProject.project);
                                                 siteDoc.attributes.projectsWithUpdates = siteDoc.attributes.projectsWithUpdates + 1;
+                                                siteProjectValuesChange = true;
                                             }
 
-                                            console.log('Updating project ' + updatedProject.project + ' for ' + uid + ' on ' + siteDoc.sid);
-                                            sites.update(siteDoc, function(error, result) {
-                                                if (error) {
-                                                    console.log('Failed to update site ' + siteDoc.sid + ': ' + error);
-                                                    callback();
-                                                }
-                                                else {
-                                                    callback();
-                                                }
-                                            });
+                                            if (siteProjectValuesChange) {
+                                                sitesUpdated = sitesUpdated + 1;
+                                                console.log('Updating project ' + updatedProject.project + ' for ' + uid + ' on ' + siteDoc.sid);
+                                                sites.update(siteDoc, function(error, result) {
+                                                    if (error) {
+                                                        console.log('Failed to update site ' + siteDoc.sid + ': ' + error);
+                                                        callback();
+                                                    }
+                                                    else {
+                                                        callback();
+                                                    }
+                                                });
+                                            }
+                                            else {
+                                                callback();
+                                            }
                                         }
                                     });
                                 }, function(error) {
-                                    console.log(sitesUpdated.length + ' sites for user ' + uid + ' with project ' + updatedProject.project + ' required updates and were updated');
+                                    console.log(sitesUpdated + ' siteDocs for user ' + uid + ' with project ' + updatedProject.project + ' required updates and were updated');
                                     // Send an email notification for any updates
-                                    if (sitesUpdated.length) {
+                                    if (sitesWithProject.length) {
                                         // Get user details
                                         User.get(uid, function(error, result) {
                                             var user = result;
@@ -102,9 +112,9 @@ exports.getReleases = function(callback) {
                                             }
                                             var detailsText = '';
                                             var detailsHTML = '</font></p><table border="1" frame="hsides" rules="rows" bordercolor="#EEE" cellpadding="14" width="100%">';
-                                            for (siteUpdated in sitesUpdated) {
-                                                detailsText = detailsText + "\n" + sitesUpdated[siteUpdated];
-                                                detailsHTML = detailsHTML + '<tr><td><span style="font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><strong>' + sitesUpdated[siteUpdated] + '</strong></span></td></tr>'; 
+                                            for (siteWithProject in sitesWithProject) {
+                                                detailsText = detailsText + "\n" + sitesWithProject[siteWithProject].baseurl + ' (' + sitesWithProject[siteWithProject].version + ')';
+                                                detailsHTML = detailsHTML + '<tr><td><span style="font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><font color="#666"><strong>' + sitesWithProject[siteWithProject].baseurl + '</strong></font></span></td><td><span style="font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><font color="#666">' + sitesWithProject[siteWithProject].version + '</font></strong></span></td></tr>'; 
                                             }
                                             detailsHTML = detailsHTML + '</table><p style="padding: 28px 0 28px 0;font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><font color="#666">';
 
@@ -120,8 +130,8 @@ exports.getReleases = function(callback) {
                                             email.send({
                                                 to: user.email,
                                                 subject: subject,
-                                                text: 'Hi ' + user.username + '. ' + updateType + ' (' + updatedProject.latestVersion + ') has been released for ' + updatedProject.project + ' affecting ' + sitesUpdated.length + ' of your sites.' + detailsText + "\n" + additionalInfo,
-                                                html: 'Hi ' + user.username + '.<br/>' + updateType + ' (<strong>' + updatedProject.latestVersion + '</strong>) has been released for <a href="https://www.drupal.org/project/' + updatedProject.project + '">' + updatedProject.project + '</a> affecting ' + sitesUpdated.length + ' of your sites:' + detailsHTML + additionalInfo,
+                                                text: 'Hi ' + user.username + '. ' + updateType + ' (' + updatedProject.latestVersion + ') has been released for ' + updatedProject.project + '. ' + sitesWithProject.length + ' of your sites use the project:' + detailsText + "\n" + additionalInfo,
+                                                html: 'Hi ' + user.username + '.<br/>' + updateType + ' (<strong>' + updatedProject.latestVersion + '</strong>) has been released for <a href="https://www.drupal.org/project/' + updatedProject.project + '">' + updatedProject.project + '</a>. ' + sitesWithProject.length + ' of your sites use the project:' + detailsHTML + additionalInfo,
                                             }, function(error, result) {
                                                 if (error) {
                                                     console.log('Failed to send a notification for ' + user.email);
