@@ -564,6 +564,20 @@ exports.reportSites = function(uid, callback) {
     });
 }
 
+exports.sendEmail = function(emailAddress, callback) {
+    email.send({
+        to: emailAddress,
+        subject: 'Update released for webform_validation',
+        text: "Hi Dewy. An update (7.x-1.12) has been released for webform_validation. 1 of your sites use the project:\nhttp://happyramen.org (7.x-1.10)\nThis is not a security update and no further action is required.",
+        html: "Hi Dewy.<br/>An update (<strong>7.x-1.12</strong>) has been released for <a href='https://www.drupal.org/project/webform_validation'>webform_validation</a>. 1 of your sites use the project:</font></p><table border='1' frame='hsides' rules='rows' bordercolor='#EEE' cellpadding='14' width='100%'><tr><td><span style='font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666'><font color='#666'><strong>http://happyramen.org</strong></font></span></td><td><span style='font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666'><font color='#666'>7.x-1.10</font></strong></span></td></tr></table><p style='padding: 28px 0 28px 0;font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666'><font color='#666'>This is not a security update and no further action is required."
+    }, function(error, result) {
+        if (error) {
+            return callback(error);
+        }
+        callback('Email sent');
+    });
+}
+
 exports.signonToken = function(uid, callback) {
     var expires = new Date(this.now);
     expires.setSeconds(expires.getSeconds() + config.oauth.accessTokenLifetime);

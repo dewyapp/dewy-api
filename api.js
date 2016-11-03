@@ -214,6 +214,21 @@ if (process.argv[2]) {
         });
 
     program
+        .command('send-email <email>')
+        .description('Sends a test template')
+        .action(function (email) {
+            admin.sendEmail(email, function(error, result) {
+                if (error) {
+                    console.log(error);
+                    process.exit(1);
+                } else {
+                    console.log(result);
+                    process.exit(0);
+                }
+            });
+        });
+
+    program
         .command('setup')
         .description('Initialize the database with current configuration')
         .action(function () {
