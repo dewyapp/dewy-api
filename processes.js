@@ -102,7 +102,7 @@ exports.getReleases = function(callback) {
                                     });
                                 }, function(error) {
                                     console.log(sitesUpdated + ' siteDocs for user ' + uid + ' with project ' + updatedProject.project + ' required updates and were updated');
-                                    // Send an email notification for any updates
+                                    // If the user has sites with the updated project in question, do further checks to dermine if notification necessary
                                     if (sitesWithProject.length) {
                                         // Get user details
                                         User.get(uid, function(error, result) {
@@ -110,36 +110,43 @@ exports.getReleases = function(callback) {
                                             if (error) {
                                                 return callback();
                                             }
-                                            var detailsText = '';
-                                            var detailsHTML = '</font></p><table border="1" frame="hsides" rules="rows" bordercolor="#EEE" cellpadding="14" width="100%">';
-                                            for (siteWithProject in sitesWithProject) {
-                                                detailsText = detailsText + "\n" + sitesWithProject[siteWithProject].baseurl + ' (' + sitesWithProject[siteWithProject].version + ')';
-                                                detailsHTML = detailsHTML + '<tr><td><span style="font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><font color="#666"><strong>' + sitesWithProject[siteWithProject].baseurl + '</strong></font></span></td><td><span style="font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><font color="#666">' + sitesWithProject[siteWithProject].version + '</font></strong></span></td></tr>'; 
-                                            }
-                                            detailsHTML = detailsHTML + '</table><p style="padding: 28px 0 28px 0;font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><font color="#666">';
 
-                                            var subject = 'Update released for ' + updatedProject.project;
-                                            var updateType = 'An update';
-                                            var additionalInfo = 'This is not a security update and no further action is required.';
-                                            if (updatedProject.securityUpdate) {
-                                                subject = 'Security update released for ' + updatedProject.project;
-                                                updateType = 'A security update';
-                                                additionalInfo = 'This update is a security update and it is strongly recommended you take action to update your sites.';
-                                            }
-
-                                            email.send({
-                                                to: user.email,
-                                                subject: subject,
-                                                text: 'Hi ' + user.username + '. ' + updateType + ' (' + updatedProject.latestVersion + ') has been released for ' + updatedProject.project + '. ' + sitesWithProject.length + ' of your sites use the project:' + detailsText + "\n" + additionalInfo,
-                                                html: 'Hi ' + user.username + '.<br/>' + updateType + ' (<strong>' + updatedProject.latestVersion + '</strong>) has been released for <a href="https://www.drupal.org/project/' + updatedProject.project + '">' + updatedProject.project + '</a>. ' + sitesWithProject.length + ' of your sites use the project:' + detailsHTML + additionalInfo,
-                                            }, function(error, result) {
-                                                if (error) {
-                                                    console.log('Failed to send a notification for ' + user.email);
-                                                    return callback();
+                                            // If user has notification level that satisfies this project update, send email
+                                            if (user.notifications != 'none' && (updatedProject.securityUpdate || user.notifications == 'all')) {
+                                                var detailsText = '';
+                                                var detailsHTML = '</font></p><table border="1" frame="hsides" rules="rows" bordercolor="#EEE" cellpadding="14" width="100%">';
+                                                for (siteWithProject in sitesWithProject) {
+                                                    detailsText = detailsText + "\n" + sitesWithProject[siteWithProject].baseurl + ' (' + sitesWithProject[siteWithProject].version + ')';
+                                                    detailsHTML = detailsHTML + '<tr><td><span style="font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><font color="#666"><strong>' + sitesWithProject[siteWithProject].baseurl + '</strong></font></span></td><td><span style="font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><font color="#666">' + sitesWithProject[siteWithProject].version + '</font></strong></span></td></tr>'; 
                                                 }
-                                                console.log('Notification sent for ' + uid + ': ' + subject);
+                                                detailsHTML = detailsHTML + '</table><p style="padding: 28px 0 28px 0;font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><font color="#666">';
+
+                                                var subject = 'Update released for ' + updatedProject.project;
+                                                var updateType = 'An update';
+                                                var additionalInfo = 'This is not a security update and no further action is required.';
+                                                if (updatedProject.securityUpdate) {
+                                                    subject = 'Security update released for ' + updatedProject.project;
+                                                    updateType = 'A security update';
+                                                    additionalInfo = 'This update is a security update and it is strongly recommended you take action to update your sites.';
+                                                }
+
+                                                email.send({
+                                                    to: user.email,
+                                                    subject: subject,
+                                                    text: 'Hi ' + user.username + '. ' + updateType + ' (' + updatedProject.latestVersion + ') has been released for ' + updatedProject.project + '. ' + sitesWithProject.length + ' of your sites use the project:' + detailsText + "\n" + additionalInfo,
+                                                    html: 'Hi ' + user.username + '.<br/>' + updateType + ' (<strong>' + updatedProject.latestVersion + '</strong>) has been released for <a href="https://www.drupal.org/project/' + updatedProject.project + '">' + updatedProject.project + '</a>. ' + sitesWithProject.length + ' of your sites use the project:' + detailsHTML + additionalInfo,
+                                                }, function(error, result) {
+                                                    if (error) {
+                                                        console.log('Failed to send a notification for ' + user.email);
+                                                        return callback();
+                                                    }
+                                                    console.log('Notification sent for ' + uid + ': ' + subject);
+                                                    callback();
+                                                });
+                                            }
+                                            else {
                                                 callback();
-                                            });
+                                            }
                                         });
                                     }
                                     else {
