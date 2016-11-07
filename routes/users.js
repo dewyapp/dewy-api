@@ -222,6 +222,9 @@ router.put('/:uid', oauth.authorise(), function (req, res, next) {
         if (req.body.password) {
             user.setPassword(req.body.password);
         }
+        if (req.body.notifications) {
+            user.setNotifications(req.body.notifications);
+        }
 
         // Check user values without creating the user
         if (req.body.check) {
