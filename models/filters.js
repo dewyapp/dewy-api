@@ -1,6 +1,7 @@
 var uuid = require('uuid');
 var couchbase = require('couchbase');
 var db = require('../api.js').bucket;
+var config = require('../config');
 
 exports.create = function(uid, filterDoc, callback) {
     filterDoc.fid = uuid.v4();

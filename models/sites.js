@@ -5,6 +5,7 @@ var db = require('../api.js').bucket;
 var async = require('async');
 var request = require('request');
 var modules = require('../models/modules');
+var config = require('../config');
 
 exports.audit = function(sid, results, callback) {
     db.get('site::' + sid, function(error, result) {
