@@ -1,7 +1,9 @@
 var async = require('async');
 var modules = require('./models/modules');
 var sites = require('./models/sites');
+var filters = require('./models/filters');
 var User = require('./models/user');
+var FilterHistory = require('./models/filterHistory');
 var Users = require('./collections/users');
 var email = require('./helpers/email');
 var couchbase = require('couchbase');
@@ -166,7 +168,83 @@ exports.getReleases = function(callback) {
     });
 }
 
-exports.notifyUsers = function(callback) {
+exports.notifyFilters = function(callback) {
+    query = couchbase.ViewQuery.from('users', 'by_username')
+        .stale(1);
+    db.query(query, function(error, result) {
+        if (error) {
+            return callback(error);
+        }
+        if (result.length) {
+            var results = [];
+            async.eachLimit(result, 1,
+                function(row, callback) {
+                    var uid = row.value;
+                    User.get(uid, function(error, result) {
+                        if (error) {
+                            results.push('Failed to retrieve user ' + uid);
+                            return callback();
+                        }
+                        query = couchbase.ViewQuery.from('filters', 'by_uid')
+                            .key([uid, true]);
+                        db.query(query, function(error, result) {
+                            if (error) {
+                                results.push('Retrieved user ' + uid + ' but failed to retrieve filters');
+                                return callback();
+                            }
+                            for (item in result) {
+                                var filter = result[item].value;
+                                console.log('Filter ' + filter.fid + ' for ' + uid + ' found with notification rules');
+                                sites.getAll(uid, filter.fid, function(error, result) {
+                                    if (error) {
+                                        results.push('Retrieved user ' + uid + ' but failed to retrieve sites from filter ' + filter.fid);
+                                        return callback();
+                                    }
+                                    var sitesInFilter = [];
+                                    for (site in result) {
+                                        sitesInFilter.push(result[site].sid);
+                                    }
+                                    FilterHistory.get(filter.fid, function(error, result) {
+                                        if (error) {
+                                            var result = new FilterHistory(filter.fid, sitesInFilter);
+                                        }
+                                        else {
+                                            result.setSitesInFilter(sitesInFilter);
+                                        }
+                                        result.update(function(error, result) {
+                                            if (error) {
+                                                results.push('Failed to update filter history for ' + uid + ' on filter ' + filter.fid + ': ' + error);
+                                                return callback();
+                                            }
+                                            console.log('Updated filter history for ' + uid + ' on filter ' + filter.fid + ' | site total: ' + result.totalSites + ' | previous site total: ' + result.previousTotalSites + ' | sites added: ' +  result.sitesAdded.length + ' | sites removed: ' + result.sitesRemoved.length);
+                                            callback();
+                                        });
+                                    });
+                                });
+                            }
+                        });
+                    });
+                },
+                function(error){
+                    if (results.length) {
+                        console.log('Notifications for filters finished, ' + results.length + ' non-successful results occurred:');
+                        console.log(results);
+                    }
+                    else {
+                        console.log('Notifications for filters finished');
+                    }
+                    callback();
+                }
+            );  
+        }
+        else {
+            console.log('There are no users to notify');
+            callback();
+        }
+    });
+}
+
+exports.notifySubscriptions = function(callback) {
     query = couchbase.ViewQuery.from('users', 'by_username')
         .stale(1);
     db.query(query, function(error, result) {
@@ -244,11 +322,11 @@ exports.notifyUsers = function(callback) {
                 },
                 function(error){
                     if (results.length) {
-                        console.log('Notifications finished, ' + results.length + ' non-successful results occurred:');
+                        console.log('Notifications for subscriptions finished, ' + results.length + ' non-successful results occurred:');
                         console.log(results);
                     }
                     else {
-                        console.log('Notifications finished');
+                        console.log('Notifications for subscriptions finished');
                     }
                     callback();
                 }

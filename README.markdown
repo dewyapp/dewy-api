@@ -80,7 +80,7 @@
 
 ### Processes
 
-* There are three processes that must be run for Dewy to function properly as a service:
+* There are four processes that must be run for Dewy to function properly as a service:
 
 	1. Pulling site data from sites registered with Dewy
 	
@@ -94,8 +94,14 @@
 		
 			*/30 * * * * ./api.js releases
 	
-	3. Sending notifications around users expiring/expired subscriptions
+	3. Sending notifications for users expiring/expired subscriptions
 	
 		This should be run hourly:
 		
-			0 * * * * ./api.js notify-users
+			0 * * * * ./api.js notify-subscriptions
+
+	4. Sending notifications for user filters that have notification rules
+	
+		This should be run every 30 minutes, staggered from releases:
+		
+			15,45 * * * * ./api.js notify-filters

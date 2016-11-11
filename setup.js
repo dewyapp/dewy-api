@@ -16,7 +16,7 @@ exports.setup = function (callback) {
                                 'if (doc.notifications.appears.enabled || doc.notifications.disappears.enabled || doc.notifications.total.enabled) {',
                                     'notifications = true;',
                                 '}',
-                                'emit([doc.uid], {fid: doc.fid, title: doc.title, notifications: notifications});',
+                                'emit([doc.uid, notifications], {fid: doc.fid, title: doc.title, notifications: notifications});',
                             '}',
                         '}'
                         ].join('\n')

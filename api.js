@@ -170,10 +170,24 @@ if (process.argv[2]) {
         });
 
     program
-        .command('notify-users')
+        .command('notify-filters')
+        .description('Notifies applicable users when filter nofication criteria has been met')
+        .action(function () {
+            processes.notifyFilters(function(error, result) {
+                if (error) {
+                    console.log(error);
+                    process.exit(1);
+                } else {
+                    process.exit(0);
+                }
+            });
+        });
+
+    program
+        .command('notify-subscriptions')
         .description('Notifies applicable users about key dates in their subscriptions')
         .action(function () {
-            processes.notifyUsers(function(error, result) {
+            processes.notifySubscriptions(function(error, result) {
                 if (error) {
                     console.log(error);
                     process.exit(1);
