@@ -510,7 +510,7 @@ exports.get = function(fid, callback) {
 
 exports.getAll = function(uid, callback) {
     query = couchbase.ViewQuery.from('filters', 'by_uid')
-        .key([uid])
+        .range([uid, null], [uid, {}])
         .stale(1);
     db.query(query, function(error, result) {
         if (error) {
@@ -530,7 +530,7 @@ exports.getIndex = function(uid, callback) {
         // Return a default filterIndex if no filterIndex is found
         if (error) {
             query = couchbase.ViewQuery.from('filters', 'by_uid')
-                .key([uid])
+                .range([uid, null], [uid, {}])
                 .stale(1);
             db.query(query, function(error, result) {
                 if (error) {
