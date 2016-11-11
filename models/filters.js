@@ -473,7 +473,13 @@ exports.delete = function(uid, fid, callback) {
                         callback(error, null);
                         return;
                     }
-                    callback(null, result);
+                    db.remove('filterHistory::' + fid, function(error, result) {
+                        if (error) {
+                            callback(error, null);
+                            return;
+                        }
+                        callback(null, result);
+                    });
                 });
             });
         });
