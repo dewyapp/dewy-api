@@ -192,9 +192,10 @@ exports.notifyFilters = function(callback) {
                                 results.push('Retrieved user ' + uid + ' but failed to retrieve filters');
                                 return callback();
                             }
-                            for (item in result) {
-                                var filter = result[item].value;
-                                console.log('Filter ' + filter.fid + ' for ' + uid + ' found with notification rules');
+                            var filters = result;
+                            async.each(filters, function(filter, callback) {
+                                var filter = filter.value;
+                                console.log('Filter ' + filter.fid + ' for user ' + uid + ' found with notification rules');
                                 sites.getAll(uid, filter.fid, function(error, result) {
                                     if (error) {
                                         results.push('Retrieved user ' + uid + ' but failed to retrieve sites from filter ' + filter.fid);
@@ -213,15 +214,17 @@ exports.notifyFilters = function(callback) {
                                         }
                                         result.update(function(error, result) {
                                             if (error) {
-                                                results.push('Failed to update filter history for ' + uid + ' on filter ' + filter.fid + ': ' + error);
+                                                results.push('Failed to update filter history for user ' + uid + ' on filter ' + filter.fid + ': ' + error);
                                                 return callback();
                                             }
-                                            console.log('Updated filter history for ' + uid + ' on filter ' + filter.fid + ' | site total: ' + result.totalSites + ' | previous site total: ' + result.previousTotalSites + ' | sites added: ' +  result.sitesAdded.length + ' | sites removed: ' + result.sitesRemoved.length);
+                                            console.log('Updated filter history for user ' + uid + ' on filter ' + filter.fid + ' | site total: ' + result.totalSites + ' | previous site total: ' + result.previousTotalSites + ' | sites added: ' +  result.sitesAdded.length + ' | sites removed: ' + result.sitesRemoved.length);
                                             callback();
                                         });
                                     });
                                 });
-                            }
+                            }, function (error) {
+                                callback();
+                            });
                         });
                     });
                 },

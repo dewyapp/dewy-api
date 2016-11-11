@@ -97,28 +97,23 @@ FilterHistory.prototype.update = function(callback) {
                 if (error) {
                     return callback(error);
                 }
-                // If the sitesInFilter list was changed, return a list of sites that were once in the filter but no longer, and vice versa
-                if (this.filterHistory.changes.indexOf('sitesInFilter') !== -1) {
-                    var sitesAdded = this.filterHistory.sitesInFilter.slice(0);
-                    for (var sitePreviouslyInFilter in this.filterHistory.sitesPreviouslyInFilter) {
-                        var index = sitesAdded.indexOf(this.filterHistory.sitesPreviouslyInFilter[sitePreviouslyInFilter]);
-                        if (index > -1) {
-                            sitesAdded.splice(index, 1);
-                        }
+                // Return a list of sites that were once in the filter but no longer, and vice versa
+                var sitesAdded = this.filterHistory.sitesInFilter.slice(0);
+                for (var sitePreviouslyInFilter in this.filterHistory.sitesPreviouslyInFilter) {
+                    var index = sitesAdded.indexOf(this.filterHistory.sitesPreviouslyInFilter[sitePreviouslyInFilter]);
+                    if (index > -1) {
+                        sitesAdded.splice(index, 1);
                     }
-                    var sitesRemoved = this.filterHistory.sitesPreviouslyInFilter.slice(0);
-                    for (var siteInFilter in this.filterHistory.sitesInFilter) {
-                        var index = sitesRemoved.indexOf(this.filterHistory.sitesInFilter[siteInFilter]);
-                        if (index > -1) {
-                            sitesRemoved.splice(index, 1);
-                        }
+                }
+                var sitesRemoved = this.filterHistory.sitesPreviouslyInFilter.slice(0);
+                for (var siteInFilter in this.filterHistory.sitesInFilter) {
+                    var index = sitesRemoved.indexOf(this.filterHistory.sitesInFilter[siteInFilter]);
+                    if (index > -1) {
+                        sitesRemoved.splice(index, 1);
                     }
+                }
 
-                    callback(null, {totalSites: this.filterHistory.sitesInFilter.length, previousTotalSites: this.filterHistory.sitesPreviouslyInFilter.length, sitesAdded: [], sitesRemoved: []});
-                }
-                else {
-                    callback(null, this.filterHistory.getFilterHistoryDoc());
-                }
+                callback(null, {totalSites: this.filterHistory.sitesInFilter.length, previousTotalSites: this.filterHistory.sitesPreviouslyInFilter.length, sitesAdded: sitesAdded, sitesRemoved: sitesRemoved});
             }.bind( {filterHistory: this.filterHistory} ));
         }
     }.bind( {filterHistory: this} ));
