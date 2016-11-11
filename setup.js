@@ -13,7 +13,7 @@ exports.setup = function (callback) {
                         'function (doc, meta) {',
                             'if (meta.id.substring(0, 8) == "filter::") {',
                                 'var notifications = false;',
-                                'if (doc.notifications.appears.enabled || doc.notifications.appears.enabled || doc.notifications.total.enabled) {',
+                                'if (doc.notifications.appears.enabled || doc.notifications.disappears.enabled || doc.notifications.total.enabled) {',
                                     'notifications = true;',
                                 '}',
                                 'emit([doc.uid], {fid: doc.fid, title: doc.title, notifications: notifications});',
