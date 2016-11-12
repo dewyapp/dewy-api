@@ -113,7 +113,7 @@ FilterHistory.prototype.update = function(callback) {
                     }
                 }
 
-                callback(null, {totalSites: this.filterHistory.sitesInFilter.length, previousTotalSites: this.filterHistory.sitesPreviouslyInFilter.length, sitesAdded: sitesAdded, sitesRemoved: sitesRemoved});
+                callback(null, {sites: this.filterHistory.sitesInFilter, previousSites: this.filterHistory.sitesPreviouslyInFilter, sitesAdded: sitesAdded, sitesRemoved: sitesRemoved});
             }.bind( {filterHistory: this.filterHistory} ));
         }
     }.bind( {filterHistory: this} ));

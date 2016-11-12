@@ -169,6 +169,7 @@ exports.getReleases = function(callback) {
 }
 
 exports.notifyFilters = function(callback) {
+    // Get all users
     query = couchbase.ViewQuery.from('users', 'by_username')
         .stale(1);
     db.query(query, function(error, result) {
@@ -180,11 +181,15 @@ exports.notifyFilters = function(callback) {
             async.eachLimit(result, 1,
                 function(row, callback) {
                     var uid = row.value;
+                    // Get the individual user
                     User.get(uid, function(error, result) {
                         if (error) {
                             results.push('Failed to retrieve user ' + uid);
                             return callback();
                         }
+
+                        var user = result;
+                        // Get a filters with notifications enabled for that user
                         query = couchbase.ViewQuery.from('filters', 'by_uid')
                             .key([uid, true]);
                         db.query(query, function(error, result) {
@@ -192,33 +197,121 @@ exports.notifyFilters = function(callback) {
                                 results.push('Retrieved user ' + uid + ' but failed to retrieve filters');
                                 return callback();
                             }
+
                             var filters = result;
                             async.each(filters, function(filter, callback) {
-                                var filter = filter.value;
-                                console.log('Filter ' + filter.fid + ' for user ' + uid + ' found with notification rules');
-                                sites.getAll(uid, filter.fid, function(error, result) {
+                                // Get filter details
+                                db.get('filter::' + filter.value.fid, function(error, result) {
                                     if (error) {
-                                        results.push('Retrieved user ' + uid + ' but failed to retrieve sites from filter ' + filter.fid);
+                                        results.push('Retrieved user ' + uid + ' but failed to retrieve filter ' + filter.fid);
                                         return callback();
                                     }
-                                    var sitesInFilter = [];
-                                    for (site in result) {
-                                        sitesInFilter.push(result[site].sid);
-                                    }
-                                    FilterHistory.get(filter.fid, function(error, result) {
+
+                                    var filter = result.value;
+                                    console.log('Filter ' + filter.fid + ' for user ' + uid + ' found with notification rules');
+                                    // Process the filter and retrive list of sites
+                                    sites.getAll(uid, filter.fid, function(error, result) {
                                         if (error) {
-                                            var result = new FilterHistory(filter.fid, sitesInFilter);
+                                            results.push('Retrieved user ' + uid + ' but failed to retrieve sites from filter ' + filter.fid);
+                                            return callback();
                                         }
-                                        else {
-                                            result.setSitesInFilter(sitesInFilter);
+
+                                        var sitesInFilter = [];
+                                        for (site in result) {
+                                            sitesInFilter.push(result[site].sid);
                                         }
-                                        result.update(function(error, result) {
+                                        // Add site results to filter history
+                                        FilterHistory.get(filter.fid, function(error, result) {
                                             if (error) {
-                                                results.push('Failed to update filter history for user ' + uid + ' on filter ' + filter.fid + ': ' + error);
-                                                return callback();
+                                                var result = new FilterHistory(filter.fid, sitesInFilter);
                                             }
-                                            console.log('Updated filter history for user ' + uid + ' on filter ' + filter.fid + ' | site total: ' + result.totalSites + ' | previous site total: ' + result.previousTotalSites + ' | sites added: ' +  result.sitesAdded.length + ' | sites removed: ' + result.sitesRemoved.length);
-                                            callback();
+                                            else {
+                                                result.setSitesInFilter(sitesInFilter);
+                                            }
+                                            result.update(function(error, result) {
+                                                if (error) {
+                                                    results.push('Failed to update filter history for user ' + uid + ' on filter ' + filter.fid + ': ' + JSON.stringify(error));
+                                                    return callback();
+                                                }
+                                                console.log('Updated filter history for user ' + uid + ' on filter ' + filter.fid + ' | site total: ' + result.sites.length + ' | previous site total: ' + result.previousSites.length + ' | sites added: ' +  result.sitesAdded.length + ' | sites removed: ' + result.sitesRemoved.length);
+                                                
+                                                // With filter history in hand, see if filter notification rules are satisfied
+                                                var emailsToSend = {};
+                                                if (filter.notifications.appears.enabled && result.sitesAdded.length) {
+                                                    var detailsText = '';
+                                                    var detailsHTML = '</font></p><table border="1" frame="hsides" rules="rows" bordercolor="#EEE" cellpadding="14" width="100%">';
+                                                    for (site in result.sitesAdded) {
+                                                        detailsText = detailsText + "\n" + result.sitesAdded[site];
+                                                        detailsHTML = detailsHTML + '<tr><td><span style="font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><font color="#666"><strong>' + result.sitesAdded[site] + '</strong></font></span></td></tr>'; 
+                                                    }
+                                                    detailsHTML = detailsHTML + '</table>';
+                                                    var subject = result.sitesAdded.length + ' sites are now on the filter "' + filter.title + '"';
+                                                    if (result.sitesAdded.length == 1) {
+                                                        subject = result.sitesAdded.length + ' site is now on the filter "' + filter.title + '"';
+                                                    }
+
+                                                    emailsToSend['sitesAdded'] = async.apply(email.send, {
+                                                        to: user.email,
+                                                        subject: subject,
+                                                        text: 'Hi ' + user.username + '.\nThe following sites now appear on the filter "' + filter.title + '":' + detailsText,
+                                                        html: 'Hi ' + user.username + '.<br/>The following sites now appear on the filter "' + filter.title + '":' + detailsHTML,
+                                                    });
+                                                }
+                                                if (filter.notifications.disappears.enabled && result.sitesRemoved.length) {
+                                                    var detailsText = '';
+                                                    var detailsHTML = '</font></p><table border="1" frame="hsides" rules="rows" bordercolor="#EEE" cellpadding="14" width="100%">';
+                                                    for (site in result.sitesRemoved) {
+                                                        detailsText = detailsText + "\n" + result.sitesRemoved[site];
+                                                        detailsHTML = detailsHTML + '<tr><td><span style="font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><font color="#666"><strong>' + result.sitesRemoved[site] + '</strong></font></span></td></tr>'; 
+                                                    }
+                                                    detailsHTML = detailsHTML + '</table>';
+                                                    var subject = result.sitesRemoved.length + ' sites are no longer on the filter "' + filter.title + '"';
+                                                    if (result.sitesRemoved.length == 1) {
+                                                        subject = result.sitesRemoved.length + ' site is no longer on the filter "' + filter.title + '"';
+                                                    }
+
+                                                    emailsToSend['sitesRemoved'] = async.apply(email.send, {
+                                                        to: user.email,
+                                                        subject: subject,
+                                                        text: 'Hi ' + user.username + '.\nThe following sites no longer appear on the filter "' + filter.title + '":' + detailsText,
+                                                        html: 'Hi ' + user.username + '.<br/>The following sites no longer appear on the filter "' + filter.title + '":' + detailsHTML,
+                                                    });
+                                                }
+                                                if (filter.notifications.total.enabled && result.sites.length != result.previousSites.length && ((filter.notifications.total.choice == 'is' && result.sites.length == filter.notifications.total.value) ||
+                                                (filter.notifications.total.choice == 'is not' && result.sites.length != filter.notifications.total.value) ||
+                                                (filter.notifications.total.choice == 'is greater than' && result.sites.length > filter.notifications.total.value) ||
+                                                (filter.notifications.total.choice == 'is less than' && result.sites.length < filter.notifications.total.value) ||
+                                                (filter.notifications.total.choice == 'is greater than or equal to' && result.sites.length >= filter.notifications.total.value) ||
+                                                (filter.notifications.total.choice == 'is less than or equal to' && result.sites.length <= filter.notifications.total.value))) {
+                                                    var detailsText = '';
+                                                    var detailsHTML = '</font></p><table border="1" frame="hsides" rules="rows" bordercolor="#EEE" cellpadding="14" width="100%">';
+                                                    for (site in result.sites) {
+                                                        detailsText = detailsText + "\n" + result.sites[site];
+                                                        detailsHTML = detailsHTML + '<tr><td><span style="font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><font color="#666"><strong>' + result.sites[site] + '</strong></font></span></td></tr>'; 
+                                                    }
+                                                    detailsHTML = detailsHTML + '</table>';
+                                                    var subject = 'There are now ' + result.sites.length + ' sites on the filter "' + filter.title + '"';
+                                                    if (result.sites.length == 1) {
+                                                        subject = 'There is now ' + result.sites.length + ' site on the filter "' + filter.title + '"';
+                                                    }
+
+                                                    emailsToSend['sitesTotal'] = async.apply(email.send, {
+                                                        to: user.email,
+                                                        subject: subject,
+                                                        text: 'Hi ' + user.username + '.\nThe following sites are on the filter "' + filter.title + '":' + detailsText,
+                                                        html: 'Hi ' + user.username + '.<br/>The following sites are on the filter "' + filter.title + '":' + detailsHTML,
+                                                    });
+                                                }
+
+                                                // Send emails
+                                                async.series(emailsToSend, function(error, result) {
+                                                    if (error) {
+                                                        results.push('Failed to send notification to user ' + uid + ' on filter ' + filter.fid + ': ' + error);
+                                                        return callback();
+                                                    }
+                                                    callback();
+                                                });
+                                            });
                                         });
                                     });
                                 });
@@ -298,21 +391,21 @@ exports.notifySubscriptions = function(callback) {
                             user.setLastNotified();
                             user.update(null, function(error, result) {
                                 if (error) {
-                                    results.push('Failed to send a notification for ' + row.id);
+                                    results.push('Failed to send a notification for ' + user.uid);
                                     callback();
                                 }
                                 else {
                                     email.send({
                                         to: user.email,
                                         subject: subject,
-                                        text: 'Hi ' + user.username + '. ' + text,
+                                        text: 'Hi ' + user.username + '.\n' + text,
                                         html: 'Hi ' + user.username + '.<br/>' + text,
                                     }, function(error, result) {
                                         if (error) {
-                                            results.push('Failed to send a notification for ' + row.id);
+                                            results.push('Failed to send a notification for ' + user.uid);
                                             return callback();
                                         }
-                                        console.log('Notification sent for ' + row.id + ': ' + subject);
+                                        console.log('Notification sent for ' + user.uid + ': ' + subject);
                                         callback();
                                     });
                                 }
