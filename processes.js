@@ -216,9 +216,11 @@ exports.notifyFilters = function(callback) {
                                             return callback();
                                         }
 
+                                        var siteBaseURLsInFilter = {}
                                         var sitesInFilter = [];
                                         for (site in result) {
                                             sitesInFilter.push(result[site].sid);
+                                            siteBaseURLsInFilter[result[site].sid] = result[site].baseurl;
                                         }
                                         // Add site results to filter history
                                         FilterHistory.get(filter.fid, function(error, result) {
@@ -241,13 +243,13 @@ exports.notifyFilters = function(callback) {
                                                     var detailsText = '';
                                                     var detailsHTML = '</font></p><table border="1" frame="hsides" rules="rows" bordercolor="#EEE" cellpadding="14" width="100%">';
                                                     for (site in result.sitesAdded) {
-                                                        detailsText = detailsText + "\n" + result.sitesAdded[site];
-                                                        detailsHTML = detailsHTML + '<tr><td><span style="font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><font color="#666"><strong>' + result.sitesAdded[site] + '</strong></font></span></td></tr>'; 
+                                                        detailsText = detailsText + "\n" + siteBaseURLsInFilter[result.sitesAdded[site]];
+                                                        detailsHTML = detailsHTML + '<tr><td><span style="font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><font color="#666"><strong>' + siteBaseURLsInFilter[result.sitesAdded[site]] + '</strong></font></span></td></tr>'; 
                                                     }
                                                     detailsHTML = detailsHTML + '</table>';
-                                                    var subject = result.sitesAdded.length + ' sites are now on the filter "' + filter.title + '"';
+                                                    var subject = result.sitesAdded.length + ' new sites are now on the filter "' + filter.title + '"';
                                                     if (result.sitesAdded.length == 1) {
-                                                        subject = result.sitesAdded.length + ' site is now on the filter "' + filter.title + '"';
+                                                        subject = result.sitesAdded.length + ' new site is now on the filter "' + filter.title + '"';
                                                     }
 
                                                     emailsToSend['sitesAdded'] = async.apply(email.send, {
@@ -261,8 +263,8 @@ exports.notifyFilters = function(callback) {
                                                     var detailsText = '';
                                                     var detailsHTML = '</font></p><table border="1" frame="hsides" rules="rows" bordercolor="#EEE" cellpadding="14" width="100%">';
                                                     for (site in result.sitesRemoved) {
-                                                        detailsText = detailsText + "\n" + result.sitesRemoved[site];
-                                                        detailsHTML = detailsHTML + '<tr><td><span style="font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><font color="#666"><strong>' + result.sitesRemoved[site] + '</strong></font></span></td></tr>'; 
+                                                        detailsText = detailsText + "\n" + siteBaseURLsInFilter[result.sitesRemoved[site]];
+                                                        detailsHTML = detailsHTML + '<tr><td><span style="font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><font color="#666"><strong>' + siteBaseURLsInFilter[result.sitesRemoved[site]] + '</strong></font></span></td></tr>'; 
                                                     }
                                                     detailsHTML = detailsHTML + '</table>';
                                                     var subject = result.sitesRemoved.length + ' sites are no longer on the filter "' + filter.title + '"';
@@ -286,8 +288,8 @@ exports.notifyFilters = function(callback) {
                                                     var detailsText = '';
                                                     var detailsHTML = '</font></p><table border="1" frame="hsides" rules="rows" bordercolor="#EEE" cellpadding="14" width="100%">';
                                                     for (site in result.sites) {
-                                                        detailsText = detailsText + "\n" + result.sites[site];
-                                                        detailsHTML = detailsHTML + '<tr><td><span style="font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><font color="#666"><strong>' + result.sites[site] + '</strong></font></span></td></tr>'; 
+                                                        detailsText = detailsText + "\n" + siteBaseURLsInFilter[result.sites[site]];
+                                                        detailsHTML = detailsHTML + '<tr><td><span style="font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><font color="#666"><strong>' + siteBaseURLsInFilter[result.sites[site]] + '</strong></font></span></td></tr>'; 
                                                     }
                                                     detailsHTML = detailsHTML + '</table>';
                                                     var subject = 'There are now ' + result.sites.length + ' sites on the filter "' + filter.title + '"';
