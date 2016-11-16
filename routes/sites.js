@@ -28,7 +28,7 @@ router.post('/', function (req, res, next) {
             if (config.debug) {
                 console.error('Failed to get UID by API key:' + error);
             }
-            return res.status(500).send(error);
+            return res.status(500).send('Dewy failed to lookup API key.');
         }
         if (!result) {
             return res.status(401).send("The API key is not valid. It may have been reset, please confirm on Dewy.io.");
