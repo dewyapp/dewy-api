@@ -302,6 +302,8 @@ else {
     module.exports.oauth = app.oauth;
 
     // API endpoints
+    var drupalRoleRoutes = require('./routes/drupalRoles');
+    var drupalUserRoutes = require('./routes/drupalUsers');
     var fieldRoutes = require('./routes/fields');
     var filterRoutes = require('./routes/filters');
     var moduleRoutes = require('./routes/modules');
@@ -310,6 +312,8 @@ else {
     var siteRoutes = require('./routes/sites');
     var stripeRoutes = require('./routes/stripe');
     var userRoutes = require('./routes/users');
+    app.use('/drupalRoles', drupalRoleRoutes);
+    app.use('/drupalUsers', drupalUserRoutes);
     app.use('/fields', fieldRoutes);
     app.use('/filters', filterRoutes);
     app.use('/modules', moduleRoutes);
