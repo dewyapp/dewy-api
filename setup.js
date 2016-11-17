@@ -6,6 +6,60 @@ var async = require('async');
 exports.setup = function (callback) {
     // Design documents
     var design_docs = {
+        drupalUsers: {
+            views: {
+                from_audited_sites_by_uid: {
+                    map: [
+                        'function (doc, meta) {',
+                            'if (meta.id.substring(0, 6) == "site::" && doc.enabled == "1" && doc.audit.lastSuccessfulAudit && doc.audit.errors.length < 3) {',
+                                'var core = doc.details.drupal_core.split(".");',
+                                'core = core[0] + ".x";',
+                                'for (user in doc.details.users) {',
+                                    'var blocked = 0',
+                                    'if (doc.details.users[user].status == 0) {',
+                                        'blocked = 1',
+                                    '}',
+                                    'var last_access = [];',
+                                    'if (doc.details.users[user].last_access > 0) {',
+                                        'last_access = [doc.details.users[user].last_access]',
+                                    '}',
+                                    'emit([doc.uid, user, doc.details.users[user].mail], {baseurls: [doc.baseurl], available: 1, blocked: blocked, created: doc.details.users[user].created, last_access: last_access, roles: doc.details.users[user].roles});',
+                                '}',
+                            '}',
+                        '}'
+                        ].join('\n'),
+                    reduce: [
+                        'function(key, values, rereduce) {',
+                            'var result = values[0];',
+                            'var baseurls = {}',
+                            'var roles = {}',
+                            'result.available = 1',
+                            'for(var i = 1; i < values.length; i++) {',
+                                'result.available += 1',
+                                'result.blocked += values[i].blocked;',
+                                'result.created += values[i].created;',
+                                'result.securityUpdate += values[i].securityUpdate;',
+                                'for (var j = 0; j < values[i].baseurls.length; j++) {',
+                                    'var baseurl = values[i].baseurls[j];',
+                                    'if (!baseurls[baseurl]) {',
+                                        'result.baseurls.push(baseurl);',
+                                        'baseurls[baseurl] = true;',
+                                    '}',
+                                '}',
+                                'for (var j = 0; j < values[i].roles.length; j++) {',
+                                    'var role = values[i].roles[j];',
+                                    'if (!roles[role]) {',
+                                        'result.roles.push(role);',
+                                        'roles[role] = true;',
+                                    '}',
+                                '}',
+                            '}',
+                            'return result;',
+                        '}'
+                        ].join('\n')
+                }
+            }
+        },
         filters: {
             views: {
                 by_uid: {
