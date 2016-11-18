@@ -338,6 +338,51 @@ exports.createDesignDoc = function(filterDoc, callback) {
 
     var designDoc = {
         views: {
+            drupalUsers: {
+                map: [
+                    'function (doc, meta) {',
+                        'if (meta.id.substring(0, 6) == "site::" && doc.uid == "' + filterDoc.uid + '" && doc.enabled == "1" && doc.audit.lastSuccessfulAudit && doc.audit.errors.length < 3) {',
+                            processedRules.test,
+                            'if (' + processedRules.rule + ') {',
+                                'var core = doc.details.drupal_core.split(".");',
+                                'core = core[0] + ".x";',
+                                'for (user in doc.details.users) {',
+                                    'var blocked = 0',
+                                    'if (doc.details.users[user].status == 0) {',
+                                        'blocked = 1',
+                                    '}',
+                                    'var last_access = [];',
+                                    'if (doc.details.users[user].last_access > 0) {',
+                                        'last_access = [doc.details.users[user].last_access]',
+                                    '}',
+                                    'emit([doc.uid, user, doc.details.users[user].mail], {baseurls: [doc.baseurl], available: 1, blocked: blocked, created: doc.details.users[user].created, last_access: last_access, roles: doc.details.users[user].roles});',
+                                '}',
+                            '}',
+                        '}',
+                    '}'
+                    ].join('\n'),
+                reduce: [
+                    'function(key, values, rereduce) {',
+                        'var roles = {}',
+                        'var result = {baseurls: [], available: 0, blocked: 0, created: 0, last_access: 0, roles: []};',
+                        'for(var i = 0; i < values.length; i++) {',
+                            'result.available += 1',
+                            'result.blocked += values[i].blocked;',
+                            'result.created += values[i].created;',
+                            'result.last_access += values[i].last_access;',
+                            'result.baseurls.push(values[i].baseurl);',
+                            'for (var j = 0; j < values[i].roles.length; j++) {',
+                                'var role = values[i].roles[j];',
+                                'roles[role] = true;',
+                            '}',
+                        '}',
+                        'for (role in roles) {',
+                            'result.roles.push(role);',
+                        '}',
+                        'return result;',
+                    '}'
+                    ].join('\n')
+            },
             modules: {
                 map: [
                     'function (doc, meta) {',
