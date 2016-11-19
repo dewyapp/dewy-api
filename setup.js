@@ -23,7 +23,7 @@ exports.setup = function (callback) {
                                     'if (doc.details.users[user].last_access > 0) {',
                                         'last_access = [doc.details.users[user].last_access]',
                                     '}',
-                                    'emit([doc.uid, user, doc.details.users[user].mail], {baseurls: [doc.baseurl], available: 1, blocked: blocked, created: doc.details.users[user].created, last_access: last_access, roles: doc.details.users[user].roles});',
+                                    'emit([doc.uid, user, doc.details.users[user].mail], {baseurl: doc.baseurl, available: 1, blocked: blocked, created: doc.details.users[user].created, last_access: last_access, roles: doc.details.users[user].roles});',
                                 '}',
                             '}',
                         '}'
