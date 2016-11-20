@@ -6,14 +6,54 @@ var async = require('async');
 exports.setup = function (callback) {
     // Design documents
     var design_docs = {
+        drupalRoles: {
+            views: {
+                from_audited_sites_by_uid: {
+                    map: [
+                        'function (doc, meta) {',
+                            'if (meta.id.substring(0, 6) == "site::" && doc.enabled == "1" && doc.audit.lastSuccessfulAudit && doc.audit.errors.length < 3) {',
+                                'for (user in doc.details.users) {',
+                                    'for (role in doc.details.users[user].roles) {',
+                                        'emit([doc.uid, doc.details.users[user].roles[role]], {baseurl: doc.baseurl, username: user, email: doc.details.users[user].mail});',
+                                    '}',
+                                '}',
+                            '}',
+                        '}'
+                        ].join('\n'),
+                    reduce: [
+                        'function(key, values, rereduce) {',
+                            'var baseurls = {}',
+                            'var users = {}',
+                            'var result = {baseurls: [], users: []};',
+                            'for(var i = 0; i < values.length; i++) {',
+                                'baseurls[values[i].baseurl] = true;',
+                                'if (users[values[i].username]) {',
+                                    'if (users[values[i].username].indexOf(values[i].email) == -1) {',
+                                        'users[values[i].username].push(values[i].email);',
+                                    '}',
+                                '}',
+                                'else {',
+                                    'users[values[i].username] = [values[i].email];',
+                                '}',
+                            '}',
+                            'for (baseurl in baseurls) {',
+                                'result.baseurls.push(baseurl);',
+                            '}',
+                            'for (user in users) {',
+                                'result.users.push({name: user, emails: users[user]});',
+                            '}',
+                            'return result;',
+                        '}'
+                        ].join('\n')
+                }
+            }
+        },
         drupalUsers: {
             views: {
                 from_audited_sites_by_uid: {
                     map: [
                         'function (doc, meta) {',
                             'if (meta.id.substring(0, 6) == "site::" && doc.enabled == "1" && doc.audit.lastSuccessfulAudit && doc.audit.errors.length < 3) {',
-                                'var core = doc.details.drupal_core.split(".");',
-                                'core = core[0] + ".x";',
                                 'for (user in doc.details.users) {',
                                     'var blocked = 0',
                                     'if (doc.details.users[user].status == 0) {',
