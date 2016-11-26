@@ -1,15 +1,15 @@
 var couchbase = require('couchbase');
 var db = require('../api.js').bucket;
 
-exports.get = function(uid, fid, module, callback) {
+exports.get = function(uid, fid, user, callback) {
     if (fid == null) {
         query = couchbase.ViewQuery.from('drupalUsers', 'from_audited_sites_by_uid')
-            .range([uid, module, null], [uid, module, {}])
+            .range([uid, user, null], [uid, user, {}])
             .reduce(false)
             .stale(1);
     } else {
         query = couchbase.ViewQuery.from('users-filter-' + fid, 'drupalUsers')
-            .range([uid, module, null], [uid, module, {}])
+            .range([uid, user, null], [uid, user, {}])
             .reduce(false)
             .stale(1);
     }
@@ -19,7 +19,7 @@ exports.get = function(uid, fid, module, callback) {
             return;
         }
 
-        var moduleData = {
+        var userData = {
             v: {}, //versions
             a: [], //sitesWithAvailable
             e: [], //sitesWithEnabled
@@ -30,31 +30,31 @@ exports.get = function(uid, fid, module, callback) {
 
         for (item in result) {
 
-            var moduleResult = result[item].value;
+            var userResult = result[item].value;
             var version = result[item].key[2];
 
-            if (version in moduleData.v) {
-                moduleData.v[version] = moduleData.v[version].concat(moduleResult.baseurls);
+            if (version in userData.v) {
+                userData.v[version] = userData.v[version].concat(userResult.baseurls);
             }
             else {
-                moduleData.v[version] = moduleResult.baseurls;
+                userData.v[version] = userResult.baseurls;
             }
-            moduleData.p = moduleResult.project;
-            moduleData.a = moduleData.a.concat(moduleResult.baseurls);
-            if (moduleResult.enabled) {
-                moduleData.e = moduleData.e.concat(moduleResult.baseurls);
+            userData.p = userResult.project;
+            userData.a = userData.a.concat(userResult.baseurls);
+            if (userResult.enabled) {
+                userData.e = userData.e.concat(userResult.baseurls);
             }
-            if (moduleResult.databaseUpdate) {
-                moduleData.d = moduleData.d.concat(moduleResult.baseurls);
+            if (userResult.databaseUpdate) {
+                userData.d = userData.d.concat(userResult.baseurls);
             }
-            if (moduleResult.update) {
-                moduleData.u = moduleData.u.concat(moduleResult.baseurls);
+            if (userResult.update) {
+                userData.u = userData.u.concat(userResult.baseurls);
             }
-            if (moduleResult.securityUpdate) {
-                moduleData.s = moduleData.s.concat(moduleResult.baseurls);
+            if (userResult.securityUpdate) {
+                userData.s = userData.s.concat(userResult.baseurls);
             }
         }
-        callback(null, moduleData);
+        callback(null, userData);
     });
 }
 
@@ -78,36 +78,47 @@ exports.getAll = function(uid, fid, callback) {
         }
 
         var baseUrls = [];
-        var modules = [];
-        var moduleIndex = [];
+        var users = [];
+        var usersRoles = [];
+        var userIndex = [];
 
         for (item in result) {
-            var moduleResult = result[item].value;
-            baseUrls = baseUrls.concat(moduleResult.baseurls);
-            var module = result[item].key[1];
+            var userResult = result[item].value;
+            baseUrls = baseUrls.concat(userResult.baseurls);
+            var user = result[item].key[1];
 
-            if (moduleIndex.indexOf(module) == -1) {
-                modules[moduleIndex.length] = {
-                    m: module,
-                    v: 0, //versions
-                    a: 0, //sitesWithAvailable
-                    e: 0, //sitesWithEnabled
-                    d: 0, //sitesWithDatabaseUpdates
-                    u: 0, //sitesWithUpdates
-                    s: 0 //sitesWithSecurityUpdates
+            if (userIndex.indexOf(user) == -1) {
+                users[userIndex.length] = {
+                    u: user,
+                    e: 0, //emails
+                    a: 0, //sitesAvailable
+                    b: 0, //sitesBlocked
+                    c: 0, //totalCreatedDate
+                    l: 0, //totalLastAccess
+                    r: 0 //roles
                 };
-                moduleIndex.push(module);
+                usersRoles[userIndex.length] = [];
+                userIndex.push(user);
             }
 
-            // Each row is a different version, add it to list and increment overall totals
-            modules[moduleIndex.indexOf(module)].v += 1;
-            modules[moduleIndex.indexOf(module)].a += moduleResult.available;
-            modules[moduleIndex.indexOf(module)].e += moduleResult.enabled;
-            modules[moduleIndex.indexOf(module)].d += moduleResult.databaseUpdate;
-            modules[moduleIndex.indexOf(module)].u += moduleResult.update;
-            modules[moduleIndex.indexOf(module)].s += moduleResult.securityUpdate;
+            // Each row is a different email address, add it to list and increment overall totals
+            users[userIndex.indexOf(user)].e += 1;
+            users[userIndex.indexOf(user)].a += userResult.available;
+            users[userIndex.indexOf(user)].b += userResult.blocked;
+            users[userIndex.indexOf(user)].c += userResult.created;
+            users[userIndex.indexOf(user)].l += userResult.last_access;
+
+            for (var i=0; i<userResult.roles.length; i++) {
+                var role = userResult.roles[i];
+                // Check if role hasn't been added to this user's role total before adding
+                if (usersRoles[userIndex.indexOf(user)].indexOf(role) == -1) {
+                    users[userIndex.indexOf(user)].r += 1;
+                    usersRoles[userIndex.indexOf(user)].push(role);
+                }
+            }
         }
         var baseUrls = baseUrls.filter((v, i, a) => a.indexOf(v) === i); 
-        callback(null, {modules: modules, siteTotal: baseUrls.length});
+        console.log({users: users, siteTotal: baseUrls.length});
+        callback(null, {users: users, siteTotal: baseUrls.length});
     });
 }
