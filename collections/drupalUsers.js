@@ -95,6 +95,7 @@ exports.getAll = function(uid, fid, callback) {
                     b: 0, //sitesBlocked
                     c: 0, //totalCreatedDate
                     l: 0, //totalLastAccess
+                    n: 0, //sitesNotUsed
                     r: 0 //roles
                 };
                 usersRoles[userIndex.length] = [];
@@ -107,6 +108,7 @@ exports.getAll = function(uid, fid, callback) {
             users[userIndex.indexOf(user)].b += userResult.blocked;
             users[userIndex.indexOf(user)].c += userResult.created;
             users[userIndex.indexOf(user)].l += userResult.last_access;
+            users[userIndex.indexOf(user)].n += userResult.not_used;
 
             for (var i=0; i<userResult.roles.length; i++) {
                 var role = userResult.roles[i];
@@ -118,7 +120,6 @@ exports.getAll = function(uid, fid, callback) {
             }
         }
         var baseUrls = baseUrls.filter((v, i, a) => a.indexOf(v) === i); 
-        console.log({users: users, siteTotal: baseUrls.length});
         callback(null, {users: users, siteTotal: baseUrls.length});
     });
 }
