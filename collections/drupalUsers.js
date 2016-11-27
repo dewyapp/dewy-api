@@ -47,9 +47,11 @@ exports.get = function(uid, fid, user, callback) {
             if (userResult.not_used) {
                 userData.n.push(userResult.baseurl);
             }
+            else {
+                userData.l += userResult.last_access;
+            }
 
             userData.c += userResult.created;
-            userData.l += userResult.last_access;
 
             for (var i=0; i<userResult.roles.length; i++) {
                 var role = userResult.roles[i];
@@ -64,7 +66,12 @@ exports.get = function(uid, fid, user, callback) {
 
         // Change total last access and creation times to average last access and creation times
         userData.c = userData.c / userData.a.length;
-        userData.l = userData.l / userData.a.length;
+        if (userData.a.length > userData.n.length) {
+            userData.l = userData.l / (userData.a.length - userData.n.length);
+        }
+        else {
+            userData.l = 0;
+        }
         callback(null, userData);
     });
 }
@@ -118,7 +125,9 @@ exports.getAll = function(uid, fid, callback) {
             users[userIndex.indexOf(user)].a += userResult.available;
             users[userIndex.indexOf(user)].b += userResult.blocked;
             users[userIndex.indexOf(user)].c += userResult.created;
-            users[userIndex.indexOf(user)].l += userResult.last_access;
+            if (!userResult.not_used) {
+                users[userIndex.indexOf(user)].l += userResult.last_access;
+            }
             users[userIndex.indexOf(user)].n += userResult.not_used;
 
             for (var i=0; i<userResult.roles.length; i++) {
@@ -134,7 +143,12 @@ exports.getAll = function(uid, fid, callback) {
         // Change total last access and creation times to average last access and creation times
         for (user in users) {
             users[user].c = users[user].c / users[user].a;
-            users[user].l = users[user].l / users[user].a;
+            if (users[user].a > users[user].n) {
+                users[user].l = users[user].l / (users[user].a - users[user].n);
+            }
+            else {
+                users[user].l = 0;
+            }
         }
 
         var baseUrls = baseUrls.filter((v, i, a) => a.indexOf(v) === i); 
