@@ -23,8 +23,8 @@ exports.get = function(uid, fid, user, callback) {
             e: {}, //emails
             a: [], //sitesAvailable
             b: [], //sitesBlocked
-            c: [], //totalCreatedDate
-            l: [], //totalLastAccess
+            c: 0, //totalCreatedDate
+            l: 0, //totalLastAccess
             n: [], //sitesNotUsed
             r: {} //roles
         };
@@ -48,6 +48,9 @@ exports.get = function(uid, fid, user, callback) {
                 userData.n.push(userResult.baseurl);
             }
 
+            userData.c += userResult.created;
+            userData.l += userResult.last_access;
+
             for (var i=0; i<userResult.roles.length; i++) {
                 var role = userResult.roles[i];
                 if (role in userData.r) {
@@ -58,6 +61,10 @@ exports.get = function(uid, fid, user, callback) {
                 }
             }
         }
+
+        // Change total last access and creation times to average last access and creation times
+        userData.c = userData.c / userData.a.length;
+        userData.l = userData.l / userData.a.length;
         callback(null, userData);
     });
 }
@@ -123,6 +130,13 @@ exports.getAll = function(uid, fid, callback) {
                 }
             }
         }
+
+        // Change total last access and creation times to average last access and creation times
+        for (user in users) {
+            users[user].c = users[user].c / users[user].a;
+            users[user].l = users[user].l / users[user].a;
+        }
+
         var baseUrls = baseUrls.filter((v, i, a) => a.indexOf(v) === i); 
         callback(null, {users: users, siteTotal: baseUrls.length});
     });
