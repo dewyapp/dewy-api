@@ -392,7 +392,7 @@ exports.createDesignDoc = function(filterDoc, callback) {
                                     '}',
                                     'var last_access = doc.details.users[user].created;',
                                     'var not_used = 1;',
-                                    'if (doc.details.users[user].last_access > 0) {',
+                                    'if (doc.details.users[user].last_access > doc.details.users[user].created) {',
                                         'last_access = doc.details.users[user].last_access;',
                                         'not_used = 0;',
                                     '}',
