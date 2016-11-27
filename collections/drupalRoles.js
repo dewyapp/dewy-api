@@ -1,15 +1,15 @@
 var couchbase = require('couchbase');
 var db = require('../api.js').bucket;
 
-exports.get = function(uid, fid, module, callback) {
+exports.get = function(uid, fid, role, callback) {
     if (fid == null) {
         query = couchbase.ViewQuery.from('drupalRoles', 'from_audited_sites_by_uid')
-            .range([uid, module, null], [uid, module, {}])
+            .range([uid, role], [uid, role])
             .reduce(false)
             .stale(1);
     } else {
         query = couchbase.ViewQuery.from('users-filter-' + fid, 'drupalRoles')
-            .range([uid, module, null], [uid, module, {}])
+            .range([uid, role], [uid, role])
             .reduce(false)
             .stale(1);
     }
@@ -19,42 +19,26 @@ exports.get = function(uid, fid, module, callback) {
             return;
         }
 
-        var moduleData = {
-            v: {}, //versions
-            a: [], //sitesWithAvailable
-            e: [], //sitesWithEnabled
-            d: [], //sitesWithDatabaseUpdates
-            u: [], //sitesWithUpdates
-            s: [] //sitesWithSecurityUpdates
+        var roleData = {
+            a: [], //sitesAvailable
+            i: [], //sitesInUse
+            u: [] //users
         };
 
         for (item in result) {
+            var roleResult = result[item].value;
 
-            var moduleResult = result[item].value;
-            var version = result[item].key[2];
-
-            if (version in moduleData.v) {
-                moduleData.v[version] = moduleData.v[version].concat(moduleResult.baseurls);
+            if (roleData.i.indexOf(roleResult.baseurl) == -1) {
+                roleData.i.push(roleResult.baseurl);
             }
-            else {
-                moduleData.v[version] = moduleResult.baseurls;
-            }
-            moduleData.p = moduleResult.project;
-            moduleData.a = moduleData.a.concat(moduleResult.baseurls);
-            if (moduleResult.enabled) {
-                moduleData.e = moduleData.e.concat(moduleResult.baseurls);
-            }
-            if (moduleResult.databaseUpdate) {
-                moduleData.d = moduleData.d.concat(moduleResult.baseurls);
-            }
-            if (moduleResult.update) {
-                moduleData.u = moduleData.u.concat(moduleResult.baseurls);
-            }
-            if (moduleResult.securityUpdate) {
-                moduleData.s = moduleData.s.concat(moduleResult.baseurls);
+            
+            var user = roleResult.username;
+            if (roleData.u.indexOf(user) == -1) {
+                roleData.u.push(user);
             }
         }
-        callback(null, moduleData);
+        console.log(roleData);
+        callback(null, roleData);
     });
 }
 
@@ -62,12 +46,12 @@ exports.getAll = function(uid, fid, callback) {
     // If no filter is given, return all drupalRoles
     if (fid == null) {
         query = couchbase.ViewQuery.from('drupalRoles', 'from_audited_sites_by_uid')
-            .range([uid, null, null], [uid, {}, {}])
+            .range([uid, null], [uid, {}])
             .group(true)
             .stale(1);
     } else {
         query = couchbase.ViewQuery.from('users-filter-' + fid, 'drupalRoles')
-            .range([uid, null, null], [uid, {}, {}])
+            .range([uid, null], [uid, {}])
             .group(true)
             .stale(1);
     }
@@ -78,36 +62,29 @@ exports.getAll = function(uid, fid, callback) {
         }
 
         var baseUrls = [];
-        var modules = [];
-        var moduleIndex = [];
+        var roles = [];
+        var roleIndex = [];
 
         for (item in result) {
-            var moduleResult = result[item].value;
-            baseUrls = baseUrls.concat(moduleResult.baseurls);
-            var module = result[item].key[1];
+            var roleResult = result[item].value;
+            baseUrls = baseUrls.concat(roleResult.baseurls);
+            var role = result[item].key[1];
 
-            if (moduleIndex.indexOf(module) == -1) {
-                modules[moduleIndex.length] = {
-                    m: module,
-                    v: 0, //versions
-                    a: 0, //sitesWithAvailable
-                    e: 0, //sitesWithEnabled
-                    d: 0, //sitesWithDatabaseUpdates
-                    u: 0, //sitesWithUpdates
-                    s: 0 //sitesWithSecurityUpdates
+            if (roleIndex.indexOf(role) == -1) {
+                roles[roleIndex.length] = {
+                    r: role,
+                    a: 0, //sitesAvailable
+                    i: 0, //sitesInUse
+                    u: 0 //users
                 };
-                moduleIndex.push(module);
+                roleIndex.push(role);
             }
 
-            // Each row is a different version, add it to list and increment overall totals
-            modules[moduleIndex.indexOf(module)].v += 1;
-            modules[moduleIndex.indexOf(module)].a += moduleResult.available;
-            modules[moduleIndex.indexOf(module)].e += moduleResult.enabled;
-            modules[moduleIndex.indexOf(module)].d += moduleResult.databaseUpdate;
-            modules[moduleIndex.indexOf(module)].u += moduleResult.update;
-            modules[moduleIndex.indexOf(module)].s += moduleResult.securityUpdate;
+            roles[roleIndex.indexOf(role)].i += roleResult.baseurls.length;
+            roles[roleIndex.indexOf(role)].u += roleResult.users.length;
         }
+
         var baseUrls = baseUrls.filter((v, i, a) => a.indexOf(v) === i); 
-        callback(null, {modules: modules, siteTotal: baseUrls.length});
+        callback(null, {roles: roles, siteTotal: baseUrls.length});
     });
 }
