@@ -20,38 +20,42 @@ exports.get = function(uid, fid, user, callback) {
         }
 
         var userData = {
-            v: {}, //versions
-            a: [], //sitesWithAvailable
-            e: [], //sitesWithEnabled
-            d: [], //sitesWithDatabaseUpdates
-            u: [], //sitesWithUpdates
-            s: [] //sitesWithSecurityUpdates
+            e: {}, //emails
+            a: [], //sitesAvailable
+            b: [], //sitesBlocked
+            c: [], //totalCreatedDate
+            l: [], //totalLastAccess
+            n: [], //sitesNotUsed
+            r: {} //roles
         };
 
         for (item in result) {
 
             var userResult = result[item].value;
-            var version = result[item].key[2];
+            var email = result[item].key[2];
 
-            if (version in userData.v) {
-                userData.v[version] = userData.v[version].concat(userResult.baseurls);
+            if (email in userData.e) {
+                userData.e[email].push(userResult.baseurl);
             }
             else {
-                userData.v[version] = userResult.baseurls;
+                userData.e[email] = [userResult.baseurl];
             }
-            userData.p = userResult.project;
-            userData.a = userData.a.concat(userResult.baseurls);
-            if (userResult.enabled) {
-                userData.e = userData.e.concat(userResult.baseurls);
+            userData.a.push(userResult.baseurl);
+            if (userResult.blocked) {
+                userData.b.push(userResult.baseurl);
             }
-            if (userResult.databaseUpdate) {
-                userData.d = userData.d.concat(userResult.baseurls);
+            if (userResult.not_used) {
+                userData.n.push(userResult.baseurl);
             }
-            if (userResult.update) {
-                userData.u = userData.u.concat(userResult.baseurls);
-            }
-            if (userResult.securityUpdate) {
-                userData.s = userData.s.concat(userResult.baseurls);
+
+            for (var i=0; i<userResult.roles.length; i++) {
+                var role = userResult.roles[i];
+                if (role in userData.r) {
+                    userData.r[role].push(userResult.baseurl);
+                }
+                else {
+                    userData.r[role] = [userResult.baseurl];
+                }
             }
         }
         callback(null, userData);
