@@ -27,7 +27,7 @@ exports.get = function(uid, fid, user, callback) {
             l: 0, //totalLastAccess
             n: [], //sitesNotUsed
             r: {}, //roles
-            d: 0 //nodesAuthored
+            d: { 'total': 0, '0': [], '1': [], '10': [], '100': [], '1000': [], '10000': []} //nodesAuthored
         };
 
         for (item in result) {
@@ -53,7 +53,6 @@ exports.get = function(uid, fid, user, callback) {
             }
 
             userData.c += userResult.created;
-            userData.d += userResult.nodesAuthored;
 
             for (var i=0; i<userResult.roles.length; i++) {
                 var role = userResult.roles[i];
@@ -64,6 +63,26 @@ exports.get = function(uid, fid, user, callback) {
                     userData.r[role] = [userResult.baseurl];
                 }
             }
+
+            if (userResult.nodesAuthored == 0) {
+                userData.d['0'].push(userResult.baseurl);
+            }
+            else if (userResult.nodesAuthored > 0 && userResult.nodesAuthored <= 10) {
+                userData.d['1'].push(userResult.baseurl);
+            }
+            else if (userResult.nodesAuthored > 10 && userResult.nodesAuthored <= 100) {
+                userData.d['10'].push(userResult.baseurl);
+            }
+            else if (userResult.nodesAuthored > 100 && userResult.nodesAuthored <= 1000) {
+                userData.d['100'].push(userResult.baseurl);
+            }
+            else if (userResult.nodesAuthored > 1000 && userResult.nodesAuthored <= 10000) {
+                userData.d['1000'].push(userResult.baseurl);
+            }
+            else if (userResult.nodesAuthored > 10000) {
+                userData.d['10000'].push(userResult.baseurl);
+            }
+            userData.d['total'] += userResult.nodesAuthored;
         }
 
         // Change total last access and creation times to average last access and creation times
@@ -74,6 +93,7 @@ exports.get = function(uid, fid, user, callback) {
         else {
             userData.l = 0;
         }
+        console.log(userData);
         callback(null, userData);
     });
 }
