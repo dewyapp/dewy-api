@@ -42,7 +42,6 @@ exports.get = function(uid, fid, role, callback) {
                 }
             }
         }
-        console.log(roleData);
         callback(null, roleData);
     });
 }
@@ -91,7 +90,6 @@ exports.getAll = function(uid, fid, callback) {
         }
 
         var baseUrls = baseUrls.filter((v, i, a) => a.indexOf(v) === i); 
-        console.log(roles);
         callback(null, {roles: roles, siteTotal: baseUrls.length});
     });
 }
