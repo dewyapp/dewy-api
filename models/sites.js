@@ -450,6 +450,7 @@ exports.processDoc = function(siteDoc, callback) {
     var avgLastModified = 0;
     var words = 0;
     var contentTypes = [];
+    var nodeAuthors = {};
     for (var i in siteDoc.details.nodes) {
         avgLastModified = avgLastModified + Number(siteDoc.details.nodes[i].changed);
         if (siteDoc.details.nodes[i].changed > lastModified) {
@@ -459,6 +460,15 @@ exports.processDoc = function(siteDoc, callback) {
             contentTypes.push(siteDoc.details.nodes[i].type)
         }
         words = words + siteDoc.details.nodes[i].words;
+        var author = siteDoc.details.nodes[i].author;
+        if (author) {
+            if (author in nodeAuthors) {
+                nodeAuthors[author] += 1;
+            }
+            else {
+                nodeAuthors[author] = 1;
+            }
+        }
     }
 
     var nodes = _.keys(siteDoc.details.nodes).length;
@@ -601,7 +611,8 @@ exports.processDoc = function(siteDoc, callback) {
                     users: users,
                     databaseUpdates: databaseUpdates,
                     projectsWithUpdates: projectsWithUpdates,
-                    projectsWithSecurityUpdates: projectsWithSecurityUpdates
+                    projectsWithSecurityUpdates: projectsWithSecurityUpdates,
+                    nodeAuthors: nodeAuthors
                 }
 
                 callback(null, siteDoc);
