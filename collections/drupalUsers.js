@@ -26,7 +26,8 @@ exports.get = function(uid, fid, user, callback) {
             c: 0, //totalCreatedDate
             l: 0, //totalLastAccess
             n: [], //sitesNotUsed
-            r: {} //roles
+            r: {}, //roles
+            d: 0 //nodesAuthored
         };
 
         for (item in result) {
@@ -52,6 +53,7 @@ exports.get = function(uid, fid, user, callback) {
             }
 
             userData.c += userResult.created;
+            userData.d += userResult.nodesAuthored;
 
             for (var i=0; i<userResult.roles.length; i++) {
                 var role = userResult.roles[i];
@@ -114,7 +116,8 @@ exports.getAll = function(uid, fid, callback) {
                     c: 0, //totalCreatedDate
                     l: 0, //totalLastAccess
                     n: 0, //sitesNotUsed
-                    r: 0 //roles
+                    r: 0, //roles
+                    d: 0, //nodesAuthored
                 };
                 usersRoles[userIndex.length] = [];
                 userIndex.push(user);
@@ -129,6 +132,7 @@ exports.getAll = function(uid, fid, callback) {
                 users[userIndex.indexOf(user)].l += userResult.last_access;
             }
             users[userIndex.indexOf(user)].n += userResult.not_used;
+            users[userIndex.indexOf(user)].d += userResult.nodesAuthored;
 
             for (var i=0; i<userResult.roles.length; i++) {
                 var role = userResult.roles[i];
