@@ -28,13 +28,18 @@ exports.get = function(uid, fid, role, callback) {
         for (item in result) {
             var roleResult = result[item].value;
 
-            if (roleData.i.indexOf(roleResult.baseurl) == -1) {
+            if (roleData.a.indexOf(roleResult.baseurl) == -1) {
+                roleData.a.push(roleResult.baseurl);
+            }
+
+            if (roleResult.inUse && roleData.i.indexOf(roleResult.baseurl) == -1) {
                 roleData.i.push(roleResult.baseurl);
             }
             
-            var user = roleResult.username;
-            if (roleData.u.indexOf(user) == -1) {
-                roleData.u.push(user);
+            for (user in roleResult.users) {
+                if (roleData.u.indexOf(roleResult.users[user]) == -1) {
+                    roleData.u.push(roleResult.users[user]);
+                }
             }
         }
         console.log(roleData);
@@ -80,11 +85,13 @@ exports.getAll = function(uid, fid, callback) {
                 roleIndex.push(role);
             }
 
-            roles[roleIndex.indexOf(role)].i += roleResult.baseurls.length;
+            roles[roleIndex.indexOf(role)].a += roleResult.available;
+            roles[roleIndex.indexOf(role)].i += roleResult.inUse;
             roles[roleIndex.indexOf(role)].u += roleResult.users.length;
         }
 
         var baseUrls = baseUrls.filter((v, i, a) => a.indexOf(v) === i); 
+        console.log(roles);
         callback(null, {roles: roles, siteTotal: baseUrls.length});
     });
 }
