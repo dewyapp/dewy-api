@@ -41,7 +41,7 @@ router.post('/', function (req, res, next) {
             body: 'token=' + req.body.token,
             rejectUnauthorized: false,
             charset: 'utf-8',
-            timeout: 60000,
+            timeout: 600000,
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
