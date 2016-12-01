@@ -500,16 +500,19 @@ exports.reportSites = function(uid, callback) {
                                     if (result && !result.fake) {
 
                                         var lastAudit = '';
-                                        if (result.audit.lastAudit) {
-                                            lastAudit = moment.unix(result.audit.lastAudit).fromNow();
-                                        }
                                         var lastSuccess = '';
-                                        if (result.audit.lastSuccessfulAudit) {
-                                            lastSuccess = moment.unix(result.audit.lastSuccessfulAudit).fromNow();
-                                        }
                                         var lastContent = '';
-                                        if (result.audit.lastSuccessfulContentAudit) {
-                                            lastContent = moment.unix(result.audit.lastSuccessfulContentAudit).fromNow();
+
+                                        if (result.audit) {
+                                            if (result.audit.lastAudit) {
+                                                lastAudit = moment.unix(result.audit.lastAudit).fromNow();
+                                            }
+                                            if (result.audit.lastSuccessfulAudit) {
+                                                lastSuccess = moment.unix(result.audit.lastSuccessfulAudit).fromNow();
+                                            }
+                                            if (result.audit.lastSuccessfulContentAudit) {
+                                                lastContent = moment.unix(result.audit.lastSuccessfulContentAudit).fromNow();
+                                            }
                                         }
                                         var drupal = 'unknown';
                                         var php = 'unknown';
