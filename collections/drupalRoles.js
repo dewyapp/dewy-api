@@ -22,6 +22,7 @@ exports.get = function(uid, fid, role, callback) {
         var roleData = {
             a: [], //sitesAvailable
             i: [], //sitesInUse
+            p: { 'total': 0 }, //permissions
             u: [] //users
         };
 
@@ -41,6 +42,8 @@ exports.get = function(uid, fid, role, callback) {
                     roleData.u.push(roleResult.users[user]);
                 }
             }
+
+            roleData.p['total'] += roleResult.permissionCount;
         }
         callback(null, roleData);
     });
@@ -79,6 +82,7 @@ exports.getAll = function(uid, fid, callback) {
                     r: role,
                     a: 0, //sitesAvailable
                     i: 0, //sitesInUse
+                    p: 0, //permissions
                     u: 0 //users
                 };
                 roleIndex.push(role);
@@ -86,7 +90,14 @@ exports.getAll = function(uid, fid, callback) {
 
             roles[roleIndex.indexOf(role)].a += roleResult.available;
             roles[roleIndex.indexOf(role)].i += roleResult.inUse;
+            roles[roleIndex.indexOf(role)].p += roleResult.permissions;
             roles[roleIndex.indexOf(role)].u += roleResult.users.length;
+        }
+
+        // Change total permissions to average permissions
+        for (role in roles) {
+            roles[role].p = roles[role].p / roles[role].a;
+            roles[role].p = +roles[role].p.toFixed(1);
         }
 
         var baseUrls = baseUrls.filter((v, i, a) => a.indexOf(v) === i); 
