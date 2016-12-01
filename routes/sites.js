@@ -36,7 +36,7 @@ router.post('/', function (req, res, next) {
         req.body.uid = result;
 
         request({
-            uri: req.body.baseurl + '/admin/reports/dewy',
+            uri: req.body.baseurl,
             method: 'POST',
             body: 'token=' + req.body.token,
             rejectUnauthorized: false,
