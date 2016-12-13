@@ -200,7 +200,21 @@ exports.getRelease = function(projectName, core, updatedProjects, callback) {
                         releases: []
                     }
 
-                    // If array, loop through
+                    // Gather status
+                    for (var i=0, termTotal=project.project.terms.term.length; i < termTotal; i++) {
+                        var term = project.project.terms.term[i];
+                        if (term.name == 'Maintenance status') {
+                            projectDoc['maintenanceStatus'] = term.value;
+                        }
+                        else if (term.name == 'Development status') {
+                            projectDoc['developmentStatus'] = term.value;
+                        }
+                    }
+
+                    console.log(projectDoc);
+
+                    // Gather releases
+                    // If release data is an array, loop through
                     if (Object.prototype.toString.call(project.project.releases.release) === '[object Array]' ) {
                         for (var i=0, releaseTotal=project.project.releases.release.length; i < releaseTotal; i++) {
                             projectDoc.releases.push(parseDrupalRelease(project.project.releases.release[i]));
