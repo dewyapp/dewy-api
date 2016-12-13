@@ -212,9 +212,7 @@ exports.getRelease = function(projectName, core, updatedProjects, callback) {
                             projectDoc.developmentStatus = term.value;
                         }
                     }
-
-                    console.log(projectDoc);
-
+                    
                     // Gather releases
                     // If release data is an array, loop through
                     if (Object.prototype.toString.call(project.project.releases.release) === '[object Array]' ) {
