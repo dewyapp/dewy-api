@@ -31,10 +31,6 @@ exports.getReleases = function(callback) {
             console.log('Project ' + updatedProject.project + '-' + updatedProject.core + ' has new updates');
 
             // Get affected sites and update them
-            var maxModuleUpdateLevel = 0;
-            if (updatedProject.securityUpdate) {
-                maxModuleUpdateLevel = 1;
-            }
             Users.getUsers(null, function(error, result) {
                 if (error) {
                     console.log('Failed to retrieve users: ' + error);
@@ -84,6 +80,16 @@ exports.getReleases = function(callback) {
                                                 siteProjectValuesChange = true;
                                             }
 
+                                            // Update siteDoc's maintenanceStatus/developmentStatus with new project
+                                            if (updatedProject.maintenanceStatus == 'Unsupported' && maintenanceStatusChange){
+                                                siteDoc.attributeDetails.projectsThatAreUnsupported.push(updatedProject.project);
+                                                siteProjectValuesChange = true;
+                                            }
+                                            if (updatedProject.developmentStatus == 'Obsolete' && developmentStatusChange){
+                                                siteDoc.attributeDetails.projectsThatAreObsolete.push(updatedProject.project);
+                                                siteProjectValuesChange = true;
+                                            }
+
                                             if (siteProjectValuesChange) {
                                                 sitesUpdated = sitesUpdated + 1;
                                                 console.log('Updating project ' + updatedProject.project + ' for ' + uid + ' on ' + siteDoc.sid);
@@ -104,7 +110,7 @@ exports.getReleases = function(callback) {
                                     });
                                 }, function(error) {
                                     console.log(sitesUpdated + ' siteDocs for user ' + uid + ' with project ' + updatedProject.project + ' required updates and were updated');
-                                    // If the user has sites with the updated project in question, do further checks to dermine if notification necessary
+                                    // If the user has sites with the updated project in question, do further checks to determine if notification necessary
                                     if (sitesWithProject.length) {
                                         // Get user details
                                         User.get(uid, function(error, result) {
@@ -123,20 +129,40 @@ exports.getReleases = function(callback) {
                                                 }
                                                 detailsHTML = detailsHTML + '</table><p style="padding: 28px 0 28px 0;font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><font color="#666">';
 
-                                                var subject = 'Update released for ' + updatedProject.project;
-                                                var updateType = 'An update';
-                                                var additionalInfo = 'This is not a security update and no further action is required.';
+                                                var subject = '';
+                                                var update =  '';
+                                                var updateHTML =  '';
+                                                var additionalInfo = '';
+                                                if (updatedProject.maintenanceStatusChange) {
+                                                    subject = 'Maintenance status change for ' + updatedProject.project;
+                                                    update = 'The maintenance status for ' + updatedProject.project + ' has changed to "' + updatedProject.maintenanceStatus + '"';
+                                                    updateHTML = 'The maintenance status for ' + updatedProject.project + ' has changed to <strong>"' + updatedProject.maintenanceStatus + '"</strong>';
+                                                    additionalInfo = 'The project status may affect how you wish to use this project going forward, but no action is required.';
+                                                }
+                                                if (updatedProject.developmentStatusChange) {
+                                                    subject = 'Development status change for ' + updatedProject.project;
+                                                    update = 'The development status for ' + updatedProject.project + ' has changed to "' + updatedProject.developmentStatus + '"';
+                                                    updateHTML = 'The development status for ' + updatedProject.project + ' has changed to <strong>"' + updatedProject.developmentStatus + '"</strong>';
+                                                    additionalInfo = 'The project status may affect how you wish to use this project going forward, but no action is required.';
+                                                }
+                                                if (updatedProject.update) {
+                                                    subject = 'Update released for ' + updatedProject.project;
+                                                    update = 'An update (' + updatedProject.latestVersion + ') has been released for ' + updatedProject.project + ': https://www.drupal.org/project/' + updatedProject.project + ' . View the release notes: https://www.drupal.org/project/' + updatedProject.project + '/releases/' + updatedProject.latestVersion;
+                                                    updateHTML = 'An update (<strong>' + updatedProject.latestVersion + '</strong>) has been released for <a href="https://www.drupal.org/project/' + updatedProject.project + '">' + updatedProject.project + '</a>. View the <a href="https://www.drupal.org/project/' + updatedProject.project + '/releases/' + updatedProject.latestVersion + '">release notes</a>';
+                                                    additionalInfo = 'This is not a security update and no further action is required.';
+                                                }
                                                 if (updatedProject.securityUpdate) {
                                                     subject = 'Security update released for ' + updatedProject.project;
-                                                    updateType = 'A security update';
+                                                    update = 'A security update (' + updatedProject.latestVersion + ') has been released for ' + updatedProject.project + ': https://www.drupal.org/project/' + updatedProject.project + ' . View the release notes: https://www.drupal.org/project/' + updatedProject.project + '/releases/' + updatedProject.latestVersion;
+                                                    updateHTML = 'A security update (<strong>' + updatedProject.latestVersion + '</strong>) has been released for <a href="https://www.drupal.org/project/' + updatedProject.project + '">' + updatedProject.project + '</a>. View the <a href="https://www.drupal.org/project/' + updatedProject.project + '/releases/' + updatedProject.latestVersion + '">release notes</a>';
                                                     additionalInfo = 'This update is a security update and it is strongly recommended you take action to update your sites.';
                                                 }
 
                                                 email.send({
                                                     to: user.email,
                                                     subject: subject,
-                                                    text: 'Hi ' + user.username + '. ' + updateType + ' (' + updatedProject.latestVersion + ') has been released for ' + updatedProject.project + ': https://www.drupal.org/project/' + updatedProject.project + ' . View the release notes: https://www.drupal.org/project/' + updatedProject.project + '/releases/' + updatedProject.latestVersion + ' . ' + sitesWithProject.length + ' of your sites use the project:' + detailsText + "\n" + additionalInfo,
-                                                    html: 'Hi ' + user.username + '.<br/>' + updateType + ' (<strong>' + updatedProject.latestVersion + '</strong>) has been released for <a href="https://www.drupal.org/project/' + updatedProject.project + '">' + updatedProject.project + '</a>. View the <a href="https://www.drupal.org/project/' + updatedProject.project + '/releases/' + updatedProject.latestVersion + '">release notes</a>. ' + sitesWithProject.length + ' of your sites use the project:' + detailsHTML + additionalInfo,
+                                                    text: 'Hi ' + user.username + '. ' + update + '. ' + sitesWithProject.length + ' of your sites use the project:' + detailsText + "\n" + additionalInfo,
+                                                    html: 'Hi ' + user.username + '.<br/>' + update + '. ' + sitesWithProject.length + ' of your sites use the project:' + detailsHTML + additionalInfo,
                                                 }, function(error, result) {
                                                     if (error) {
                                                         console.log('Failed to send a notification for ' + user.email);

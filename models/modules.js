@@ -245,6 +245,8 @@ exports.getRelease = function(projectName, core, updatedProjects, callback) {
                             var index = 0;
                             var update = false;
                             var securityUpdate = false;
+                            var maintenanceStatusChange = false;
+                            var developmentStatusChange = false;
                             while (projectDoc.releases[index].version != result.releases[0].version) {
                                 update = true;
                                 if (projectDoc.releases[index].securityUpdate) {
@@ -252,15 +254,30 @@ exports.getRelease = function(projectName, core, updatedProjects, callback) {
                                 }
                                 index = index+1;
                             }
+                            if (projectDoc.maintenanceStatus != result.maintenanceStatus) {
+                                maintenanceStatusChange = true;
+                            }
+                            if (projectDoc.developmentStatus != result.developmentStatus) {
+                                developmentStatusChange = true;
+                            }
                             // Updates have been found for this project, add to list
-                            if (update) {
+                            if (update || maintenanceStatusChange || developmentStatusChange) {
                                 updatedProjects.push({
                                     project: projectDoc.project,
                                     core: projectDoc.core,
+                                    maintenanceStatus: projectDoc.maintenanceStatus,
+                                    developmentStatus:projectDoc.developmentStatus,
+                                    maintenanceStatusChange: maintenanceStatusChange,
+                                    developmentStatusChange: developmentStatusChange,
                                     securityUpdate: securityUpdate,
                                     latestVersion: projectDoc.releases[0].version
                                 });
-                                console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' has new releases, updating');
+                                if (update) {
+                                    console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' has new releases, updating');
+                                }
+                                else {
+                                    console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' has new status change, updating');
+                                }
                                 exports.createProject(projectDoc, function(error, result) {
                                     if (error) {
                                         console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' failed to be updated in the database: ' + error);
