@@ -194,6 +194,8 @@ exports.getRelease = function(projectName, core, updatedProjects, callback) {
                     var projectDoc = {
                         project: projectName,
                         core: core,
+                        maintenanceStatus: '',
+                        developmentStatus: '',
                         recommendedMajor: project.project.recommended_major,
                         supportedMajors: project.project.supported_majors.split(','),
                         defaultMajor: project.project.default_major,
@@ -204,10 +206,10 @@ exports.getRelease = function(projectName, core, updatedProjects, callback) {
                     for (var i=0, termTotal=project.project.terms.term.length; i < termTotal; i++) {
                         var term = project.project.terms.term[i];
                         if (term.name == 'Maintenance status') {
-                            projectDoc['maintenanceStatus'] = term.value;
+                            projectDoc.maintenanceStatus = term.value;
                         }
                         else if (term.name == 'Development status') {
-                            projectDoc['developmentStatus'] = term.value;
+                            projectDoc.developmentStatus = term.value;
                         }
                     }
 

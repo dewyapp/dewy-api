@@ -511,6 +511,8 @@ exports.processDoc = function(siteDoc, callback) {
     diskSpace = +diskSpace.toFixed(2);
 
     // Process releases
+    var projectsThatAreUnsupported = [];
+    var projectsThatAreObsolete = [];
     var projectsWithUpdates = [];
     var projectsWithSecurityUpdates = [];
     modules.getReleasesFromProjects(projectKeys, function(error, result) {
@@ -530,6 +532,12 @@ exports.processDoc = function(siteDoc, callback) {
                 var core = version[0];
                 if (result['project::' + i + '-' + core] && result['project::' + i + '-' + core].value) {
                     var projectDoc = result['project::' + i + '-' + core].value;
+                    if (projectDoc.maintenanceStatus == 'Unsupported') {
+                        projectsThatAreUnsupported.push(i);
+                    }
+                    if (projectDoc.developmentStatus == 'Obsolete') {
+                        projectsThatAreObsolete.push(i);
+                    }
                     var updateResult = modules.checkVersionForUpdate(projectDoc, siteDoc.details.projects[i].version);
                     // If we were recording individual modules, we would use this code
                     // for (var j in siteDoc.details.projects[i].modules) {
@@ -573,6 +581,13 @@ exports.processDoc = function(siteDoc, callback) {
             function(error) {
                 // Process any new projects and determine if they have updates and record to siteDoc
                 for (var i in undocumentedProjectsNowDocumented) {
+                    var projectDoc = result['project::' + i + '-' + core].value;
+                    if (projectDoc.maintenanceStatus == 'Unsupported') {
+                        projectsThatAreUnsupported.push(undocumentedProjectsNowDocumented[i].projectDoc.project);
+                    }
+                    if (projectDoc.developmentStatus == 'Obsolete') {
+                        projectsThatAreObsolete.push(undocumentedProjectsNowDocumented[i].projectDoc.project);
+                    }
                     var updateResult = modules.checkVersionForUpdate(undocumentedProjectsNowDocumented[i].projectDoc, undocumentedProjectsNowDocumented[i].version);
                     if (updateResult.update) {
                         projectsWithUpdates.push(undocumentedProjectsNowDocumented[i].projectDoc.project);
@@ -598,6 +613,8 @@ exports.processDoc = function(siteDoc, callback) {
                     avgLastAccess: avgLastAccess + siteDoc.audit.timeOffset,
                     hitsPerDay: hitsPerDay,
                     databaseUpdates: databaseUpdates.length,
+                    projectsThatAreUnsupported: projectsThatAreUnsupported.length,
+                    projectsThatAreObsolete: projectsThatAreObsolete.length,
                     projectsWithUpdates: projectsWithUpdates.length,
                     projectsWithSecurityUpdates: projectsWithSecurityUpdates.length,
                     enabledProjects: enabledProjects
@@ -610,6 +627,8 @@ exports.processDoc = function(siteDoc, callback) {
                     roles: roles,
                     users: users,
                     databaseUpdates: databaseUpdates,
+                    projectsThatAreUnsupported: projectsThatAreUnsupported,
+                    projectsThatAreObsolete: projectsThatAreObsolete,
                     projectsWithUpdates: projectsWithUpdates,
                     projectsWithSecurityUpdates: projectsWithSecurityUpdates,
                     nodeAuthors: nodeAuthors
