@@ -60,7 +60,7 @@ exports.getReleases = function(callback) {
                                             siteDoc.lastUpdated = date;
                                             sitesWithProject.push({baseurl: siteDoc.baseurl, version: siteDoc.details.projects[updatedProject.project].version });
 
-                                            // Update siteDoc's update/securityUpdate attributes with new project
+                                            // If there's a security update, update siteDoc with new project
                                             if (updatedProject.securityUpdate) {
                                                 if (!('projectsWithSecurityUpdates' in siteDoc.attributeDetails)) {
                                                     siteDoc.attributeDetails.projectsWithSecurityUpdates = [];
@@ -71,23 +71,58 @@ exports.getReleases = function(callback) {
                                                     siteProjectValuesChange = true;
                                                 }
                                             }
-                                            if (!('projectsWithUpdates' in siteDoc.attributeDetails)) {
-                                                siteDoc.attributeDetails.projectsWithUpdates = [];
-                                            }
-                                            if (siteDoc.attributeDetails.projectsWithUpdates.indexOf(updatedProject.project) == -1) {
-                                                siteDoc.attributeDetails.projectsWithUpdates.push(updatedProject.project);
-                                                siteDoc.attributes.projectsWithUpdates = siteDoc.attributes.projectsWithUpdates + 1;
-                                                siteProjectValuesChange = true;
+                                            // If there's an update, update siteDoc with new project
+                                            if (updatedProject.update) {
+                                                if (!('projectsWithUpdates' in siteDoc.attributeDetails)) {
+                                                    siteDoc.attributeDetails.projectsWithUpdates = [];
+                                                }
+                                                if (siteDoc.attributeDetails.projectsWithUpdates.indexOf(updatedProject.project) == -1) {
+                                                    siteDoc.attributeDetails.projectsWithUpdates.push(updatedProject.project);
+                                                    siteDoc.attributes.projectsWithUpdates = siteDoc.attributes.projectsWithUpdates + 1;
+                                                    siteProjectValuesChange = true;
+                                                }
                                             }
 
-                                            // Update siteDoc's maintenanceStatus/developmentStatus with new project
-                                            if (updatedProject.maintenanceStatus == 'Unsupported' && maintenanceStatusChange){
-                                                siteDoc.attributeDetails.projectsThatAreUnsupported.push(updatedProject.project);
-                                                siteProjectValuesChange = true;
+                                            // If there's a maintenance status update, update siteDoc with new project
+                                            if (updatedProject.maintenanceStatusChange) {
+                                                if (!('projectsThatAreUnsupported' in siteDoc.attributeDetails)) {
+                                                    siteDoc.attributeDetails.projectsThatAreUnsupported = [];
+                                                }
+                                                if (updatedProject.maintenanceStatus == 'Unsupported') {
+                                                    if (siteDoc.attributeDetails.projectsThatAreUnsupported.indexOf(updatedProject.project) == -1) {
+                                                        siteDoc.attributeDetails.projectsThatAreUnsupported.push(updatedProject.project);
+                                                        siteDoc.attributes.projectsThatAreUnsupported = siteDoc.attributes.projectsThatAreUnsupported + 1;
+                                                        siteProjectValuesChange = true;
+                                                    }
+                                                }
+                                                else {
+                                                    if (siteDoc.attributeDetails.projectsThatAreUnsupported.indexOf(updatedProject.project) != -1) {
+                                                        siteDoc.attributeDetails.projectsThatAreUnsupported.splice(siteDoc.attributeDetails.projectsThatAreUnsupported.indexOf(updatedProject.project), 1);
+                                                        siteDoc.attributes.projectsThatAreUnsupported = siteDoc.attributes.projectsThatAreUnsupported - 1;
+                                                        siteProjectValuesChange = true;
+                                                    }
+                                                }
                                             }
-                                            if (updatedProject.developmentStatus == 'Obsolete' && developmentStatusChange){
-                                                siteDoc.attributeDetails.projectsThatAreObsolete.push(updatedProject.project);
-                                                siteProjectValuesChange = true;
+
+                                            // If there's a develompent status update, update siteDoc with new project
+                                            if (updatedProject.developmentStatusChange) {
+                                                if (!('projectsThatAreObsolete' in siteDoc.attributeDetails)) {
+                                                    siteDoc.attributeDetails.projectsThatAreObsolete = [];
+                                                }
+                                                if (updatedProject.developmentStatus == 'Obsolete') {
+                                                    if (siteDoc.attributeDetails.projectsThatAreObsolete.indexOf(updatedProject.project) == -1) {
+                                                        siteDoc.attributeDetails.projectsThatAreObsolete.push(updatedProject.project);
+                                                        siteDoc.attributes.projectsThatAreObsolete = siteDoc.attributes.projectsThatAreObsolete + 1;
+                                                        siteProjectValuesChange = true;
+                                                    }
+                                                }
+                                                else {
+                                                    if (siteDoc.attributeDetails.projectsThatAreObsolete.indexOf(updatedProject.project) != -1) {
+                                                        siteDoc.attributeDetails.projectsThatAreObsolete.splice(siteDoc.attributeDetails.projectsThatAreObsolete.indexOf(updatedProject.project), 1);
+                                                        siteDoc.attributes.projectsThatAreObsolete = siteDoc.attributes.projectsThatAreObsolete - 1;
+                                                        siteProjectValuesChange = true;
+                                                    }
+                                                }
                                             }
 
                                             if (siteProjectValuesChange) {
@@ -119,62 +154,77 @@ exports.getReleases = function(callback) {
                                                 return callback();
                                             }
 
-                                            // If user has notification level that satisfies this project update, send email
-                                            if (user.notifications != 'none' && (updatedProject.securityUpdate || user.notifications == 'all')) {
-                                                var detailsText = '';
-                                                var detailsHTML = '</font></p><table border="1" frame="hsides" rules="rows" bordercolor="#EEE" cellpadding="14" width="100%">';
-                                                for (siteWithProject in sitesWithProject) {
-                                                    detailsText = detailsText + "\n" + sitesWithProject[siteWithProject].baseurl + ' (' + sitesWithProject[siteWithProject].version + ')';
-                                                    detailsHTML = detailsHTML + '<tr><td><span style="font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><font color="#666"><strong>' + sitesWithProject[siteWithProject].baseurl + '</strong></font></span></td><td><span style="font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><font color="#666">' + sitesWithProject[siteWithProject].version + '</font></strong></span></td></tr>'; 
-                                                }
-                                                detailsHTML = detailsHTML + '</table><p style="padding: 28px 0 28px 0;font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><font color="#666">';
-
-                                                var subject = '';
-                                                var update =  '';
-                                                var updateHTML =  '';
-                                                var additionalInfo = '';
-                                                if (updatedProject.maintenanceStatusChange) {
-                                                    subject = 'Maintenance status change for ' + updatedProject.project;
-                                                    update = 'The maintenance status for ' + updatedProject.project + ' has changed to "' + updatedProject.maintenanceStatus + '"';
-                                                    updateHTML = 'The maintenance status for ' + updatedProject.project + ' has changed to <strong>"' + updatedProject.maintenanceStatus + '"</strong>';
-                                                    additionalInfo = 'The project status may affect how you wish to use this project going forward, but no action is required.';
-                                                }
-                                                if (updatedProject.developmentStatusChange) {
-                                                    subject = 'Development status change for ' + updatedProject.project;
-                                                    update = 'The development status for ' + updatedProject.project + ' has changed to "' + updatedProject.developmentStatus + '"';
-                                                    updateHTML = 'The development status for ' + updatedProject.project + ' has changed to <strong>"' + updatedProject.developmentStatus + '"</strong>';
-                                                    additionalInfo = 'The project status may affect how you wish to use this project going forward, but no action is required.';
-                                                }
-                                                if (updatedProject.update) {
-                                                    subject = 'Update released for ' + updatedProject.project;
-                                                    update = 'An update (' + updatedProject.latestVersion + ') has been released for ' + updatedProject.project + ': https://www.drupal.org/project/' + updatedProject.project + ' . View the release notes: https://www.drupal.org/project/' + updatedProject.project + '/releases/' + updatedProject.latestVersion;
-                                                    updateHTML = 'An update (<strong>' + updatedProject.latestVersion + '</strong>) has been released for <a href="https://www.drupal.org/project/' + updatedProject.project + '">' + updatedProject.project + '</a>. View the <a href="https://www.drupal.org/project/' + updatedProject.project + '/releases/' + updatedProject.latestVersion + '">release notes</a>';
-                                                    additionalInfo = 'This is not a security update and no further action is required.';
-                                                }
-                                                if (updatedProject.securityUpdate) {
-                                                    subject = 'Security update released for ' + updatedProject.project;
-                                                    update = 'A security update (' + updatedProject.latestVersion + ') has been released for ' + updatedProject.project + ': https://www.drupal.org/project/' + updatedProject.project + ' . View the release notes: https://www.drupal.org/project/' + updatedProject.project + '/releases/' + updatedProject.latestVersion;
-                                                    updateHTML = 'A security update (<strong>' + updatedProject.latestVersion + '</strong>) has been released for <a href="https://www.drupal.org/project/' + updatedProject.project + '">' + updatedProject.project + '</a>. View the <a href="https://www.drupal.org/project/' + updatedProject.project + '/releases/' + updatedProject.latestVersion + '">release notes</a>';
-                                                    additionalInfo = 'This update is a security update and it is strongly recommended you take action to update your sites.';
-                                                }
-
-                                                email.send({
-                                                    to: user.email,
-                                                    subject: subject,
-                                                    text: 'Hi ' + user.username + '. ' + update + '. ' + sitesWithProject.length + ' of your sites use the project:' + detailsText + "\n" + additionalInfo,
-                                                    html: 'Hi ' + user.username + '.<br/>' + update + '. ' + sitesWithProject.length + ' of your sites use the project:' + detailsHTML + additionalInfo,
-                                                }, function(error, result) {
-                                                    if (error) {
-                                                        console.log('Failed to send a notification for ' + user.email);
-                                                        return callback();
-                                                    }
-                                                    console.log('Notification sent for ' + uid + ': ' + subject);
-                                                    callback();
+                                            // Compile updates
+                                            var updates = [];
+                                            if (updatedProject.maintenanceStatusChange) {
+                                                updates.push({
+                                                    type: 'statusChange',
+                                                    subject: 'Maintenance status change for ' + updatedProject.project,
+                                                    update: 'The maintenance status for ' + updatedProject.project + ' has changed to "' + updatedProject.maintenanceStatus + '"',
+                                                    updateHTML: 'The maintenance status for ' + updatedProject.project + ' has changed to <strong>"' + updatedProject.maintenanceStatus + '"</strong>',
+                                                    additionalInfo: 'The project status may affect how you wish to use this project going forward, but no action is required.'
                                                 });
                                             }
-                                            else {
-                                                callback();
+                                            if (updatedProject.developmentStatusChange) {
+                                                updates.push({
+                                                    type: 'statusChange',
+                                                    subject: 'Development status change for ' + updatedProject.project,
+                                                    update: 'The development status for ' + updatedProject.project + ' has changed to "' + updatedProject.developmentStatus + '"',
+                                                    updateHTML: 'The development status for ' + updatedProject.project + ' has changed to <strong>"' + updatedProject.developmentStatus + '"</strong>',
+                                                    additionalInfo: 'The project status may affect how you wish to use this project going forward, but no action is required.'
+                                                });
                                             }
+                                            if (updatedProject.update) {
+                                                updates.push({
+                                                    type: 'update',
+                                                    subject: 'Update released for ' + updatedProject.project,
+                                                    update: 'An update (' + updatedProject.latestVersion + ') has been released for ' + updatedProject.project + ': https://www.drupal.org/project/' + updatedProject.project + ' . View the release notes: https://www.drupal.org/project/' + updatedProject.project + '/releases/' + updatedProject.latestVersion,
+                                                    updateHTML: 'An update (<strong>' + updatedProject.latestVersion + '</strong>) has been released for <a href="https://www.drupal.org/project/' + updatedProject.project + '">' + updatedProject.project + '</a>. View the <a href="https://www.drupal.org/project/' + updatedProject.project + '/releases/' + updatedProject.latestVersion + '">release notes</a>',
+                                                    additionalInfo: 'This is not a security update and no further action is required.'
+                                                });
+                                            }
+                                            if (updatedProject.securityUpdate) {
+                                                updates.push({
+                                                    type: 'securityUpdate',
+                                                    subject: 'Security update released for ' + updatedProject.project,
+                                                    update: 'A security update (' + updatedProject.latestVersion + ') has been released for ' + updatedProject.project + ': https://www.drupal.org/project/' + updatedProject.project + ' . View the release notes: https://www.drupal.org/project/' + updatedProject.project + '/releases/' + updatedProject.latestVersion,
+                                                    updateHTML: 'A security update (<strong>' + updatedProject.latestVersion + '</strong>) has been released for <a href="https://www.drupal.org/project/' + updatedProject.project + '">' + updatedProject.project + '</a>. View the <a href="https://www.drupal.org/project/' + updatedProject.project + '/releases/' + updatedProject.latestVersion + '">release notes</a>',
+                                                    additionalInfo: 'This update is a security update and it is strongly recommended you take action to update your sites.'
+                                                });
+                                            }
+
+                                            // Send updates
+                                            async.eachSeries(updates, function(update, callback) {
+                                                // If user has notification level that satisfies this project update, send email
+                                                if (user.notifications != 'none' && (update.type == 'securityUpdate' || user.notifications == 'all')) {
+                                                    var detailsText = '';
+                                                    var detailsHTML = '</font></p><table border="1" frame="hsides" rules="rows" bordercolor="#EEE" cellpadding="14" width="100%">';
+                                                    for (siteWithProject in sitesWithProject) {
+                                                        detailsText = detailsText + "\n" + sitesWithProject[siteWithProject].baseurl + ' (' + sitesWithProject[siteWithProject].version + ')';
+                                                        detailsHTML = detailsHTML + '<tr><td><span style="font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><font color="#666"><strong>' + sitesWithProject[siteWithProject].baseurl + '</strong></font></span></td><td><span style="font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><font color="#666">' + sitesWithProject[siteWithProject].version + '</font></strong></span></td></tr>'; 
+                                                    }
+                                                    detailsHTML = detailsHTML + '</table><p style="padding: 28px 0 28px 0;font-family: Helvetica,Arial,sans-serif;font-size:14px;color:#666"><font color="#666">';
+
+                                                    email.send({
+                                                        to: user.email,
+                                                        subject: update.subject,
+                                                        text: 'Hi ' + user.username + '. ' + update.update + '. ' + sitesWithProject.length + ' of your sites use the project:' + detailsText + "\n" + update.additionalInfo,
+                                                        html: 'Hi ' + user.username + '.<br/>' + update.updateHTML + '. ' + sitesWithProject.length + ' of your sites use the project:' + detailsHTML + update.additionalInfo,
+                                                    }, function(error, result) {
+                                                        if (error) {
+                                                            console.log('Failed to send a notification for ' + user.email);
+                                                            return callback();
+                                                        }
+                                                        console.log('Notification sent for ' + uid + ': ' + update.subject);
+                                                        callback();
+                                                    });
+                                                }
+                                                else {
+                                                    callback();
+                                                }
+                                            }, function(error) {
+                                                callback();
+                                            });
                                         });
                                     }
                                     else {
