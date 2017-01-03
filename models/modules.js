@@ -267,14 +267,18 @@ exports.getRelease = function(projectName, core, updatedProjects, callback) {
                                     developmentStatus:projectDoc.developmentStatus,
                                     maintenanceStatusChange: maintenanceStatusChange,
                                     developmentStatusChange: developmentStatusChange,
+                                    update: update,
                                     securityUpdate: securityUpdate,
                                     latestVersion: projectDoc.releases[0].version
                                 });
                                 if (update) {
                                     console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' has new releases, updating');
                                 }
-                                else {
-                                    console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' has new status change, updating');
+                                else if (maintenanceStatusChange) {
+                                    console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' has maintenance status change, updating');
+                                }
+                                else if (developmentStatusChange) {
+                                    console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' has development status change, updating');
                                 }
                                 exports.createProject(projectDoc, function(error, result) {
                                     if (error) {
