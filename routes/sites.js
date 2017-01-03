@@ -31,12 +31,15 @@ router.post('/', function (req, res, next) {
             return res.status(500).send('Dewy failed to lookup API key.');
         }
         if (!result) {
+            if (config.debug) {
+                console.log('The API key is not valid.');
+            }
             return res.status(401).send("The API key is not valid. It may have been reset, please confirm on Dewy.io.");
         }
         req.body.uid = result;
 
         request({
-            uri: req.body.baseurl,
+            uri: req.body.baseurl + '/index.php',
             method: 'POST',
             body: 'token=' + req.body.token,
             rejectUnauthorized: false,
@@ -49,12 +52,21 @@ router.post('/', function (req, res, next) {
             // Test if site is set to be enabled, check if it can be reached on the internet
             if (req.body.enabled == 1) {
                 if (error) {
+                    if (config.debug) {
+                        console.log('Dewy cannot reach ' + req.body.baseurl + ': ' + error);
+                    }
                     return res.status(500).send('Dewy cannot reach ' + req.body.baseurl + ': ' + error);
                 }
                 else if (response.statusCode == 403) {
+                    if (config.debug) {
+                        console.log('Dewy is not permitted to communicate to ' + req.body.baseurl);
+                    }
                     return res.status(403).send('Dewy is not permitted to communicate to ' + req.body.baseurl + '. Is this site behind a proxy? Please edit your site\'s settings.php file and follow the steps to configure reverse proxy servers.');
                 }
                 else if (response.statusCode != 200) {
+                    if (config.debug) {
+                        console.log('Dewy cannot reach ' + req.body.baseurl + ': ' + response.statusCode);
+                    }
                     return res.status(response.statusCode).send('Dewy cannot reach ' + req.body.baseurl);
                 }
             }
