@@ -93,7 +93,6 @@ exports.get = function(uid, fid, user, callback) {
         else {
             userData.l = 0;
         }
-        console.log(userData);
         callback(null, userData);
     });
 }
