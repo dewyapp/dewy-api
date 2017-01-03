@@ -264,7 +264,7 @@ exports.getRelease = function(projectName, core, updatedProjects, callback) {
                                     project: projectDoc.project,
                                     core: projectDoc.core,
                                     maintenanceStatus: projectDoc.maintenanceStatus,
-                                    developmentStatus:projectDoc.developmentStatus,
+                                    developmentStatus: projectDoc.developmentStatus,
                                     maintenanceStatusChange: maintenanceStatusChange,
                                     developmentStatusChange: developmentStatusChange,
                                     update: update,
@@ -274,10 +274,10 @@ exports.getRelease = function(projectName, core, updatedProjects, callback) {
                                 if (update) {
                                     console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' has new releases, updating');
                                 }
-                                else if (maintenanceStatusChange) {
+                                if (maintenanceStatusChange) {
                                     console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' has maintenance status change, updating');
                                 }
-                                else if (developmentStatusChange) {
+                                if (developmentStatusChange) {
                                     console.log('Project ' + projectDoc.project + '-' + projectDoc.core + ' has development status change, updating');
                                 }
                                 exports.createProject(projectDoc, function(error, result) {
