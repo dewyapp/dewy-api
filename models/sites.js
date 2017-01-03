@@ -581,19 +581,19 @@ exports.processDoc = function(siteDoc, callback) {
             function(error) {
                 // Process any new projects and determine if they have updates and record to siteDoc
                 for (var i in undocumentedProjectsNowDocumented) {
-                    var projectDoc = result['project::' + i + '-' + core].value;
+                    var projectDoc = undocumentedProjectsNowDocumented[i].projectDoc;
                     if (projectDoc.maintenanceStatus == 'Unsupported') {
-                        projectsThatAreUnsupported.push(undocumentedProjectsNowDocumented[i].projectDoc.project);
+                        projectsThatAreUnsupported.push(projectDoc.project);
                     }
                     if (projectDoc.developmentStatus == 'Obsolete') {
-                        projectsThatAreObsolete.push(undocumentedProjectsNowDocumented[i].projectDoc.project);
+                        projectsThatAreObsolete.push(projectDoc.project);
                     }
                     var updateResult = modules.checkVersionForUpdate(undocumentedProjectsNowDocumented[i].projectDoc, undocumentedProjectsNowDocumented[i].version);
                     if (updateResult.update) {
-                        projectsWithUpdates.push(undocumentedProjectsNowDocumented[i].projectDoc.project);
+                        projectsWithUpdates.push(projectDoc.project);
                     }
                     if (updateResult.securityUpdate) {
-                        projectsWithSecurityUpdates.push(undocumentedProjectsNowDocumented[i].projectDoc.project);
+                        projectsWithSecurityUpdates.push(projectDoc.project);
                     }
                 }
 
