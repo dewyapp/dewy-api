@@ -390,6 +390,42 @@ exports.deleteFakeSites = function(uid, callback) {
     });
 }
 
+exports.deleteSites = function(uid, callback) {
+    User.get(uid, function(error, result) {
+        if (error) {
+            callback(error);
+        }
+        else {
+            query = couchbase.ViewQuery.from('sites', 'by_uid')
+                .key([uid,null]);
+            db.query(query, function(error, result) {
+                if (error) {
+                    return callback(error, null);
+                }
+                async.each(result,
+                    function(row, callback) {
+                        var sid = row.value;
+                        sites.delete(sid, function(error, result) {
+                            if (error) {
+                                console.log('Failed to delete site ' + sid);
+                                return callback(error, null);
+                            }
+                            console.log('Deleted site ' + sid);
+                            callback();
+                        });
+                    },
+                    function(error) {
+                        if (error) {
+                            return callback(error);
+                        }
+                        callback(null, 'Site deletion finished');
+                    }
+                );
+            });
+        }
+    });
+}
+
 exports.getSiteDoc = function(sid, callback) {
     sites.get(sid, function (error, result) {
         if (error) {

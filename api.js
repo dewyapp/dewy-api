@@ -127,6 +127,21 @@ if (process.argv[2]) {
         });
 
     program
+        .command('delete-sites <uid>')
+        .description('Delete sites on a user account')
+        .action(function (uid) {
+            admin.deleteSites(uid, function(error, result) {
+                if (error) {
+                    console.log(error);
+                    process.exit(1);
+                } else {
+                    console.log(result);
+                    process.exit(0);
+                }
+            });
+        });
+
+    program
         .command('flush-releases')
         .description('Removes all Drupal.org release data')
         .action(function () {
