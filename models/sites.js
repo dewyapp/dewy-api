@@ -125,14 +125,15 @@ exports.audit = function(sid, results, callback) {
                                     return callback();
                                 }
                                 // Save site with a successful audit
+                                var siteDoc = result;
                                 siteDoc.audit.lastSuccessfulAudit = date;
                                 siteDoc.audit.errors = [];
-                                lastSuccessfulContentAuditPriorToThisOne = siteDoc.audit.lastSuccessfulContentAudit;
-                                lastSuccessfulContentData = siteDoc.raw;
+                                var lastSuccessfulContentAuditPriorToThisOne = siteDoc.audit.lastSuccessfulContentAudit;
+                                var lastSuccessfulContentData = siteDoc.raw;
                                 if (contentAuditSuccessful) {
                                     siteDoc.audit.lastSuccessfulContentAudit = date;
                                 }
-                                exports.update(result, function(error, result) {
+                                exports.update(siteDoc, function(error, result) {
                                     if (error) {
                                         // If the document is now too large to store with content
                                         // then we have to remove it and save again.
@@ -143,7 +144,7 @@ exports.audit = function(sid, results, callback) {
                                             // Revert date of last successful content audit
                                             siteDoc.audit.lastSuccessfulContentAudit = lastSuccessfulContentAuditPriorToThisOne;
                                             siteDoc.raw = lastSuccessfulContentData;
-                                            exports.update(result, function(error, result) {
+                                            exports.update(siteDoc, function(error, result) {
                                                 if (error) {
                                                     results.push({ sid: siteDoc.sid, error: error });
                                                 }
