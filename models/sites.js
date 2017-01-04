@@ -140,6 +140,9 @@ exports.audit = function(sid, results, callback) {
                                         // with content handling, it would be best to pursue
                                         // a better solution for big data.
                                         if (error.code == '4') {
+                                            if (config.debug) {
+                                                console.log('Content audit for ' + siteDoc.sid + ' too large to be saved');
+                                            }
                                             // Revert date of last successful content audit
                                             siteDoc.audit.lastSuccessfulContentAudit = lastSuccessfulContentAuditPriorToThisOne;
                                             // Clear content audit results
@@ -153,9 +156,12 @@ exports.audit = function(sid, results, callback) {
                                         }
                                         else {
                                             results.push({ sid: siteDoc.sid, error: error });
+                                            return callback();
                                         }
                                     }
-                                    return callback();
+                                    else {
+                                        return callback();
+                                    }
                                 });
                             });
                         }
