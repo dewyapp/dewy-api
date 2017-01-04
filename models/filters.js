@@ -579,10 +579,10 @@ exports.delete = function(uid, fid, callback) {
                         return;
                     }
                     db.remove('filterHistory::' + fid, function(error, result) {
-                        if (error) {
-                            callback(error, null);
-                            return;
-                        }
+                        // if (error) {
+                        //     callback(error, null);
+                        //     return;
+                        // }
                         callback(null, result);
                     });
                 });
