@@ -75,6 +75,8 @@ exports.get = function(uid, fid, module, callback) {
                 moduleData.v[version] = moduleResult.baseurls;
             }
             moduleData.p = moduleResult.project;
+            var major = version.split('.');
+            moduleData.c = major[0] + '.x';
             moduleData.a = moduleData.a.concat(moduleResult.baseurls);
             if (moduleResult.enabled) {
                 moduleData.e = moduleData.e.concat(moduleResult.baseurls);
