@@ -127,12 +127,32 @@ exports.audit = function(sid, results, callback) {
                                 // Save site with a successful audit
                                 siteDoc.audit.lastSuccessfulAudit = date;
                                 siteDoc.audit.errors = [];
+                                lastSuccessfulContentAuditPriorToThisOne = siteDoc.audit.lastSuccessfulContentAudit;
+                                lastSuccessfulContentData = siteDoc.raw;
                                 if (contentAuditSuccessful) {
                                     siteDoc.audit.lastSuccessfulContentAudit = date;
                                 }
                                 exports.update(result, function(error, result) {
                                     if (error) {
-                                        results.push({ sid: siteDoc.sid, error: error });
+                                        // If the document is now too large to store with content
+                                        // then we have to remove it and save again.
+                                        // This is a flaw with my implementation. Should I do more
+                                        // with content handling, it would be best to pursue
+                                        // a better solution for big data.
+                                        if (error.code == '4') {
+                                            // Revert date of last successful content audit
+                                            siteDoc.audit.lastSuccessfulContentAudit = lastSuccessfulContentAuditPriorToThisOne;
+                                            siteDoc.raw = lastSuccessfulContentData;
+                                            exports.update(result, function(error, result) {
+                                                if (error) {
+                                                    results.push({ sid: siteDoc.sid, error: error });
+                                                }
+                                                return callback();
+                                            });
+                                        }
+                                        else {
+                                            results.push({ sid: siteDoc.sid, error: error });
+                                        }
                                     }
                                     return callback();
                                 });
