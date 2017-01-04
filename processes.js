@@ -196,7 +196,8 @@ exports.getReleases = function(callback) {
                                             // Send updates
                                             async.eachSeries(updates, function(update, callback) {
                                                 // If user has notification level that satisfies this project update, send email
-                                                if (user.notifications != 'none' && (update.type == 'securityUpdate' || user.notifications == 'all')) {
+                                                if ((user.notifications.version != 'none' && (update.type == 'securityUpdate' || user.notifications == 'all')) ||
+                                                    (user.notifications.status == 'all' && update.type == 'statusChange')) {
                                                     var detailsText = '';
                                                     var detailsHTML = '</font></p><table border="1" frame="hsides" rules="rows" bordercolor="#EEE" cellpadding="14" width="100%">';
                                                     for (siteWithProject in sitesWithProject) {

@@ -10,7 +10,7 @@ var swearjar = require('swearjar');
 var randomstring = require('randomstring');
 var config = require('../config');
 
-function User(email, username, password, gravatar, notifications, apikey, uid, verified, passwordRequested, lastNotified, created, startDate, endDate, type, stripeID, subscriptionID, cancelled) {
+function User(email, username, password, gravatar, versionNotification, statusNotification, apikey, uid, verified, passwordRequested, lastNotified, created, startDate, endDate, type, stripeID, subscriptionID, cancelled) {
     this.email = email || null;
     this.username = username || null;
     this.password = password || null;
@@ -20,7 +20,10 @@ function User(email, username, password, gravatar, notifications, apikey, uid, v
     else {
         this.gravatar = null;
     }
-    this.notifications = notifications || 'all';
+    this.notifications = {
+        version: versionNotification || 'all',
+        status: statusNotification || 'all'
+    }
     this.apikey = apikey || uuid.v4();
     this.uid = uid || uuid.v4();
     this.verified = verified || uuid.v4();
@@ -54,7 +57,8 @@ User.get = function(uid, callback) {
             result.value.username,
             result.value.password,
             result.value.gravatar,
-            result.value.notifications,
+            result.value.notifications.version,
+            result.value.notifications.status,
             result.value.apikey,
             result.value.uid,
             result.value.verified,
@@ -156,7 +160,10 @@ User.prototype.getUserDoc = function(safe) {
             email: this.email,
             username: this.username,
             gravatar: this.gravatar,
-            notifications: this.notifications,
+            notifications: {
+                version: this.notifications.version,
+                status: this.notifications.status
+            },
             apikey: this.apikey,
             uid: this.uid,
             verified: verified,
@@ -178,7 +185,10 @@ User.prototype.getUserDoc = function(safe) {
             username: this.username,
             password: this.password,
             gravatar: this.gravatar,
-            notifications: this.notifications,
+            notifications: {
+                version: this.notifications.version,
+                status: this.notifications.status
+            },
             apikey: this.apikey,
             uid: this.uid,
             verified: this.verified,
@@ -216,7 +226,8 @@ User.prototype.setLastNotified = function() {
 
 User.prototype.setNotifications = function(notifications) {
     this.changes.push('notifications');
-    this.notifications = notifications;
+    this.notifications.version = notifications.version;
+    this.notifications.status = notifications.status;
 }
 
 User.prototype.setPassword = function(password) {
@@ -314,10 +325,11 @@ User.prototype.check = function(type, existingPassword, callback) {
     }
 
     function notificationsValidate(notifications, callback) {
-        if (notifications != 'all' || notifications != 'security' || notifications != 'none') {
-            return callback(null, 'A valid notifications option is required.');
+        if ((notifications.version == 'all' || notifications.version == 'security' || notifications.version == 'none') &&
+            (notifications.status == 'all' || notifications.status == 'none')) {
+            return callback();
         }
-        callback();
+        callback(null, 'A valid notifications option is required.');
     }
 
     function passwordValidate(password, callback) {
