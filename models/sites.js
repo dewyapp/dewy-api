@@ -129,7 +129,6 @@ exports.audit = function(sid, results, callback) {
                                 siteDoc.audit.lastSuccessfulAudit = date;
                                 siteDoc.audit.errors = [];
                                 var lastSuccessfulContentAuditPriorToThisOne = siteDoc.audit.lastSuccessfulContentAudit;
-                                var lastSuccessfulContentData = siteDoc.raw;
                                 if (contentAuditSuccessful) {
                                     siteDoc.audit.lastSuccessfulContentAudit = date;
                                 }
@@ -143,7 +142,8 @@ exports.audit = function(sid, results, callback) {
                                         if (error.code == '4') {
                                             // Revert date of last successful content audit
                                             siteDoc.audit.lastSuccessfulContentAudit = lastSuccessfulContentAuditPriorToThisOne;
-                                            siteDoc.raw = lastSuccessfulContentData;
+                                            // Clear content audit results
+                                            siteDoc.raw = "";
                                             exports.update(siteDoc, function(error, result) {
                                                 if (error) {
                                                     results.push({ sid: siteDoc.sid, error: error });
